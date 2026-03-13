@@ -1,0 +1,14 @@
+
+> crm-simon@0.0.0 build
+> tsc -b && vite build
+
+src/components/DealFormDialog.tsx(45,30): error TS2345: Argument of type '{ id: any; razon_social: any; }[]' is not assignable to parameter of type 'SetStateAction<Company[]>'.
+  Type '{ id: any; razon_social: any; }[]' is not assignable to type 'Company[]'.
+    Type '{ id: any; razon_social: any; }' is missing the following properties from type 'Company': rut, contact_name, contact_phone, contact_email, and 6 more.
+src/components/DealFormDialog.tsx(55,27): error TS2339: Property 'title' does not exist on type 'Deal'.
+src/components/ImportClientsDialog.tsx(12,54): error TS6133: 'X' is declared but its value is never read.
+src/components/layout/AppLayout.tsx(186,59): error TS2304: Cannot find name 'isActive'.
+src/components/SettingsDialog.tsx(29,19): error TS6133: 'error' is declared but its value is never read.
+src/pages/KanbanBoard.tsx(6,10): error TS6133: 'Building2' is declared but its value is never read.
+src/pages/KanbanBoard.tsx(6,32): error TS6133: 'CircleDollarSign' is declared but its value is never read.
+src/pages/KanbanBoard.tsx(6,50): error TS6133: 'CalendarDays' is declared but its value is never read.
