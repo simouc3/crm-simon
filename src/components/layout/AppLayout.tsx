@@ -1,6 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { LayoutDashboard, Users, Columns3, LogOut, Settings as SettingsIcon, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, Users, Columns3, LogOut, Settings as SettingsIcon, CalendarDays, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
@@ -41,7 +41,6 @@ export default function AppLayout() {
     fetchBranding()
     fetchUserRole()
 
-    // Suscripción en Tiempo Real para ajustes de marca
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -67,9 +66,13 @@ export default function AppLayout() {
   }, [user])
 
   const isAdmin = userRole === 'ADMIN'
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark')
+    }
+    return false
+  })
 
-  // Toggle Dark Mode
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark')
@@ -82,7 +85,7 @@ export default function AppLayout() {
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Pipeline', path: '/pipeline', icon: Columns3 },
     { name: 'Clientes', path: '/clients', icon: Users },
-    { name: 'Calendario', path: '/calendar', icon: CalendarDays },
+    { name: 'Agenda', path: '/calendar', icon: CalendarDays },
     ...(isAdmin ? [{ name: 'Usuarios', path: '/users', icon: Users }] : []),
   ]
 
@@ -91,7 +94,6 @@ export default function AppLayout() {
       {/* Sidebar Desktop - Estilo Glass Premium */}
       <aside className="w-[280px] bg-white dark:bg-slate-900 border-r border-border/40 dark:border-white/5 hidden md:flex flex-col relative z-20 shadow-[4px_0_24px_-10px_rgba(0,0,0,0.02)]">
         
-        {/* Company Branding Section */}
         <div className="p-8 pb-10">
           <div className="flex items-center gap-4 group cursor-pointer transition-all">
             <div className="w-12 h-12 rounded-2xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center overflow-hidden shrink-0 border border-white/20 transition-transform group-hover:scale-110 duration-500">
@@ -110,12 +112,11 @@ export default function AppLayout() {
           </div>
         </div>
 
-        {/* Navigation Section */}
         <nav className="px-4 space-y-1.5 flex-1 overflow-y-auto pt-4">
           <div className="px-4 mb-4">
             <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.25em] opacity-40">MENÚ PRINCIPAL</span>
           </div>
-          {navItems.slice(0, 4).map((item) => (
+          {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
@@ -133,9 +134,7 @@ export default function AppLayout() {
           ))}
         </nav>
         
-        {/* Footer Section - User & Settings */}
         <div className="p-4 mt-auto border-t border-border/40 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
-          {/* Perfil Clickable para Configuración */}
           <div 
             onClick={() => setShowSettings(true)}
             className="flex items-center gap-3 px-3 py-4 mb-4 cursor-pointer hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all group border border-transparent hover:border-slate-200 dark:hover:border-white/10"
@@ -154,41 +153,13 @@ export default function AppLayout() {
           </div>
 
           <div className="grid gap-2">
-            {/* Acceso Rápido a Equipo Comercial (Solo Admins) */}
-            {isAdmin && (
-              <Button 
-                variant="outline" 
-                className="w-full justify-start gap-3 rounded-xl border-primary/10 bg-primary/5 text-primary hover:bg-primary hover:text-white h-10 px-4 transition-all group mb-1 shadow-sm" 
-                onClick={() => {
-                  window.history.pushState({}, '', '/users');
-                  window.dispatchEvent(new PopStateEvent('popstate'));
-                }}
-              >
-                <Users className="h-4 w-4" />
-                <span className="text-[11px] font-black uppercase tracking-wider">Equipo Comercial</span>
-              </Button>
-            )}
-
             <Button 
               variant="outline" 
               className="w-full justify-start gap-3 rounded-xl border-border/40 hover:border-primary/40 hover:bg-primary/5 text-muted-foreground hover:text-primary h-10 px-4 transition-all group" 
               onClick={() => setIsDarkMode(!isDarkMode)}
             >
-              {isDarkMode ? (
-                <>
-                  <div className="h-4 w-4 rounded-full bg-yellow-400/20 flex items-center justify-center relative shadow-[0_0_8px_rgba(250,204,21,0.3)]">
-                    <div className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
-                  </div>
-                  <span className="text-[11px] font-bold tracking-tight">Modo Claro</span>
-                </>
-              ) : (
-                <>
-                  <div className="h-4 w-4 rounded-full border-2 border-slate-400/40 relative overflow-hidden flex items-center justify-center">
-                    <div className="absolute top-0 right-0 w-2 h-2 bg-slate-400/60 -mr-1 -mt-1 rounded-full" />
-                  </div>
-                  <span className="text-[11px] font-bold tracking-tight">Modo Oscuro</span>
-                </>
-              )}
+              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <span className="text-[11px] font-bold tracking-tight">{isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</span>
             </Button>
 
             <Button 
@@ -213,57 +184,77 @@ export default function AppLayout() {
       </aside>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC]">
-        {/* Mobile Header */}
-        <header className="h-16 border-b bg-white flex items-center px-6 justify-between md:hidden shadow-sm sticky top-0 z-30">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-slate-950">
+        {/* Mobile Header Premium */}
+        <header className="h-[72px] border-b border-border/40 dark:border-white/5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex items-center px-6 justify-between md:hidden sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-md overflow-hidden">
+            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 overflow-hidden shrink-0 border border-white/20">
                {branding.logo ? (
-                <img src={branding.logo} alt="Logo" className="w-full h-full object-contain p-0.5" />
+                <img src={branding.logo} alt="Logo" className="w-full h-full object-contain p-1" />
               ) : (
-                <span className="text-white font-black text-sm">{branding.name.charAt(0)}</span>
+                <span className="text-white font-black text-lg tracking-tighter">{branding.name.charAt(0)}</span>
               )}
             </div>
-            <div className="font-black text-foreground text-[15px] tracking-tight">{branding.name}</div>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black text-primary uppercase tracking-widest leading-none mb-0.5">CRM</span>
+              <div className="font-black text-foreground text-[16px] tracking-tight leading-none">{branding.name}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)} className="rounded-xl">
-              <SettingsIcon className="h-5 w-5 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setIsDarkMode(!isDarkMode)} 
+              className="rounded-2xl w-10 h-10 text-muted-foreground hover:text-primary hover:bg-primary/5 active:scale-95 transition-all"
+            >
+              {isDarkMode ? <Sun className="h-[20px] w-[20px]" /> : <Moon className="h-[20px] w-[20px]" />}
             </Button>
-            <Button variant="ghost" size="icon" onClick={signOut} className="rounded-xl">
-              <LogOut className="h-5 w-5 text-red-400" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowSettings(true)} 
+              className="rounded-2xl w-10 h-10 text-muted-foreground hover:text-primary hover:bg-primary/5 active:scale-95 transition-all"
+            >
+              <SettingsIcon className="h-[20px] w-[20px]" />
             </Button>
           </div>
         </header>
 
-        {/* Mobile Navigation Bar - Horizontal Tabs */}
-        <nav className="flex md:hidden border-b dark:border-white/5 bg-white dark:bg-slate-900 overflow-x-auto sticky top-16 z-20 px-4">
+        {/* Dynamic Outlet Content */}
+        <main className="flex-1 min-h-0 bg-[#F8FAFC] dark:bg-black/20 overflow-y-auto pb-24 md:pb-0 safe-top">
+          <Outlet context={{ isDarkMode }} />
+        </main>
+
+        {/* Mobile Bottom Navigation - Estilo iOS Premium */}
+        <nav className="fixed bottom-0 left-0 right-0 h-[calc(64px+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] md:hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-t border-border/40 dark:border-white/5 flex items-center justify-around px-4 z-40 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] dark:shadow-none">
           {navItems.map((item) => (
              <NavLink
                key={item.path}
                to={item.path}
                className={({ isActive }) =>
-                 `flex-1 flex flex-col items-center gap-1.5 py-3 transition-all border-b-2 text-[10px] font-black uppercase tracking-tighter min-w-[80px] ${
+                 `flex flex-col items-center gap-1.5 px-3 py-2 rounded-2xl transition-all duration-300 relative ${
                    isActive 
-                     ? 'border-primary text-primary bg-primary/5' 
-                     : 'border-transparent text-muted-foreground/60 dark:text-slate-400 hover:text-foreground'
+                     ? 'text-primary' 
+                     : 'text-muted-foreground/50 dark:text-slate-500'
                  }`
                }
              >
                {({ isActive }) => (
                  <>
-                   <item.icon className={`h-[18px] w-[18px] ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-                   {item.name}
+                   <div className={`transition-all duration-500 ${isActive ? 'scale-110 -translate-y-0.5' : 'scale-100'}`}>
+                    <item.icon className={`h-[22px] w-[22px] ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                   </div>
+                   <span className={`text-[10px] font-black uppercase tracking-tight transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+                    {item.name}
+                   </span>
+                   {isActive && (
+                     <div className="absolute -bottom-1 w-1 h-1 rounded-full bg-primary animate-pulse" />
+                   )}
                  </>
                )}
              </NavLink>
           ))}
         </nav>
-
-        {/* Dynamic Outlet Content */}
-        <main className="flex-1 min-h-0 bg-[#F8FAFC] dark:bg-slate-950 overflow-y-auto pb-20 md:pb-0">
-          <Outlet />
-        </main>
       </div>
 
       <SettingsDialog 

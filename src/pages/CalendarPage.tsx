@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
-import { ChevronLeft, ChevronRight, Plus, Clock, X, Info, Phone, Mail, MapPin, CheckCircle2, MessageSquare, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Phone, Mail, MapPin, Trash2, Calendar as CalendarIcon, List as ListIcon, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,7 +10,7 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [events, setEvents] = useState<any[]>([])
   const [companies, setCompanies] = useState<any[]>([])
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [activityNote, setActivityNote] = useState("")
   const [selectedCompany, setSelectedCompany] = useState("")
   const [activityType, setActivityType] = useState("LLAMADA")
@@ -19,8 +18,8 @@ export default function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<'GRID' | 'LIST'>('GRID')
 
-  // Calcular días del mes
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
@@ -47,6 +46,8 @@ export default function CalendarPage() {
   useEffect(() => {
     fetchEvents()
     fetchCompanies()
+    // Default select today
+    setSelectedDate(new Date())
   }, [currentDate])
 
   const fetchCompanies = async () => {
@@ -60,9 +61,7 @@ export default function CalendarPage() {
       .select('*, companies(*)')
       .order('scheduled_at')
     
-    if (data) {
-      setEvents(data)
-    }
+    if (data) setEvents(data)
   }
 
   const handleSaveActivity = async () => {
@@ -89,8 +88,6 @@ export default function CalendarPage() {
       setActivityNote("")
       setSelectedCompany("")
       fetchEvents()
-    } else {
-      alert("Error: " + error.message)
     }
   }
 
@@ -106,20 +103,12 @@ export default function CalendarPage() {
 
   const handleDeleteActivity = async (id: string) => {
     if (!confirm("¿Estás seguro de que deseas eliminar esta gestión?")) return
-    
     const { error } = await supabase.from('activities').delete().eq('id', id)
     if (!error) {
       setIsDetailOpen(false)
       setSelectedEvent(null)
       fetchEvents()
-    } else {
-      alert("Error al eliminar: " + error.message)
     }
-  }
-
-  const handleDayClick = (date: Date) => {
-    setSelectedDate(date);
-    setIsAddOpen(true);
   }
 
   const onDragEnd = async (result: any) => {
@@ -127,311 +116,338 @@ export default function CalendarPage() {
     const { draggableId, destination } = result
     const newDateStr = destination.droppableId
     
-    // Update in DB
     const { error } = await supabase
       .from('activities')
       .update({ scheduled_at: new Date(newDateStr).toISOString() })
       .eq('id', draggableId)
 
-    if (error) {
-      alert("Error al mover actividad: " + error.message)
-    }
+    if (error) alert("Error al mover actividad")
     fetchEvents()
   }
 
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
 
+  const selectedDateStr = selectedDate?.toISOString().split('T')[0]
+  const selectedDayEvents = events.filter(e => e.scheduled_at.startsWith(selectedDateStr || ''))
+
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-slate-950 animate-in fade-in duration-700">
-      {/* Calendar Header */}
-      <div className="shrink-0 p-8 border-b dark:border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h1 className="text-3xl font-black tracking-tighter text-foreground mb-1">Calendario Comercial</h1>
-          <p className="text-muted-foreground text-sm font-medium">Haz clic en un día para programar actividades.</p>
-        </div>
-        
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="flex bg-slate-50 dark:bg-slate-900 p-1 rounded-xl border border-slate-100 dark:border-white/5 items-center">
-            <Button variant="ghost" size="icon" onClick={prevMonth} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800">
-              <ChevronLeft size={18} />
-            </Button>
-            <div className="px-4 flex items-center justify-center min-w-[160px]">
-              <span className="text-sm font-black uppercase tracking-widest text-foreground">
-                {currentDate.toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
-              </span>
-            </div>
-            <Button variant="ghost" size="icon" onClick={nextMonth} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800">
-              <ChevronRight size={18} />
-            </Button>
+    <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-slate-950">
+      {/* Header Premium Mobile */}
+      <div className="shrink-0 p-6 md:p-10 border-b border-border/40 dark:border-white/5 bg-white dark:bg-slate-900">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between max-w-7xl mx-auto">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black tracking-tighter text-foreground leading-[1.1]">Agenda <span className="text-primary italic">Comercial</span></h1>
+            <p className="text-muted-foreground text-xs font-black uppercase tracking-widest opacity-60">Gestión de actividades y visitas</p>
           </div>
           
-          <Button onClick={() => handleDayClick(new Date())} className="gap-2 rounded-xl h-11 px-6 shadow-lg shadow-primary/20">
-            <Plus size={18} />
-            <span className="text-xs font-black uppercase tracking-widest">Nueva Actividad</span>
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+             <div className="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-2xl border border-border/40 flex items-center shadow-sm">
+                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-700">
+                  <ChevronLeft size={18} />
+                </Button>
+                <span className="px-4 text-[11px] font-black uppercase tracking-[0.1em] text-foreground min-w-[140px] text-center">
+                  {currentDate.toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
+                </span>
+                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-700">
+                  <ChevronRight size={18} />
+                </Button>
+             </div>
+             
+             <div className="bg-slate-50 dark:bg-slate-800 p-1 rounded-2xl border border-border/40 hidden sm:flex">
+               <Button 
+                variant={viewMode === 'GRID' ? 'secondary' : 'ghost'} 
+                size="sm" 
+                onClick={() => setViewMode('GRID')} 
+                className="rounded-xl h-9 px-3 gap-2"
+               >
+                 <CalendarIcon size={16} />
+                 <span className="text-[10px] font-black uppercase">Mes</span>
+               </Button>
+               <Button 
+                variant={viewMode === 'LIST' ? 'secondary' : 'ghost'} 
+                size="sm" 
+                onClick={() => setViewMode('LIST')} 
+                className="rounded-xl h-9 px-3 gap-2"
+               >
+                 <ListIcon size={16} />
+                 <span className="text-[10px] font-black uppercase">Lista</span>
+               </Button>
+             </div>
 
-          <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogContent className="sm:max-w-[500px] border-none bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
-              <div className="p-8">
-                <DialogHeader className="mb-6 text-center md:text-left">
-                  <DialogTitle className="text-2xl font-black tracking-tighter">Programar Actividad</DialogTitle>
-                  <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-2">
-                    {selectedDate?.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  </p>
-                </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Seleccionar Empresa</label>
-                      <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                        <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 font-bold">
-                          <SelectValue placeholder="Busca una empresa..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {companies.map(c => (
-                            <SelectItem key={c.id} value={c.id}>{c.razon_social}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo de Actividad</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { id: 'LLAMADA', icon: Phone, label: 'Llamada' },
-                          { id: 'VISITA', icon: MapPin, label: 'Visita' },
-                          { id: 'REUNION', icon: MessageSquare, label: 'Reunión' },
-                          { id: 'CORREO', icon: Mail, label: 'Correo' }
-                        ].map(t => (
-                          <button
-                            key={t.id}
-                            onClick={() => setActivityType(t.id)}
-                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                              activityType === t.id 
-                                ? 'bg-primary/10 border-primary text-primary' 
-                                : 'bg-slate-50 dark:bg-white/5 border-transparent text-muted-foreground hover:border-slate-200'
-                            }`}
-                          >
-                            <t.icon size={16} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">{t.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Notas / Detalles</label>
-                      <textarea 
-                        value={activityNote}
-                        onChange={(e) => setActivityNote(e.target.value)}
-                        placeholder="Escribe lo que esperas realizar..."
-                        className="w-full h-24 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 mt-8">
-                    <Button variant="outline" onClick={() => setIsAddOpen(false)} className="h-12 rounded-xl font-bold border-border/40">Cancelar</Button>
-                    <Button onClick={handleSaveActivity} disabled={loading} className="h-12 rounded-xl font-bold shadow-lg shadow-primary/20">
-                      {loading ? 'Guardando...' : 'Programar Gestión'}
-                    </Button>
-                  </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+             <Button onClick={() => setIsAddOpen(true)} className="gap-2 rounded-2xl h-11 px-6 shadow-lg shadow-primary/20 flex-1 md:flex-none">
+                <Plus size={18} />
+                <span className="text-xs font-black uppercase tracking-widest">Nueva</span>
+             </Button>
+          </div>
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="flex-1 overflow-visible p-4 pb-20">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="grid grid-cols-7 gap-px bg-slate-100 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none">
-            {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
-              <div key={day} className="bg-slate-50 dark:bg-slate-900/50 py-4 text-center border-b border-slate-100 dark:border-white/5">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">{day}</span>
-              </div>
-            ))}
-            
-            {days.map((day, i) => {
-              const dateStr = day.date.toISOString().split('T')[0]
-              const dayEvents = events.filter(e => e.scheduled_at.startsWith(dateStr))
-              
-              return (
-                <Droppable key={i} droppableId={dateStr}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      onClick={() => handleDayClick(day.date)}
-                      className={`min-h-[160px] bg-white dark:bg-slate-900 p-2 transition-all relative border-r border-b border-slate-50 dark:border-white/5 cursor-pointer group ${
-                        !day.isCurrentMonth ? 'bg-slate-50/[0.15] dark:bg-slate-900/20 text-muted-foreground/30' : 'text-foreground'
-                      } ${snapshot.isDraggingOver ? 'bg-primary/[0.03] dark:bg-primary/[0.05]' : 'hover:bg-slate-50/50 dark:hover:bg-white/[0.02]'}`}
-                    >
-                      <div className="flex justify-between items-start mb-3 px-1">
-                        <span className={`text-xs font-black p-1 transition-all ${
-                          day.date.toDateString() === new Date().toDateString() 
-                            ? 'h-7 w-7 bg-primary text-white rounded-lg flex items-center justify-center -mt-1 shadow-lg shadow-primary/40' 
-                            : 'opacity-40 group-hover:opacity-100'
-                        }`}>
-                          {day.date.getDate()}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-1.5 min-h-[80px]">
-                        {dayEvents.map((event, idx) => (
-                          <Draggable key={event.id} draggableId={event.id} index={idx}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); setIsDetailOpen(true); }}
-                                className={`bg-white dark:bg-slate-800 border border-border/40 dark:border-white/10 p-2 rounded-xl shadow-sm cursor-pointer group hover:border-primary/50 transition-all duration-300 ${event.completed ? 'opacity-50 grayscale' : ''}`}
-                              >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className={`w-1.5 h-1.5 rounded-full ${
-                                    event.completed ? 'bg-slate-400' : 
-                                    event.activity_type === 'VISITA' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
-                                    event.activity_type === 'LLAMADA' ? 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]' :
-                                    'bg-primary shadow-[0_0_8px_rgba(255,122,89,0.5)]'
-                                  }`} />
-                                  <span className={`text-[10px] font-black uppercase tracking-tight text-foreground truncate ${event.completed ? 'line-through' : ''}`}>
-                                    {event.companies?.razon_social || 'S/E'}
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between gap-1">
-                                  <div className="text-[8px] text-muted-foreground font-black truncate opacity-60 uppercase tracking-tighter">
-                                    {event.activity_type}
-                                  </div>
-                                  {event.completed && <CheckCircle2 size={8} className="text-emerald-500" />}
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                      </div>
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              )
-            })}
-          </div>
-        </DragDropContext>
+      {/* Main Content: Split View Mobile (Calendar + List) */}
+      <div className="flex-1 overflow-y-auto px-4 py-8 md:px-10 max-w-7xl mx-auto w-full space-y-8">
+        
+        {/* Calendar Mobile Optimized Grid */}
+        <section className="space-y-4">
+           <div className="flex items-center gap-2 mb-2 px-2">
+             <div className="w-1.5 h-4 bg-primary rounded-full" />
+             <h3 className="font-black text-[13px] uppercase tracking-widest text-muted-foreground opacity-60">Seleccionar Día</h3>
+           </div>
+           
+           <div className="grid grid-cols-7 gap-1 md:gap-2">
+              {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(day => (
+                <div key={day} className="h-8 flex items-center justify-center">
+                  <span className="text-[9px] font-black text-muted-foreground/40">{day}</span>
+                </div>
+              ))}
+              {days.map((day, i) => {
+                const isSelected = selectedDateStr === day.date.toISOString().split('T')[0]
+                const hasEvents = events.some(e => e.scheduled_at.startsWith(day.date.toISOString().split('T')[0]))
+                const isToday = day.date.toDateString() === new Date().toDateString()
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedDate(day.date)}
+                    className={`relative aspect-square flex flex-col items-center justify-center rounded-2xl transition-all border ${
+                      isSelected 
+                        ? 'bg-primary border-primary text-white shadow-lg shadow-primary/40 scale-105 z-10' 
+                        : isToday 
+                          ? 'bg-primary/10 border-primary/20 text-primary'
+                          : !day.isCurrentMonth
+                            ? 'opacity-20 border-transparent'
+                            : 'bg-white dark:bg-slate-900 border-border/40 hover:border-primary/40'
+                    }`}
+                  >
+                    <span className="text-xs font-black tracking-tighter">{day.date.getDate()}</span>
+                    {hasEvents && !isSelected && (
+                      <div className={`absolute bottom-2 w-1 h-1 rounded-full ${isToday ? 'bg-primary' : 'bg-primary/40'}`} />
+                    )}
+                  </button>
+                )
+              })}
+           </div>
+        </section>
+
+        {/* Selected Day Activities List */}
+        <section className="space-y-6">
+           <div className="flex items-center justify-between px-2">
+             <div className="flex items-center gap-2">
+               <div className="w-1.5 h-4 bg-primary rounded-full shadow-lg shadow-primary/20" />
+               <h3 className="font-black text-[18px] tracking-tight">{selectedDate?.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric' })}</h3>
+             </div>
+             <Badge className="bg-slate-100 dark:bg-slate-800 text-muted-foreground border-transparent px-3 py-1 text-[10px] font-black uppercase">
+               {selectedDayEvents.length} {selectedDayEvents.length === 1 ? 'Actividad' : 'Actividades'}
+             </Badge>
+           </div>
+
+           <div className="space-y-4">
+             {selectedDayEvents.length > 0 ? (
+               selectedDayEvents.map((event) => (
+                 <div 
+                   key={event.id}
+                   onClick={() => { setSelectedEvent(event); setIsDetailOpen(true); }}
+                   className={`group bg-white dark:bg-slate-900 border border-border/40 p-5 rounded-[28px] shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all duration-300 relative overflow-hidden ${event.completed ? 'opacity-60 grayscale-[0.5]' : ''}`}
+                 >
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
+                   
+                   <div className="flex items-start gap-4 h-full">
+                     <div className={`p-3 rounded-2xl shrink-0 transition-all ${
+                       event.completed ? 'bg-slate-100 dark:bg-slate-800' : 'bg-primary/10 group-hover:bg-primary/20'
+                     }`}>
+                       {event.activity_type === 'LLAMADA' ? <Phone className="h-5 w-5 text-primary" /> : 
+                        event.activity_type === 'VISITA' ? <MapPin className="h-5 w-5 text-emerald-500" /> :
+                        event.activity_type === 'CORREO' ? <Mail className="h-5 w-5 text-sky-500" /> :
+                        <MessageSquare className="h-5 w-5 text-primary" />}
+                     </div>
+                     
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center gap-2 mb-1">
+                         <span className="text-[10px] font-black text-primary uppercase tracking-widest">{event.activity_type}</span>
+                         {event.completed && (
+                           <Badge className="bg-emerald-500/10 text-emerald-600 border-none text-[8px] h-4 font-black">COMPLETADA</Badge>
+                         )}
+                       </div>
+                       <h4 className="font-black text-[17px] tracking-tight truncate mb-1 text-foreground dark:text-slate-100">
+                         {event.companies?.razon_social || 'Empresa sin nombre'}
+                       </h4>
+                       <p className="text-[12px] text-muted-foreground font-medium line-clamp-2 leading-relaxed opacity-80">
+                         {event.notes || 'Sin detalles registrados para esta gestión.'}
+                       </p>
+                     </div>
+                     
+                     <div className="flex flex-col items-end gap-2 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-red-50 text-muted-foreground/40 hover:text-red-500" onClick={(e) => { e.stopPropagation(); handleDeleteActivity(event.id); }}>
+                          <Trash2 size={16} />
+                        </Button>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/30 opacity-60 group-hover:translate-x-1 transition-transform" />
+                     </div>
+                   </div>
+                 </div>
+               ))
+             ) : (
+               <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 border border-dashed border-border/60 rounded-[32px] gap-4">
+                 <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                    <CalendarIcon className="h-8 w-8 text-muted-foreground/20" />
+                 </div>
+                 <div className="text-center">
+                   <p className="text-sm font-black text-foreground/80 uppercase tracking-widest leading-none mb-1">Todo Despejado</p>
+                   <p className="text-[11px] font-bold text-muted-foreground opacity-60">Para este día no hay gestiones aún.</p>
+                 </div>
+                 <Button variant="outline" size="sm" onClick={() => setIsAddOpen(true)} className="rounded-xl mt-2 font-black text-[9px] uppercase tracking-widest border-border/40">Programar Ahora</Button>
+               </div>
+             )}
+           </div>
+        </section>
       </div>
 
-      {/* Detail Dialog */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-[500px] border-none bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl">
-          {selectedEvent && (
-            <div className="animate-in slide-in-from-bottom-4 duration-500">
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-8">
-                  <div className="space-y-4 flex-1">
-                    <div className="flex items-center justify-between mr-4">
-                      <DialogTitle className="text-2xl font-black text-foreground tracking-tight leading-tight">
-                        {selectedEvent.companies?.razon_social || 'Gestión'}
-                      </DialogTitle>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleDeleteActivity(selectedEvent.id)}
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full h-10 w-10 transition-colors -mt-1"
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <Badge className="bg-primary/10 text-primary border-transparent h-5 text-[9px] font-black uppercase tracking-wider px-2">Gestión Comercial</Badge>
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">ID: {selectedEvent.id.slice(0, 8)}</span>
-                    </div>
+      {/* Add Dialog optimized for mobile */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent className="sm:max-w-[500px] border-none bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl safe-p-bottom">
+           <div className="p-8">
+              <DialogHeader className="mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                    <Plus className="text-white" size={20} />
                   </div>
-                  
-                  <button 
-                    onClick={() => setIsDetailOpen(false)}
-                    className="h-10 w-10 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex items-center justify-center text-muted-foreground hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
+                  <DialogTitle className="text-2xl font-black tracking-tighter">Nueva Gestión</DialogTitle>
+                </div>
+                <p className="text-muted-foreground text-[11px] font-black uppercase tracking-[0.15em] opacity-60">
+                  PROGRAMACIÓN PARA: {selectedDate?.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </p>
+              </DialogHeader>
+              
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Empresa Destino</label>
+                  <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                    <SelectTrigger className="h-12 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-border/40 font-bold px-4">
+                      <SelectValue placeholder="Selecciona Cliente..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.map(c => (
+                        <SelectItem key={c.id} value={c.id} className="font-bold py-3">{c.razon_social}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 mb-8">
-                  <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5">
-                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest block mb-1 opacity-50">TIPO</span>
-                    <span className="text-[11px] font-black text-foreground">{selectedEvent.activity_type || 'GESTIÓN'}</span>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Modalidad</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'LLAMADA', icon: Phone, label: 'Llamada' },
+                      { id: 'VISITA', icon: MapPin, label: 'Visita' },
+                      { id: 'REUNION', icon: MessageSquare, label: 'Reunión' },
+                      { id: 'CORREO', icon: Mail, label: 'Correo' }
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => setActivityType(t.id)}
+                        className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
+                          activityType === t.id 
+                            ? 'bg-primary/10 border-primary text-primary shadow-sm' 
+                            : 'bg-white dark:bg-slate-800/40 border-transparent text-muted-foreground hover:border-slate-200'
+                        }`}
+                      >
+                        <t.icon size={18} className={activityType === t.id ? 'opacity-100' : 'opacity-40'} />
+                        <span className="text-[11px] font-black uppercase tracking-widest">{t.label}</span>
+                      </button>
+                    ))}
                   </div>
-                  <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5">
-                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest block mb-1 opacity-50">COMUNA</span>
-                    <span className="text-[11px] font-black text-foreground truncate block">{selectedEvent.companies?.comuna?.replace(/_/g, ' ') || '---'}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Notas Estratégicas</label>
+                  <textarea 
+                    value={activityNote}
+                    onChange={(e) => setActivityNote(e.target.value)}
+                    placeholder="Objetivo de la gestión..."
+                    className="w-full h-28 p-5 rounded-[2rem] bg-slate-50 dark:bg-slate-800/50 border border-border/40 text-sm font-medium focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 mt-10">
+                <Button onClick={handleSaveActivity} disabled={loading || !selectedCompany} className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20">
+                  {loading ? 'Sincronizando...' : 'Confirmar Gestión'}
+                </Button>
+                <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="h-12 rounded-2xl font-black text-[10px] uppercase text-muted-foreground opacity-60">Volver</Button>
+              </div>
+           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail Dialog optimized for mobile */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="sm:max-w-[500px] border-none bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl safe-p-bottom">
+          {selectedEvent && (
+            <div className="animate-in slide-in-from-bottom-6 duration-500">
+              <div className="h-24 bg-primary relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/10" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/20 rounded-full blur-3xl" />
+                <div className="absolute top-4 right-6 uppercase text-[9px] font-black text-white/60 tracking-widest">Agenda Comercial</div>
+              </div>
+              
+              <div className="p-8 -mt-12 bg-white dark:bg-slate-900 rounded-t-[3rem] relative z-10">
+                <div className="flex items-start justify-between mb-8">
+                  <div className="space-y-4 flex-1">
+                    <div className="p-3 rounded-2xl bg-white dark:bg-slate-800 shadow-xl shadow-black/5 inline-flex mb-2 border border-border/20">
+                      {selectedEvent.activity_type === 'LLAMADA' ? <Phone className="h-6 w-6 text-primary" /> : 
+                       selectedEvent.activity_type === 'VISITA' ? <MapPin className="h-6 w-6 text-emerald-500" /> :
+                       <MessageSquare className="h-6 w-6 text-sky-500" />}
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-black text-foreground tracking-tighter leading-none mb-2">
+                        {selectedEvent.companies?.razon_social || 'Gestión'}
+                      </h2>
+                      <div className="flex items-center gap-3">
+                        <Badge className={`${selectedEvent.completed ? 'bg-emerald-500' : 'bg-primary'} text-white border-none h-5 text-[9px] font-black uppercase tracking-widest px-2`}>
+                          {selectedEvent.completed ? 'Realizada' : 'Acción Pendiente'}
+                        </Badge>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase opacity-40 tabular-nums">ID: {selectedEvent.id.slice(0, 8)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-100 dark:border-white/5">
-                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest block mb-1 opacity-50">CONTACTO</span>
-                    <span className="text-[11px] font-black text-foreground truncate block">{selectedEvent.companies?.contact_phone || '---'}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-3xl border border-border/10">
+                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1 opacity-40">COMUNA</span>
+                    <span className="text-[13px] font-black text-foreground truncate block">{selectedEvent.companies?.comuna?.replace(/_/g, ' ') || 'Zonas Varias'}</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-3xl border border-border/10">
+                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest block mb-1 opacity-40">MODALIDAD</span>
+                    <span className="text-[13px] font-black text-foreground truncate block">{selectedEvent.activity_type || 'GESTIÓN'}</span>
                   </div>
                 </div>
 
                 <div className="space-y-3 mb-8">
-                  <div className="flex items-center justify-between ml-1">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Detalles de la Gestión</label>
-                    <Badge variant="outline" className={`h-5 text-[8px] font-black uppercase tracking-widest ${selectedEvent.completed ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
-                      {selectedEvent.completed ? 'Realizada' : 'Pendiente'}
-                    </Badge>
-                  </div>
-                  <div className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[2rem] p-6 min-h-[140px] relative overflow-hidden group shadow-inner">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                      {selectedEvent.activity_type === 'LLAMADA' ? <Phone size={40} className="text-sky-500" /> : <Clock size={40} className="text-primary" />}
-                    </div>
-                    <p className={`text-sm font-medium text-foreground leading-relaxed relative z-10 ${selectedEvent.completed ? 'line-through opacity-60' : ''}`}>
-                      {selectedEvent.notes || "No hay notas adicionales para esta actividad."}
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 opacity-60">Notas de la Gestión</label>
+                  <div className="w-full bg-slate-50 dark:bg-slate-800/20 border border-border/40 rounded-[2.5rem] p-6 min-h-[140px] shadow-inner">
+                    <p className={`text-[15px] font-medium text-foreground/90 leading-relaxed ${selectedEvent.completed ? 'line-through opacity-40' : ''}`}>
+                      {selectedEvent.notes || "Sin instrucciones específicas para este día."}
                     </p>
                   </div>
-                </div>
-
-                {/* Acciones Rápidas */}
-                <div className="grid grid-cols-2 gap-3 mb-8">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                        const q = `${selectedEvent.companies?.direccion || ''} ${selectedEvent.companies?.comuna || ''} Chile`;
-                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`, '_blank');
-                    }}
-                    className="h-12 rounded-xl flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest border-border/40"
-                  >
-                    <MapPin size={16} className="text-primary" />
-                    Ubicación
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => window.open(`tel:${selectedEvent.companies?.contact_phone}`, '_blank')}
-                    className="h-12 rounded-xl flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-widest border-border/40"
-                  >
-                    <Phone size={16} className="text-emerald-500" />
-                    Llamar
-                  </Button>
                 </div>
 
                 <div className="flex gap-4">
                   <Button 
                     onClick={() => toggleComplete(selectedEvent.id, selectedEvent.completed)}
-                    className={`flex-1 h-14 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl transition-all ${
+                    className={`flex-1 h-16 rounded-3xl font-black uppercase text-xs tracking-widest transition-all duration-500 ${
                         selectedEvent.completed 
-                        ? 'bg-slate-100 text-slate-500 hover:bg-slate-200' 
-                        : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-500/20'
+                        ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-white/40' 
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-500/20 active:scale-95'
                     }`}
                   >
-                    {selectedEvent.completed ? 'Desmarcar Realizada' : 'Marcar como Realizada'}
+                    {selectedEvent.completed ? 'Re-activar Tarea' : 'Completar Ahora'}
                   </Button>
                   <Button 
-                    variant="outline" 
-                    onClick={() => {
-                        window.history.pushState({}, '', '/pipeline');
-                        window.dispatchEvent(new PopStateEvent('popstate'));
-                        setIsDetailOpen(false);
-                    }}
-                    className="h-14 px-6 rounded-2xl border-border/40 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleDeleteActivity(selectedEvent.id)}
+                    className="h-16 w-16 rounded-3xl bg-rose-50 dark:bg-rose-950/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-all duration-500"
                   >
-                    <Info size={20} className="text-muted-foreground" />
+                    <Trash2 size={24} />
                   </Button>
                 </div>
               </div>

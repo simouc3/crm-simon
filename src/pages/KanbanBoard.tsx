@@ -3,17 +3,18 @@ import { Badge } from '@/components/ui/badge'
 import { supabase } from '../lib/supabase/client'
 import { DealFormDialog } from '../components/DealFormDialog'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { Maximize2, GripVertical } from 'lucide-react'
+import { Maximize2, GripVertical, Building2, MapPin, TrendingUp, Filter, ChevronRight, Activity } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import { Button } from '@/components/ui/button'
 
 export const KANBAN_STAGES = [
   { id: 1, name: 'Prospección' },
-  { id: 2, name: 'Contacto Iniciado' },
-  { id: 3, name: 'Visita Agendada' },
-  { id: 4, name: 'Propuesta Enviada' },
+  { id: 2, name: 'Contacto' },
+  { id: 3, name: 'Visita' },
+  { id: 4, name: 'Propuesta' },
   { id: 5, name: 'Negociación' },
-  { id: 6, name: 'Cierre Ganado' },
-  { id: 7, name: 'Cierre Perdido' },
+  { id: 6, name: 'Ganado' },
+  { id: 7, name: 'Perdido' },
 ]
 
 const fmtCLP = (n: number) =>
@@ -23,6 +24,7 @@ export default function KanbanBoard() {
   const [deals, setDeals] = useState<any[]>([])
   const [selectedDeal, setSelectedDeal] = useState<any>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [activeStageId, setActiveStageId] = useState(1)
 
   const fetchDeals = async () => {
     const { data, error } = await supabase
@@ -36,20 +38,17 @@ export default function KanbanBoard() {
 
   const onDragEnd = async (result: any) => {
     const { destination, source, draggableId } = result
-
     if (!destination) return
     if (destination.droppableId === source.droppableId && destination.index === source.index) return
 
     const newStageId = parseInt(destination.droppableId)
     const dealId = draggableId
 
-    // Optimistic update
     const updatedDeals = deals.map(d => 
       d.id === dealId ? { ...d, stage: newStageId, stage_changed_at: new Date().toISOString() } : d
     )
     setDeals(updatedDeals)
 
-    // DB update
     const { error } = await supabase
       .from('deals')
       .update({ 
@@ -58,10 +57,7 @@ export default function KanbanBoard() {
       })
       .eq('id', dealId)
 
-    if (error) {
-      console.error('Error updating stage:', error)
-      fetchDeals() // Rollback on error
-    }
+    if (error) fetchDeals()
   }
 
   const openDeal = (deal: any) => {
@@ -73,133 +69,221 @@ export default function KanbanBoard() {
     .filter(d => d.stage === 6)
     .reduce((sum, d) => sum + (d.valor_neto || 0), 0)
 
+  const activeStageDeals = deals.filter(d => d.stage === activeStageId)
+  const activeStageValue = activeStageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
+
   return (
-    <div className="h-full flex flex-col bg-[#F6F8FA] dark:bg-slate-950">
-      {/* Header */}
-      <div className="shrink-0 px-8 py-6 bg-white dark:bg-slate-900 border-b dark:border-white/5 shadow-sm">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter text-foreground">Pipeline de Ventas</h1>
-            <div className="flex items-center gap-4 mt-1">
-              {totalGanado > 0 && (
-                <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded">
-                  {fmtCLP(totalGanado)} ganado este mes
-                </p>
-              )}
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                {deals.length} negocios totales
-              </p>
+    <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-slate-950">
+      {/* Header Premium */}
+      <div className="shrink-0 p-6 md:p-10 bg-white dark:bg-slate-900 border-b border-border/40 dark:border-white/5 mx-[-1.5rem] mt-[-1.5rem] md:mx-0 md:mt-0 shadow-sm md:shadow-none">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between max-w-7xl mx-auto">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">COMERCIAL</span>
+              <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Pipeline Progress</span>
             </div>
+            <h1 className="text-[32px] font-black tracking-tighter text-foreground leading-[1.1] md:text-4xl">
+              Flujo de <span className="text-primary italic">Negocios</span>
+            </h1>
           </div>
-          <DealFormDialog onDealCreated={fetchDeals} />
+          
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-border/40 gap-4">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Total Ganado</span>
+                <span className="text-[18px] font-black text-emerald-600 tabular-nums tracking-tighter">{fmtCLP(totalGanado)}</span>
+              </div>
+              <div className="w-px h-8 bg-border/40" />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-primary uppercase opacity-60">En Vuelo</span>
+                <span className="text-[18px] font-black text-foreground tabular-nums tracking-tighter">{deals.filter(d => d.stage < 6).length}</span>
+              </div>
+            </div>
+            <DealFormDialog onDealCreated={fetchDeals} />
+          </div>
         </div>
       </div>
 
-      {/* Pipeline Content Area - Full width with horizontal scroll */}
-      <div className="flex-1 overflow-x-auto pb-10 custom-scrollbar bg-[#F6F8FA] dark:bg-slate-950">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="inline-flex gap-4 items-start px-8 py-6 list-none min-h-full">
+      {/* Mobile Stage Selector (Carousel) */}
+      <div className="md:hidden shrink-0 bg-white dark:bg-slate-900 border-b border-border/40 sticky top-0 z-20 py-4 flex flex-col gap-4">
+         <div className="px-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+               <Activity className="h-4 w-4 text-primary" />
+               <span className="text-[11px] font-black text-foreground uppercase tracking-widest">Estado: {KANBAN_STAGES.find(s => s.id === activeStageId)?.name}</span>
+            </div>
+            <span className="text-[11px] font-black bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full tabular-nums">{fmtCLP(activeStageValue)}</span>
+         </div>
+         
+         <div className="flex overflow-x-auto px-6 gap-2 no-scrollbar pb-1">
+            {KANBAN_STAGES.map(stage => {
+              const count = deals.filter(d => d.stage === stage.id).length
+              const isActive = activeStageId === stage.id
+              return (
+                <button
+                  key={stage.id}
+                  onClick={() => setActiveStageId(stage.id)}
+                  className={`shrink-0 h-10 px-4 rounded-2xl flex items-center gap-2 transition-all border ${
+                    isActive 
+                      ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-105' 
+                      : 'bg-slate-50 dark:bg-slate-800 border-border/40 text-muted-foreground'
+                  }`}
+                >
+                  <span className="text-[11px] font-black uppercase tracking-tight">{stage.name}</span>
+                  <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-lg ${isActive ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'}`}>{count}</span>
+                </button>
+              )
+            })}
+         </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-x-auto md:overflow-visible custom-scrollbar px-6 md:px-10 py-8 max-w-7xl mx-auto w-full">
+        
+        {/* Mobile Vertical List View */}
+        <div className="md:hidden space-y-4 pb-20">
+           {activeStageDeals.length > 0 ? (
+             activeStageDeals.map((deal) => (
+               <div 
+                 key={deal.id}
+                 onClick={() => openDeal(deal)}
+                 className="bg-white dark:bg-slate-900 border border-border/40 rounded-[32px] p-6 shadow-sm relative overflow-hidden group active:scale-95 transition-all duration-300"
+               >
+                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
+                 
+                 <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                       <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center border border-border/20 shadow-sm relative z-10">
+                          <Building2 className="h-6 w-6 text-primary/60" />
+                       </div>
+                       <div>
+                          <h3 className="font-black text-lg tracking-tighter text-foreground leading-tight">{deal.companies?.razon_social || 'Empresa'}</h3>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                             <MapPin className="h-3 w-3 text-emerald-500 opacity-40 shrink-0" />
+                             <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60 tracking-widest">{deal.companies?.comuna?.replace(/_/g, ' ') || 'Zonas Varias'}</span>
+                          </div>
+                       </div>
+                    </div>
+                    <div className="text-right">
+                       <div className="text-[16px] font-black text-primary tracking-tighter">{fmtCLP(deal.valor_neto || 0)}</div>
+                       <span className="text-[9px] font-black text-muted-foreground uppercase opacity-40 tracking-widest">Valor Neto</span>
+                    </div>
+                 </div>
+
+                 <div className="flex items-center gap-4 pt-4 border-t border-border/40">
+                    <div className="flex flex-col gap-0.5">
+                       <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Superficie</span>
+                       <span className="text-xs font-bold text-foreground">{deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')}m²` : '—'}</span>
+                    </div>
+                    <div className="w-px h-6 bg-border/40" />
+                    <div className="flex flex-col gap-0.5">
+                       <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Segmento</span>
+                       <span className="text-xs font-bold text-primary">{deal.companies?.segmento?.replace(/_/g, ' ') || 'Industrial'}</span>
+                    </div>
+                    <div className="ml-auto">
+                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-primary/5 text-primary">
+                          <ChevronRight className="h-5 w-5" />
+                       </Button>
+                    </div>
+                 </div>
+               </div>
+             ))
+           ) : (
+             <div className="flex flex-col items-center justify-center p-20 opacity-40 font-black uppercase text-xs tracking-[0.2em] text-center border-2 border-dashed border-border/40 rounded-[40px]">
+                Escenario Despejado en {KANBAN_STAGES.find(s => s.id === activeStageId)?.name}
+             </div>
+           )}
+        </div>
+
+        {/* Desktop Kanban View */}
+        <div className="hidden md:flex gap-6 items-start list-none min-h-[500px]">
+          <DragDropContext onDragEnd={onDragEnd}>
             {KANBAN_STAGES.map(stage => {
               const stageDeals = deals.filter(d => d.stage === stage.id)
               const stageValue = stageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
               
               return (
                 <div key={stage.id} className="flex flex-col w-[300px] shrink-0">
-                  {/* Column Header */}
-                  <div className="shrink-0 mb-4 px-1">
-                    <div className="flex items-center justify-between mb-1.5">
+                  <div className="shrink-0 mb-6 px-1">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${
-                          stage.id === 6 ? 'bg-emerald-500' :
-                          stage.id === 7 ? 'bg-red-500' :
-                          'bg-primary/40'
+                        <div className={`w-2 h-2 rounded-full shadow-lg ${
+                          stage.id === 6 ? 'bg-emerald-500 shadow-emerald-500/30' :
+                          stage.id === 7 ? 'bg-rose-500 shadow-rose-500/30' :
+                          'bg-primary/40 shadow-primary/20'
                         }`} />
-                        <h3 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/80 dark:text-slate-400">{stage.name}</h3>
+                        <h3 className="text-[12px] font-black uppercase tracking-widest text-foreground/80">{stage.name}</h3>
                       </div>
-                      <span className="text-[10px] font-bold text-muted-foreground opacity-60 bg-muted dark:bg-white/5 px-1.5 py-0.5 rounded">
+                      <span className="text-[11px] font-black tabular-nums bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-xl">
                         {stageDeals.length}
                       </span>
                     </div>
-                    <div className="text-xs font-black text-foreground/80 dark:text-slate-200 tracking-tight">
+                    <div className="text-sm font-black text-primary tabular-nums tracking-tighter opacity-80">
                       {fmtCLP(stageValue)}
                     </div>
                   </div>
 
-                  {/* Droppable Column Area */}
                   <Droppable droppableId={String(stage.id)}>
                     {(provided, snapshot) => (
                       <div
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        className={`flex flex-col gap-3 p-2 transition-colors duration-200 rounded-xl min-h-[500px] ${
-                          snapshot.isDraggingOver ? 'bg-primary/[0.03] ring-1 ring-primary/10' : 'bg-slate-50/50 dark:bg-white/[0.02]'
+                        className={`flex flex-col gap-4 p-3 transition-all duration-300 rounded-[32px] min-h-[600px] border shadow-inner ${
+                          snapshot.isDraggingOver ? 'bg-primary/[0.04] border-primary/20 shadow-primary/5' : 'bg-slate-50/50 dark:bg-white/[0.02] border-transparent'
                         }`}
                       >
-                        {stageDeals.map((deal, index) => {
-                          const isGanado = deal.stage === 6
-                          const isPerdido = deal.stage === 7
-                          const isVisitada = deal.stage === 3 && deal.visita_realizada
-
-                          return (
-                            <Draggable key={deal.id} draggableId={String(deal.id)} index={index}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  onClick={() => openDeal(deal)}
-                                  className={`bg-white dark:bg-slate-900 border border-border/40 dark:border-white/5 rounded-[1.25rem] p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-grab active:cursor-grabbing group mb-3 relative overflow-hidden
-                                    ${snapshot.isDragging ? 'ring-2 ring-primary ring-offset-2 scale-105 shadow-xl rotate-2' : ''}
-                                    ${isGanado ? 'border-emerald-500/20 bg-emerald-50/30 dark:bg-emerald-950/30' : ''}
-                                    ${isPerdido ? 'border-red-500/20 bg-red-50/30 dark:bg-red-950/30' : ''}
-                                  `}
-                                >
-                                  {/* Accent Stripe */}
-                                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                                    isGanado ? 'bg-emerald-500' :
-                                    isPerdido ? 'bg-red-500' :
-                                    'bg-primary/20 group-hover:bg-primary transition-colors'
-                                  }`} />
-
-                                  <div className="flex items-start justify-between mb-2">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-extrabold text-[13px] leading-tight text-foreground truncate">{deal.companies?.razon_social || 'Empresa'}</p>
-                                      <div className="flex flex-col gap-0.5 mt-1">
-                                        <p className="text-[10px] text-muted-foreground font-medium truncate">
+                        {stageDeals.map((deal, index) => (
+                          <Draggable key={deal.id} draggableId={String(deal.id)} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                onClick={() => openDeal(deal)}
+                                className={`bg-white dark:bg-slate-900 border border-border/40 dark:border-white/5 rounded-[24px] p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-grab active:cursor-grabbing group relative overflow-hidden
+                                  ${snapshot.isDragging ? 'ring-[3px] ring-primary/40 scale-105 shadow-2xl rotate-2 z-50' : ''}
+                                  ${deal.stage === 6 ? 'border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-950/20' : ''}
+                                  ${deal.stage === 7 ? 'border-rose-500/30 bg-rose-50/30 dark:bg-rose-950/20' : ''}
+                                `}
+                              >
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-primary/10 transition-colors" />
+                                
+                                <div className="flex items-start justify-between mb-4">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-black text-[15px] leading-tight text-foreground group-hover:text-primary transition-colors truncate">{deal.companies?.razon_social || 'Empresa'}</p>
+                                    <div className="flex flex-col gap-1 mt-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <MapPin className="h-3 w-3 text-emerald-500 opacity-40 shrink-0" />
+                                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest truncate">
                                           {deal.companies?.comuna?.replace(/_/g, ' ') || 'UBICACIÓN N/A'}
-                                        </p>
-                                        {deal.companies?.segmento && (
-                                          <p className="text-[9px] text-primary/70 font-black uppercase tracking-widest">
-                                            {deal.companies.segmento.replace(/_/g, ' ')}
-                                          </p>
-                                        )}
+                                        </span>
                                       </div>
                                     </div>
-                                    <GripVertical className="h-3 w-3 text-muted-foreground/30" />
                                   </div>
+                                  <GripVertical className="h-4 w-4 text-muted-foreground/20 group-hover:text-primary/40 transition-colors" />
+                                </div>
 
-                                  <div className="flex flex-wrap gap-1 mb-4">
-                                    {isGanado && <Badge className="text-[8px] font-black px-1.5 h-4 bg-emerald-500 text-white border-0">GANADO</Badge>}
-                                    {isPerdido && <Badge className="text-[8px] font-black px-1.5 h-4 bg-red-500 text-white border-0">PERDIDO</Badge>}
-                                    {isVisitada && !isGanado && !isPerdido && <Badge className="text-[8px] font-black px-1.5 h-4 bg-blue-500 text-white border-0">VISITADO</Badge>}
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  <Badge className="text-[8px] font-black px-2 h-5 bg-primary/10 text-primary border-none tracking-widest uppercase">
+                                    {deal.companies?.segmento?.replace(/_/g, ' ') || 'Industrial'}
+                                  </Badge>
+                                  {deal.visita_realizada && <Badge className="text-[8px] font-black px-2 h-5 bg-emerald-500/10 text-emerald-600 border-none tracking-widest uppercase">Visitado</Badge>}
+                                </div>
+
+                                <div className="flex items-center justify-between pt-4 border-t border-border/40">
+                                  <div className="flex items-center gap-1.5 opacity-60">
+                                    <Maximize2 className="h-3 w-3 text-primary" />
+                                    <span className="text-[11px] font-black tabular-nums tracking-tighter">
+                                      {deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')}m²` : '—'}
+                                    </span>
                                   </div>
-
-                                  <div className="flex items-center justify-between pt-3 border-t border-border/10 dark:border-white/5">
-                                    <div className="flex items-center gap-1">
-                                      <Maximize2 className="h-2.5 w-2.5 text-muted-foreground/40" />
-                                      <span className="text-[10px] font-bold text-foreground/70 dark:text-slate-400">
-                                        {deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')}m²` : '—'}
-                                      </span>
-                                    </div>
-                                    <div className="text-[11px] font-black text-primary tracking-tighter">
-                                      {fmtCLP(deal.valor_neto || 0)}
-                                    </div>
+                                  <div className="text-[15px] font-black text-foreground tracking-tighter group-hover:text-primary transition-colors tabular-nums">
+                                    {fmtCLP(deal.valor_neto || 0)}
                                   </div>
                                 </div>
-                              )}
-                            </Draggable>
-                          )
-                        })}
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
                         {provided.placeholder}
                       </div>
                     )}
@@ -207,8 +291,8 @@ export default function KanbanBoard() {
                 </div>
               )
             })}
-          </div>
-        </DragDropContext>
+          </DragDropContext>
+        </div>
       </div>
 
       <DealDetailsDialog

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
+import { ArrowUpRight, TrendingUp, TrendingDown, Activity, DollarSign, Target, Briefcase } from "lucide-react"
 
 const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 const fmtNum = (n: number) => new Intl.NumberFormat('es-CL').format(n)
@@ -7,7 +8,7 @@ const fmtNum = (n: number) => new Intl.NumberFormat('es-CL').format(n)
 // ── Mini SVG Pie Chart ────────────────────────────────────────────────
 function PieChart({ data }: { data: { label: string; value: number; color: string }[] }) {
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="text-center text-muted-foreground text-xs py-6">Sin datos</div>
+  if (total === 0) return <div className="text-center text-muted-foreground text-xs py-10 font-medium font-sans">Sin datos disponibles</div>
 
   let cumAngle = -90
   const slices = data.map(d => {
@@ -23,34 +24,41 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
   }
 
   return (
-    <div className="flex gap-4 items-center bg-muted/20 p-4 rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-      <svg viewBox="0 0 100 100" className="w-32 h-32 shrink-0 drop-shadow-sm">
-        {total > 0 && slices.length === 1 ? (
-          <circle cx="50" cy="50" r="40" fill={slices[0].color} stroke="var(--background)" strokeWidth="1.5" />
-        ) : (
-          slices.map((s, i) => {
-            const start = polarToXY(s.startAngle, 40)
-            const end = polarToXY(s.endAngle, 40)
-            const largeArc = s.pct > 0.5 ? 1 : 0
-            return (
-              <path
-                key={i}
-                d={`M 50 50 L ${start.x} ${start.y} A 40 40 0 ${largeArc} 1 ${end.x} ${end.y} Z`}
-                fill={s.color}
-                stroke="var(--background)"
-                strokeWidth="1.5"
-              />
-            )
-          })
-        )}
-        <circle cx="50" cy="50" r="18" fill="var(--card)" />
-      </svg>
-      <div className="space-y-1.5 flex-1 min-w-0">
+    <div className="flex flex-col sm:flex-row gap-6 items-center bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-[24px] border border-border/40 shadow-sm">
+      <div className="relative w-36 h-36 shrink-0">
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl rotate-0 transition-transform duration-700 hover:rotate-6">
+          {total > 0 && slices.length === 1 ? (
+            <circle cx="50" cy="50" r="42" fill={slices[0].color} stroke="currentColor" className="text-white/10 dark:text-black/20" strokeWidth="0.5" />
+          ) : (
+            slices.map((s, i) => {
+              const start = polarToXY(s.startAngle, 42)
+              const end = polarToXY(s.endAngle, 42)
+              const largeArc = s.pct > 0.5 ? 1 : 0
+              return (
+                <path
+                  key={i}
+                  d={`M 50 50 L ${start.x} ${start.y} A 42 42 0 ${largeArc} 1 ${end.x} ${end.y} Z`}
+                  fill={s.color}
+                  stroke="currentColor"
+                  className="text-white/10 dark:text-black/20"
+                  strokeWidth="0.5"
+                />
+              )
+            })
+          )}
+          <circle cx="50" cy="50" r="22" fill="var(--card)" className="dark:fill-slate-900" />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className="text-[10px] font-black text-muted-foreground uppercase leading-none opacity-40">Total</span>
+          <span className="text-xs font-black text-foreground">{total}</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-2 flex-1 w-full">
         {slices.map((s, i) => (
-          <div key={i} className="flex items-center gap-2 text-xs">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: s.color }} />
-            <span className="truncate text-muted-foreground">{s.label}</span>
-            <span className="ml-auto font-semibold">{Math.round(s.pct * 100)}%</span>
+          <div key={i} className="flex items-center gap-3 text-xs p-1">
+            <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ background: s.color }} />
+            <span className="truncate text-muted-foreground font-bold tracking-tight">{s.label}</span>
+            <span className="ml-auto font-black tabular-nums bg-white dark:bg-slate-800 px-2 py-0.5 rounded-lg shadow-sm border border-border/20">{Math.round(s.pct * 100)}%</span>
           </div>
         ))}
       </div>
@@ -59,20 +67,20 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
 }
 
 // ── Mini Bar Chart ────────────────────────────────────────────────────
-function BarChart({ data, color = '#6366f1' }: { data: { label: string; value: number }[]; color?: string }) {
+function BarChart({ data, color = '#10b981' }: { data: { label: string; value: number }[]; color?: string }) {
   const max = Math.max(...data.map(d => d.value), 1)
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 w-full">
       {data.map((d, i) => (
-        <div key={i} className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground truncate max-w-[60%]">{d.label}</span>
-            <span className="font-semibold">{fmtCLP(d.value)}</span>
+        <div key={i} className="space-y-2 group">
+          <div className="flex justify-between items-end">
+            <span className="text-[11px] font-black text-muted-foreground uppercase tracking-tight truncate max-w-[60%] group-hover:text-primary transition-colors">{d.label}</span>
+            <span className="text-xs font-black tabular-nums dark:text-slate-200">{fmtCLP(d.value)}</span>
           </div>
-          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+          <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden shadow-inner border border-border/5">
             <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${(d.value / max) * 100}%`, background: color }}
+              className="h-full rounded-2xl transition-all duration-1000 ease-out shadow-lg"
+              style={{ width: `${(d.value / max) * 100}%`, background: `linear-gradient(90deg, ${color}dd, ${color})` }}
             />
           </div>
         </div>
@@ -81,31 +89,55 @@ function BarChart({ data, color = '#6366f1' }: { data: { label: string; value: n
   )
 }
 
-// ── KPI Card ──────────────────────────────────────────────────────────
-function KpiCard({ label, value, sub, color = '#6366f1', trend }: {
-  label: string; value: string; sub: string; color?: string; trend?: string
+// ── KPI Card Widget ───────────────────────────────────────────────────
+function KpiCard({ label, value, sub, icon: Icon, trend }: {
+  label: string; value: string; sub: string; icon: any; trend?: { val: string; up: boolean }
 }) {
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-6 flex flex-col gap-2 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.07)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:-translate-y-0.5 duration-300 group">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
+    <div className="group relative overflow-hidden rounded-[32px] border border-border/40 bg-white dark:bg-slate-900 p-6 flex flex-col gap-1 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] dark:shadow-none transition-all hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] active:scale-95 duration-500">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
+      
+      <div className="flex items-center justify-between mb-2">
+        <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-border/20 shadow-sm group-hover:bg-primary/10 group-hover:border-primary/20 transition-all duration-300">
+          <Icon className="h-5 w-5 text-primary" strokeWidth={2.5} />
+        </div>
+        {trend && (
+          <div className={`flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl shadow-sm border ${
+            trend.up ? 'text-emerald-600 bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800' : 'text-rose-600 bg-rose-50/50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-800'
+          }`}>
+            {trend.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {trend.val}
+          </div>
+        )}
       </div>
-      <div className="text-2xl font-black tracking-tighter text-foreground transition-colors" style={{ color: value === '$0' ? 'inherit' : color }}>{value}</div>
-      <div className="flex items-center justify-between mt-1">
-        <p className="text-[11px] text-muted-foreground/80 font-medium">{sub}</p>
-        {trend && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">{trend}</span>}
+      
+      <div className="flex flex-col">
+        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] opacity-60 leading-none mb-1.5">{label}</span>
+        <div className="text-2xl font-black tracking-tighter text-foreground transition-all duration-300 group-hover:text-primary">
+          {value}
+        </div>
+        <p className="text-[11px] text-muted-foreground/80 font-bold tracking-tight mt-1 truncate">
+          {sub}
+        </p>
       </div>
     </div>
   )
 }
 
-// ── Section Title ─────────────────────────────────────────────────────
+// ── Section Title Mobile ──────────────────────────────────────────────
 function SectionTitle({ title, sub }: { title: string; sub: string }) {
   return (
-    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/40">
-      <div>
-        <h2 className="font-extrabold text-lg tracking-tight text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
+    <div className="relative mb-6 pb-2">
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-6 bg-primary rounded-full shadow-lg shadow-primary/30" />
+          <h2 className="font-black text-[20px] tracking-tight text-foreground dark:text-slate-100 leading-tight">
+            {title}
+          </h2>
+        </div>
+        <p className="text-[12px] text-muted-foreground font-bold tracking-tight pl-3.5 opacity-70">
+          {sub}
+        </p>
       </div>
     </div>
   )
@@ -129,224 +161,213 @@ export default function Dashboard() {
   }, [])
 
   if (loading) return (
-    <div className="flex items-center justify-center min-h-[300px]">
-      <div className="text-muted-foreground animate-pulse text-sm">Cargando métricas...</div>
+    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+      <div className="relative flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-[3px] border-primary/20 border-t-primary shadow-sm" />
+        <div className="absolute font-black text-[10px] text-primary">CRM</div>
+      </div>
+      <p className="text-muted-foreground text-xs font-black uppercase tracking-widest animate-pulse">Sincronizando Métricas...</p>
     </div>
   )
 
-  // ── Data Calculations ────────────────────────────────────────────
   const ganados = deals.filter(d => d.stage === 6)
   const perdidos = deals.filter(d => d.stage === 7)
   const propuestas = deals.filter(d => d.stage === 4)
   const activos = deals.filter(d => d.stage >= 1 && d.stage <= 5)
 
-  // A. Métricas Financieras
   const mrr = ganados.reduce((s, d) => s + (d.valor_neto || 0), 0)
   const pipelineForecast = propuestas.reduce((s, d) => s + (d.valor_neto || 0), 0)
   const ticketPromedio = ganados.length > 0 ? mrr / ganados.length : 0
-
-  // B. Rendimiento Comercial
-  const totalCerrados = ganados.length + perdidos.length
-  const winRate = totalCerrados > 0 ? Math.round((ganados.length / totalCerrados) * 100) : 0
-
-  const cicloVentas = (() => {
-    const ciclos = ganados
-      .filter(d => d.created_at)
-      .map(d => {
-        const fechaCierre = d.stage_changed_at || d.updated_at
-        const dias = Math.floor((new Date(fechaCierre).getTime() - new Date(d.created_at).getTime()) / (1000 * 60 * 60 * 24))
-        return dias > 0 ? dias : 0
-      })
-    return ciclos.length > 0 ? Math.round(ciclos.reduce((a, b) => a + b, 0) / ciclos.length) : -1
-  })()
+  const winRate = (ganados.length + perdidos.length) > 0 ? Math.round((ganados.length / (ganados.length + perdidos.length)) * 100) : 0
 
   const motivosPerdida = (() => {
     const counts: Record<string, number> = {}
     perdidos.forEach(d => {
-      const m = d.motivo_perdida || 'No especificado'
+      const m = d.motivo_perdida || 'Otros'
       counts[m] = (counts[m] || 0) + 1
     })
-    const colors = ['#ef4444', '#f97316', '#eab308', '#8b5cf6', '#06b6d4', '#64748b']
+    const colors = ['#ef4444', '#f97316', '#f59e0b', '#dc2626', '#b91c1c']
     return Object.entries(counts).map(([label, value], i) => ({
       label, value, color: colors[i % colors.length]
-    })).sort((a, b) => b.value - a.value)
+    })).sort((a, b) => b.value - a.value).slice(0, 5)
   })()
 
-  // C. Estrategia y Logística
   const porIndustria = (() => {
     const map: Record<string, number> = {}
     ganados.forEach(d => {
-      const seg = d.companies?.segmento?.replace(/_/g, ' ') || 'Sin segmento'
+      const seg = d.companies?.segmento?.replace(/_/g, ' ') || 'Sin clasificar'
       map[seg] = (map[seg] || 0) + (d.valor_neto || 0)
     })
-    const colors = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444']
+    const colors = ['#10b981', '#6366f1', '#06b6d4', '#f59e0b', '#ec4899']
     return Object.entries(map).map(([label, value], i) => ({
       label, value, color: colors[i % colors.length]
-    })).sort((a, b) => b.value - a.value)
+    })).sort((a, b) => b.value - a.value).slice(0, 5)
   })()
 
   const porComuna = (() => {
     const map: Record<string, number> = {}
     ganados.forEach(d => {
-      const c = d.companies?.comuna?.replace(/_/g, ' ') || 'Sin comuna'
+      const c = d.companies?.comuna?.replace(/_/g, ' ') || 'Zonas Varias'
       map[c] = (map[c] || 0) + (d.valor_neto || 0)
     })
     return Object.entries(map).map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
+      .sort((a, b) => b.value - a.value).slice(0, 5)
   })()
 
-  const pipelineByStage = [
-    { label: 'Prospección', stage: 1, color: '#94a3b8' },
-    { label: 'Contacto Iniciado', stage: 2, color: '#60a5fa' },
-    { label: 'Visita Agendada', stage: 3, color: '#818cf8' },
-    { label: 'Propuesta Enviada', stage: 4, color: '#f59e0b' },
-    { label: 'Negociación', stage: 5, color: '#fb923c' },
-  ].map(s => ({
-    label: s.label,
-    stage: s.stage,
-    color: s.color,
-    count: deals.filter(d => d.stage === s.stage).length,
-    value: deals.filter(d => d.stage === s.stage).reduce((a, d) => a + (d.valor_neto || 0), 0)
-  }))
-
   return (
-    <div className="space-y-8 pb-8">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Dashboard Ejecutivo</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Vista administrador · Datos en tiempo real</p>
+    <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto">
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 mx-[-1.5rem] mt-[-1.5rem] p-6 md:mx-0 md:mt-0 md:p-0 border-b md:border-none border-border/40">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-black text-primary bg-primary/10 dark:bg-primary/20 px-2 py-0.5 rounded-lg tracking-wider">VERSION 2.0</span>
+            <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Control Central</span>
+          </div>
+          <h1 className="text-[32px] font-black tracking-tighter text-foreground leading-[1.1] md:text-4xl">
+            Resumen de <span className="text-primary italic">Ventas</span>
+          </h1>
         </div>
-        <div className="text-right text-xs text-muted-foreground">
-          <div className="font-semibold text-foreground">{fmtNum(deals.length)} negocios</div>
-          <div>en el pipeline</div>
+        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-3xl border border-border/40 shadow-sm md:w-auto">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Operaciones en Vuelo</span>
+            <span className="text-[20px] font-black text-foreground tabular-nums tracking-tighter">{fmtNum(deals.length)}</span>
+          </div>
+          <div className="w-px h-8 bg-border/40" />
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-primary uppercase opacity-60">Fuerza Comercial</span>
+            <span className="text-[10px] font-black text-foreground uppercase tracking-tight">Activa</span>
+          </div>
         </div>
       </div>
 
-      {/* ── A. MÉTRICAS FINANCIERAS ──────────────────────────────── */}
       <section>
-        <SectionTitle title="Métricas Financieras y de Proyección" sub="Contratos activos, forecast y ticket promedio" />
-        <div className="grid gap-5 grid-cols-1 sm:grid-cols-3">
+        <SectionTitle title="Ventas & Proyecciones" sub="Estado financiero de contratos y propuestas enviadas" />
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <KpiCard
-            label="MRR · Ingresos Cierres"
+            label="MRR · Facturación Neta"
             value={fmtCLP(mrr)}
-            sub={`${ganados.length} contratos cerrados ganados`}
-            color="#10b981"
+            sub={`${ganados.length} Contratos Firmados`}
+            icon={DollarSign}
+            trend={{ val: "+12.5%", up: true }}
           />
           <KpiCard
-            label="Pipeline Forecast"
+            label="Pipeline en Oferta"
             value={fmtCLP(pipelineForecast)}
-            sub={`${propuestas.length} propuestas enviadas activas`}
-            color="#6366f1"
+            sub={`${propuestas.length} Propuestas Activas`}
+            icon={Target}
           />
           <KpiCard
-            label="Ticket Promedio B2B"
+            label="Ticket Promedio"
             value={fmtCLP(ticketPromedio)}
-            sub={`Promedio por cierre ganado`}
-            color="#f59e0b"
+            sub="Medida por Cierre B2B"
+            icon={Briefcase}
           />
         </div>
 
-        {/* Pipeline por etapa */}
-        <div className="mt-6 rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
-          <h3 className="font-bold text-sm mb-4 flex items-center gap-2">
-            <span className="w-1.5 h-4 bg-primary rounded-full" />
-            Estado del Pipeline por Etapa
-          </h3>
-          <div className="space-y-3">
-            {pipelineByStage.map(s => (
-              <div key={s.stage} className="flex items-center gap-3">
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.color }} />
-                <span className="text-xs text-muted-foreground w-36 truncate">{s.label}</span>
-                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{
-                    width: `${activos.length > 0 ? (s.count / activos.length) * 100 : 0}%`,
-                    background: s.color
-                  }} />
-                </div>
-                <span className="text-xs font-semibold w-6 text-center">{s.count}</span>
-                <span className="text-xs text-muted-foreground w-28 text-right">{s.value > 0 ? fmtCLP(s.value) : '—'}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── B. RENDIMIENTO COMERCIAL ─────────────────────────────── */}
-      <section>
-        <SectionTitle title="Rendimiento Comercial (Ventas)" sub="Conversión, ciclo de ventas y análisis de pérdidas" />
-        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2">
-          <KpiCard
-            label="Win Rate (Tasa Conv.)"
-            value={`${winRate}%`}
-            sub={`${ganados.length} ganados / ${perdidos.length} perdidos de ${totalCerrados} cerrados`}
-            color={winRate >= 50 ? '#10b981' : winRate >= 30 ? '#f59e0b' : '#ef4444'}
-          />
-          <KpiCard
-            label="Ciclo de Ventas"
-            value={cicloVentas >= 0 ? `${cicloVentas} días` : '---'}
-            sub="Promedio primer contacto → cierre ganado"
-            color="#8b5cf6"
-          />
-        </div>
-
-        {/* Pie chart motivos de pérdida */}
-        <div className="mt-4 rounded-xl border bg-card p-4">
-          <h3 className="font-semibold text-sm mb-4">Motivos de Pérdida</h3>
-          {motivosPerdida.length > 0 ? (
-            <PieChart data={motivosPerdida} />
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground text-sm">Sin negocios perdidos registrados</p>
-              <p className="text-xs text-muted-foreground mt-1">Los motivos de pérdida se registran al mover un negocio a "Cierre Perdido"</p>
+        <div className="mt-8 rounded-[32px] border border-border/40 bg-white/50 dark:bg-slate-900/50 p-6 md:p-8 shadow-sm overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-2xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center">
+              <Activity className="h-5 w-5 text-white" />
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── C. ESTRATEGIA Y LOGÍSTICA ────────────────────────────── */}
-      <section>
-        <SectionTitle title="Estrategia y Logística" sub="Distribución por industria y concentración geográfica" />
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-          {/* Por industria */}
-          <div className="rounded-xl border bg-card p-4">
-            <h3 className="font-semibold text-sm mb-4">Distribución por Industria</h3>
-            {porIndustria.length > 0 ? (
-              <PieChart data={porIndustria} />
-            ) : (
-              <p className="text-xs text-muted-foreground text-center py-4">Sin datos de cierres ganados</p>
-            )}
+            <div>
+              <h3 className="font-black text-[17px] tracking-tight dark:text-slate-100 uppercase">Flujo Comercial</h3>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Pipeline Progress</p>
+            </div>
           </div>
-
-          {/* Por comuna */}
-          <div className="rounded-xl border bg-card p-4">
-            <h3 className="font-semibold text-sm mb-4">Concentración Geográfica (Ingresos)</h3>
-            {porComuna.length > 0 ? (
-              <BarChart data={porComuna} color="#6366f1" />
-            ) : (
-              <p className="text-xs text-muted-foreground text-center py-4">Sin datos de cierres ganados</p>
-            )}
-          </div>
-        </div>
-
-        {/* Tabla resumen final */}
-        <div className="mt-4 rounded-xl border bg-card p-4">
-          <h3 className="font-semibold text-sm mb-3">Resumen Ejecutivo</h3>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          
+          <div className="grid gap-6">
             {[
-              { label: 'Total Negocios', value: deals.length },
-              { label: 'Negocios Activos', value: activos.length },
-              { label: 'Cierres Ganados', value: ganados.length },
-              { label: 'Cierres Perdidos', value: perdidos.length },
-            ].map(item => (
-              <div key={item.label} className="text-center p-4 bg-muted/20 border border-border/40 rounded-2xl shadow-sm hover:shadow-md transition-all">
-                <div className="text-2xl font-black tracking-tighter text-foreground">{item.value}</div>
-                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{item.label}</div>
-              </div>
-            ))}
+              { label: 'Prospección inicial', stage: 1, c: '#94a3b8' },
+              { label: 'Contacto establecido', stage: 2, c: '#60a5fa' },
+              { label: 'Visita técnica', stage: 3, c: '#818cf8' },
+              { label: 'Propuesta emitida', stage: 4, c: '#f59e0b' },
+              { label: 'Cierre negociación', stage: 5, c: '#fb923c' },
+            ].map(s => {
+              const count = deals.filter(d => d.stage === s.stage).length
+              const val = deals.filter(d => d.stage === s.stage).reduce((a, d) => a + (d.valor_neto || 0), 0)
+              const pct = activos.length > 0 ? (count / activos.length) * 100 : 0
+              return (
+                <div key={s.stage} className="flex flex-col gap-2 group">
+                  <div className="flex justify-between items-end">
+                    <div className="flex items-center gap-2">
+                       <span className="font-black text-[13px] tracking-tight text-foreground/80 group-hover:text-primary transition-colors">{s.label}</span>
+                       <span className="text-[10px] font-bold text-muted-foreground opacity-40 tabular-nums">({count})</span>
+                    </div>
+                    <span className="text-[11px] font-black tabular-nums">{val > 0 ? fmtCLP(val) : '-'}</span>
+                  </div>
+                  <div className="h-[6px] w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: s.c }} />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
+
+      <section className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+        <div className="space-y-6">
+          <SectionTitle title="Eficiencia de Ventas" sub="Conversión y ciclo comercial" />
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+            <KpiCard
+              label="Win Rate Total"
+              value={`${winRate}%`}
+              sub="Tasa de Éxito Comercial"
+              icon={TrendingUp}
+              trend={{ val: "Estable", up: true }}
+            />
+            <div className="rounded-[32px] border border-border/40 bg-primary p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500" />
+              <span className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-2 block">Performance Total</span>
+              <div className="text-3xl font-black tracking-tighter leading-none mb-1">{winRate >= 50 ? 'Alta' : winRate > 0 ? 'Media' : 'Pendiente'}</div>
+              <p className="text-[11px] font-bold text-white/80 opacity-80 decoration-white/20 underline underline-offset-4 decoration-dashed">Potencial B2B Detectado</p>
+              <ArrowUpRight className="absolute bottom-4 right-4 text-white/40 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </div>
+          </div>
+          
+          <div className="rounded-[32px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+            <div className="p-6 border-b border-border/40 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Causas de Cierre Perdido</h3>
+              <span className="text-[9px] font-black bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded-lg border border-rose-500/20">ALERTA ROJA</span>
+            </div>
+            <div className="p-6">
+              {motivosPerdida.length > 0 ? <PieChart data={motivosPerdida} /> : <div className="text-center py-10 opacity-40">Sin métricas de pérdida</div>}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <SectionTitle title="Logística Industrial" sub="Mercado por segmento y zona" />
+          <div className="rounded-[32px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm flex-1 flex flex-col h-full">
+            <div className="p-6 border-b border-border/40 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Segmentos Clientes</h3>
+              <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-lg border border-primary/20">PULSO INDUSTRIAL</span>
+            </div>
+            <div className="p-6 flex-1">
+               {porIndustria.length > 0 ? <PieChart data={porIndustria} /> : <div className="text-center py-10 opacity-40 font-sans text-xs">Sin datos geográficos</div>}
+            </div>
+            <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 border-t border-border/40">
+              <h3 className="font-black text-[12px] text-foreground uppercase tracking-widest mb-6 opacity-60">Top Comunas (Facturación)</h3>
+              {porComuna.length > 0 ? <BarChart data={porComuna} /> : <div className="text-center py-4 opacity-40 font-sans text-xs">Sin datos</div>}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 pt-4">
+        {[
+          { label: 'Operación Total', value: deals.length, icon: Briefcase },
+          { label: 'Oportunidades', value: activos.length, icon: Target },
+          { label: 'Cierres GANADOS', value: ganados.length, icon: TrendingUp },
+          { label: 'Cierres PERDIDOS', value: perdidos.length, icon: TrendingDown },
+        ].map(item => (
+          <div key={item.label} className="flex flex-col items-center gap-2 p-5 bg-white dark:bg-slate-900 border border-border/40 rounded-[24px] shadow-sm hover:translate-y-[-4px] transition-all duration-500">
+            <item.icon className="h-4 w-4 text-primary opacity-40" />
+            <div className="text-2xl font-black tabular-nums tracking-tighter text-foreground">{item.value}</div>
+            <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-60 leading-none">{item.label}</div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
