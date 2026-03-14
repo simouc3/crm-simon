@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { supabase } from '../lib/supabase/client'
 import { DealFormDialog } from '../components/DealFormDialog'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { Maximize2, GripVertical, Building2, MapPin, TrendingUp, Filter, ChevronRight, Activity } from 'lucide-react'
+import { Maximize2, GripVertical, Building2, MapPin, ChevronRight, Activity } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import { Button } from '@/components/ui/button'
 

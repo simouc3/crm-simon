@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
-import { User, Shield, Mail, Search, Check, Trash2, Camera, ChevronRight, Star } from 'lucide-react'
+import { User, Shield, Mail, Search, Trash2, Camera, ChevronRight, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 

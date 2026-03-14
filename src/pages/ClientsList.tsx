@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Mail, Phone, MapPin, Building2, User, ChevronRight, Search } from "lucide-react"
+import { Pencil, Trash2, Mail, Phone, MapPin, Building2, User, Search } from "lucide-react"
 import { type Company } from "../types/database"
 import { ClientFormDialog } from "../components/ClientFormDialog"
 import { ImportClientsDialog } from "../components/ImportClientsDialog"

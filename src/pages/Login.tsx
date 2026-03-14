@@ -1,8 +1,6 @@
 import { supabase } from '../lib/supabase/client'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Shield, Sparkles, User, Mail, Lock, Building2 } from 'lucide-react'
 
 export default function Login() {

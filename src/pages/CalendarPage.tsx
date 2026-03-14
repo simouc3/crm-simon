@@ -111,19 +111,6 @@ export default function CalendarPage() {
     }
   }
 
-  const onDragEnd = async (result: any) => {
-    if (!result.destination) return
-    const { draggableId, destination } = result
-    const newDateStr = destination.droppableId
-    
-    const { error } = await supabase
-      .from('activities')
-      .update({ scheduled_at: new Date(newDateStr).toISOString() })
-      .eq('id', draggableId)
-
-    if (error) alert("Error al mover actividad")
-    fetchEvents()
-  }
 
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
