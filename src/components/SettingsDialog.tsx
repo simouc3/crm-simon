@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { supabase } from "../lib/supabase/client"
-import { Upload, Building2, User, Save } from "lucide-react"
+import { Upload, Building2, User, Save, Bell } from "lucide-react"
+import { checkNotificationPermission, subscribeToPush, unsubscribeFromPush } from "../lib/push-notifications"
 
 interface SettingsDialogProps {
   open: boolean
@@ -18,12 +20,32 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const [logoUrl, setLogoUrl] = useState("")
   const [userName, setUserName] = useState("")
   const [uploading, setUploading] = useState(false)
+  const [pushEnabled, setPushEnabled] = useState(false)
+  const [pushToggling, setPushToggling] = useState(false)
 
   useEffect(() => {
     if (open) {
       fetchSettings()
+      checkPushStatus()
     }
   }, [open])
+
+  const checkPushStatus = async () => {
+    const status = await checkNotificationPermission()
+    setPushEnabled(status === 'granted')
+  }
+
+  const handleTogglePush = async (checked: boolean) => {
+    setPushToggling(true)
+    if (checked) {
+      const success = await subscribeToPush()
+      setPushEnabled(success ?? false)
+    } else {
+      const success = await unsubscribeFromPush()
+      if (success) setPushEnabled(false)
+    }
+    setPushToggling(false)
+  }
 
   const fetchSettings = async () => {
     const { data } = await supabase
@@ -162,6 +184,28 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
                       placeholder="Tu nombre completo"
                       className="pl-10"
                     />
+                  </div>
+                </div>
+
+                {/* Ajuste de Notificaciones */}
+                <div className="mt-4 pt-6 border-t border-border/40">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Bell className="w-4 h-4 text-primary" />
+                         </div>
+                         <div className="flex flex-col">
+                           <span className="text-xs font-bold text-foreground">Notificaciones Push</span>
+                           <span className="text-[10px] text-muted-foreground">Alertas en tiempo real</span>
+                         </div>
+                      </div>
+                      <Switch 
+                        checked={pushEnabled}
+                        onCheckedChange={handleTogglePush}
+                        disabled={pushToggling}
+                      />
+                    </div>
                   </div>
                 </div>
 

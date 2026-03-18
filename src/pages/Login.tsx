@@ -68,7 +68,7 @@ export default function Login() {
               <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
                  <Building2 className="text-white h-7 w-7" />
               </div>
-              <span className="text-2xl font-black tracking-tighter text-white">Antigravity <span className="text-primary italic">CRM</span></span>
+              <span className="text-2xl font-black tracking-tighter text-white">Plataforma <span className="text-primary italic">B2B</span></span>
            </div>
 
            <div className="max-w-md space-y-6">
@@ -206,7 +206,7 @@ export default function Login() {
           </div>
 
           <div className="text-center">
-             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-30">Antigravity B2B Systems · 2024</p>
+             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-30">Plataforma B2B · 2024</p>
           </div>
         </div>
       </div>
