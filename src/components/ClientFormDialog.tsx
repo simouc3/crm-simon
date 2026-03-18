@@ -163,16 +163,16 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
             <h4 className="text-sm font-semibold select-none">Información Comercial</h4>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="razon_social" className="text-right text-xs">Razón Social</Label>
-              <Input id="razon_social" value={formData.razon_social} onChange={(e) => setFormData({...formData, razon_social: e.target.value})} className="col-span-3 h-8 text-sm" placeholder="Ej. Empresa S.A." />
+              <Input id="razon_social" value={formData.razon_social} onChange={(e) => setFormData({...formData, razon_social: e.target.value})} className="col-span-3" placeholder="Ej. Empresa S.A." />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="rut" className="text-right text-xs">RUT Empresa</Label>
-              <Input id="rut" value={formData.rut} onChange={(e) => setFormData({...formData, rut: formatRUT(e.target.value)})} className="col-span-3 h-8 text-sm" placeholder="77.777.777-K" maxLength={12} />
+              <Input id="rut" value={formData.rut} onChange={(e) => setFormData({...formData, rut: formatRUT(e.target.value)})} className="col-span-3" placeholder="77.777.777-K" maxLength={12} />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="segmento" className="text-right text-xs">Segmento</Label>
               <Select value={formData.segmento} onValueChange={(val) => setFormData({...formData, segmento: val})}>
-                <SelectTrigger className="col-span-3 h-8 text-sm">
+                <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -189,12 +189,12 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
             <h4 className="text-sm font-semibold select-none">Contacto Principal</h4>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="contacto" className="text-right text-xs">Nombre</Label>
-              <Input id="contacto" value={formData.contact_name} onChange={(e) => setFormData({...formData, contact_name: e.target.value})} className="col-span-3 h-8 text-sm" placeholder="Nombre completo" />
+              <Input id="contacto" value={formData.contact_name} onChange={(e) => setFormData({...formData, contact_name: e.target.value})} className="col-span-3" placeholder="Nombre completo" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="cargo" className="text-right text-xs">Cargo</Label>
               <Select value={formData.cargo} onValueChange={(val) => setFormData({...formData, cargo: val})}>
-                <SelectTrigger className="col-span-3 h-8 text-sm">
+                <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -208,11 +208,11 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="phone" className="text-right text-xs">Teléfono</Label>
-              <Input id="phone" value={formData.contact_phone} onChange={(e) => setFormData({...formData, contact_phone: e.target.value})} className="col-span-3 h-8 text-sm" placeholder="+569..." />
+              <Input id="phone" value={formData.contact_phone} onChange={(e) => setFormData({...formData, contact_phone: e.target.value})} className="col-span-3" placeholder="+569..." />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="email" className="text-right text-xs">Email</Label>
-              <Input id="email" type="email" value={formData.contact_email} onChange={(e) => setFormData({...formData, contact_email: e.target.value})} className="col-span-3 h-8 text-sm" placeholder="correo@empresa.cl" />
+              <Input id="email" type="email" value={formData.contact_email} onChange={(e) => setFormData({...formData, contact_email: e.target.value})} className="col-span-3" placeholder="correo@empresa.cl" />
             </div>
           </div>
 
@@ -221,7 +221,7 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="comuna" className="text-right text-xs">Comuna</Label>
               <Select value={formData.comuna} onValueChange={(val) => setFormData({...formData, comuna: val})}>
-                <SelectTrigger className="col-span-3 h-8 text-sm">
+                <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -239,18 +239,18 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
                 id="direccion" 
                 value={formData.direccion} 
                 onChange={(e) => setFormData({...formData, direccion: e.target.value})} 
-                className="col-span-3 h-8 text-sm" 
+                className="col-span-3" 
                 placeholder="Av. Los Carrera 1234, Puerto Montt" 
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="m2" className="text-right text-xs">Área Total (m2)</Label>
-              <Input id="m2" type="number" value={formData.m2_estimados} onChange={(e) => setFormData({...formData, m2_estimados: e.target.value})} className="col-span-3 h-8 text-sm" placeholder="1000" />
+              <Input id="m2" type="number" value={formData.m2_estimados} onChange={(e) => setFormData({...formData, m2_estimados: e.target.value})} className="col-span-3" placeholder="1000" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="pago" className="text-right text-xs">Cond. Pago</Label>
               <Select value={formData.condiciones_pago} onValueChange={(val) => setFormData({...formData, condiciones_pago: val})}>
-                <SelectTrigger className="col-span-3 h-8 text-sm">
+                <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent>

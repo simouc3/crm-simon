@@ -76,7 +76,7 @@ export default function ClientsList() {
             <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">DIRECTORIO</span>
             <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Clientes B2B</span>
           </div>
-          <h1 className="text-[32px] font-black tracking-tighter text-foreground leading-[1.1] md:text-4xl">
+          <h1 className="text-[32px] md:text-[40px] font-black tracking-tighter text-foreground leading-[1.1]">
             Gestión de <span className="text-primary italic">Empresas</span>
           </h1>
         </div>
@@ -94,7 +94,7 @@ export default function ClientsList() {
           placeholder="Buscar por nombre, RUT o contacto..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-14 pl-12 pr-6 rounded-[24px] bg-white dark:bg-slate-900 border border-border/40 shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold text-sm tracking-tight"
+          className="w-full h-14 pl-12 pr-6 rounded-full bg-white dark:bg-slate-900 border border-border/40 shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold text-sm tracking-tight"
         />
       </div>
       
@@ -106,13 +106,13 @@ export default function ClientsList() {
           <div className="text-center py-20 opacity-40 font-black text-sm">No se encontraron clientes</div>
         ) : (
           filteredClients.map((client) => (
-            <div key={client.id} className="bg-white dark:bg-slate-900 border border-border/40 rounded-[32px] p-6 shadow-sm relative overflow-hidden group active:scale-95 transition-all duration-300">
-               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
+            <div key={client.id} className="bg-white dark:bg-slate-900 border border-border/40 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-300">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
                
                <div className="flex justify-between items-start mb-4">
                  <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-border/20 shadow-inner">
-                     <Building2 className="h-6 w-6 text-primary/60" />
+                   <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-border/20 shadow-inner">
+                     <Building2 className="h-7 w-7 text-primary/60" />
                    </div>
                    <div>
                      <h3 className="font-black text-lg tracking-tighter text-foreground leading-tight">{client.razon_social}</h3>

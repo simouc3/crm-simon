@@ -114,12 +114,12 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger }: DealFormP
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="title" className="text-right text-xs">Título</Label>
-            <Input id="title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="col-span-3 h-8 text-sm" placeholder="Limpieza Post-Obra Edificio A" />
+            <Input id="title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="col-span-3" placeholder="Limpieza Post-Obra Edificio A" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="company" className="text-right text-xs">Empresa</Label>
             <Select value={formData.company_id} onValueChange={(val) => setFormData({...formData, company_id: val})}>
-              <SelectTrigger className="col-span-3 h-8 text-sm">
+              <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Selecciona el cliente..." />
               </SelectTrigger>
               <SelectContent>
@@ -131,12 +131,12 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger }: DealFormP
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="valor" className="text-right text-xs">Valor Neto</Label>
-            <Input id="valor" type="number" value={formData.valor_neto} onChange={(e) => setFormData({...formData, valor_neto: e.target.value})} className="col-span-3 h-8 text-sm" placeholder="1500000" />
+            <Input id="valor" type="number" value={formData.valor_neto} onChange={(e) => setFormData({...formData, valor_neto: e.target.value})} className="col-span-3" placeholder="1500000" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="stage" className="text-right text-xs">Etapa Inicial</Label>
             <Select value={formData.stage} onValueChange={(val) => setFormData({...formData, stage: val})}>
-              <SelectTrigger className="col-span-3 h-8 text-sm">
+              <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Selecciona la etapa..." />
               </SelectTrigger>
               <SelectContent>

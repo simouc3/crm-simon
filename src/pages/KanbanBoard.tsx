@@ -82,7 +82,7 @@ export default function KanbanBoard() {
               <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">COMERCIAL</span>
               <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Pipeline Progress</span>
             </div>
-            <h1 className="text-[32px] font-black tracking-tighter text-foreground leading-[1.1] md:text-4xl">
+            <h1 className="text-[32px] md:text-[40px] font-black tracking-tighter text-foreground leading-[1.1]">
               Flujo de <span className="text-primary italic">Negocios</span>
             </h1>
           </div>

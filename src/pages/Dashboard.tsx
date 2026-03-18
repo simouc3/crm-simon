@@ -91,33 +91,35 @@ function BarChart({ data, color = '#10b981' }: { data: { label: string; value: n
 }
 
 // ── KPI Card Widget ───────────────────────────────────────────────────
-function KpiCard({ label, value, sub, icon: Icon, trend }: {
-  label: string; value: string; sub: string; icon: any; trend?: { val: string; up: boolean }
+function KpiCard({ label, value, sub, icon: Icon, trend, gradientClass }: {
+  label: string; value: string; sub: string; icon: any; trend?: { val: string; up: boolean }; gradientClass?: string
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-[40px] border border-border/40 bg-white dark:bg-slate-900 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
+    <div className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 ${gradientClass || 'bg-white dark:bg-slate-900'}`}>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-colors" />
       
-      <div className="flex items-center justify-between mb-2">
-        <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-border/20 shadow-sm group-hover:bg-primary/10 group-hover:border-primary/20 transition-all duration-300">
-          <Icon className="h-5 w-5 text-primary" strokeWidth={2.5} />
+      <div className="flex items-center justify-between mb-2 relative z-10">
+        <div className={`p-3 rounded-3xl border shadow-sm transition-all duration-300 ${gradientClass ? 'bg-white/20 border-white/20' : 'bg-slate-50 dark:bg-slate-800/80 border-border/20 group-hover:bg-primary/10 group-hover:border-primary/20'}`}>
+          <Icon className={`h-6 w-6 ${gradientClass ? 'text-white' : 'text-primary'}`} strokeWidth={2.5} />
         </div>
         {trend && (
-          <div className={`flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl shadow-sm border ${
-            trend.up ? 'text-emerald-600 bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800' : 'text-rose-600 bg-rose-50/50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-800'
+          <div className={`flex items-center gap-1 text-[11px] font-black px-3 py-1.5 rounded-2xl shadow-sm border ${
+            gradientClass 
+              ? 'bg-white/20 border-white/20 text-white backdrop-blur-md'
+              : trend.up ? 'text-emerald-600 bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800' : 'text-rose-600 bg-rose-50/50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-800'
           }`}>
-            {trend.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {trend.up ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
             {trend.val}
           </div>
         )}
       </div>
       
-      <div className="flex flex-col">
-        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] opacity-60 leading-none mb-1.5">{label}</span>
-        <div className="text-2xl font-black tracking-tighter text-foreground transition-all duration-300 group-hover:text-primary">
+      <div className="flex flex-col relative z-10 mt-2">
+        <span className={`text-[11px] font-black uppercase tracking-[0.2em] leading-none mb-2 ${gradientClass ? 'text-white/70' : 'text-muted-foreground opacity-60'}`}>{label}</span>
+        <div className={`text-4xl font-black tracking-tighter transition-all duration-300 ${gradientClass ? 'text-white' : 'text-foreground group-hover:text-primary'}`}>
           {value}
         </div>
-        <p className="text-[11px] text-muted-foreground/80 font-bold tracking-tight mt-1 truncate">
+        <p className={`text-[12px] font-bold tracking-tight mt-1 truncate ${gradientClass ? 'text-white/80' : 'text-muted-foreground'}`}>
           {sub}
         </p>
       </div>
@@ -128,15 +130,15 @@ function KpiCard({ label, value, sub, icon: Icon, trend }: {
 // ── Section Title Mobile ──────────────────────────────────────────────
 function SectionTitle({ title, sub }: { title: string; sub: string }) {
   return (
-    <div className="relative mb-6 pb-2">
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-6 bg-primary rounded-full shadow-lg shadow-primary/30" />
-          <h2 className="font-black text-[20px] tracking-tight text-foreground dark:text-slate-100 leading-tight">
+    <div className="relative mb-8 pb-2">
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-8 bg-foreground rounded-full shadow-lg" />
+          <h2 className="font-black text-[32px] md:text-[40px] tracking-tighter text-foreground dark:text-slate-100 leading-tight">
             {title}
           </h2>
         </div>
-        <p className="text-[12px] text-muted-foreground font-bold tracking-tight pl-3.5 opacity-70">
+        <p className="text-[14px] text-muted-foreground font-bold tracking-tight pl-5 opacity-80">
           {sub}
         </p>
       </div>
@@ -284,18 +286,21 @@ export default function Dashboard() {
             sub={`${ganados.length} Contratos Firmados`}
             icon={DollarSign}
             trend={{ val: "+12.5%", up: true }}
+            gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400 bg-noise"
           />
           <KpiCard
             label="Pipeline en Oferta"
             value={fmtCLP(pipelineForecast)}
             sub={`${propuestas.length} Propuestas Activas`}
             icon={Target}
+            gradientClass="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 bg-noise"
           />
           <KpiCard
             label="Ticket Promedio"
             value={fmtCLP(ticketPromedio)}
             sub="Medida por Cierre B2B"
             icon={Briefcase}
+            gradientClass="bg-gradient-to-br from-orange-500 via-rose-500 to-red-500 bg-noise"
           />
         </div>
 

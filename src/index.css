@@ -13,17 +13,17 @@
     --primary: 211 100% 50%; /* Apple System Blue (#007aff) */
     --primary-foreground: 0 0% 100%; /* Pure White */
     --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary-foreground: 0 0% 0%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 0 0% 53%; /* Gris medio-claro (#888888) */
     --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 100% 60%; /* Apple System Red (#ff3b30) */
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 211 100% 50%; /* Apple System Blue */
-    --radius: 1rem; /* iOS standard radius */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 93%; /* #EEEEEE divisor súper delgado */
+    --input: 0 0% 93%;
+    --ring: 0 0% 0%; /* Acciones primarias negras */
+    --radius: 1.5rem; /* iOS standard radius ampliado */
   }
 
   .dark {
@@ -56,4 +56,20 @@
   body {
     @apply bg-background text-foreground;
   }
-}
+
+  /* Ruido Grain Premium para fondos de gradientes líquidos */
+  .bg-noise {
+    position: relative;
+  }
+  .bg-noise::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactiy='0.1'/%3E%3C/svg%3E");
+    opacity: 0.25;
+    mix-blend-mode: overlay;
+    border-radius: inherit;
+    z-index: 0;
+  }
+} 
