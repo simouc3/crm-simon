@@ -25,7 +25,7 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
   }
 
   return (
-    <div className="flex flex-col sm:flex-row gap-6 items-center bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-[24px] border border-border/40 shadow-sm">
+    <div className="flex flex-col sm:flex-row gap-6 items-center bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[40px] border border-border/40 shadow-sm hover:shadow-lg transition-shadow duration-500">
       <div className="relative w-36 h-36 shrink-0">
         <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl rotate-0 transition-transform duration-700 hover:rotate-6">
           {total > 0 && slices.length === 1 ? (
@@ -95,7 +95,7 @@ function KpiCard({ label, value, sub, icon: Icon, trend }: {
   label: string; value: string; sub: string; icon: any; trend?: { val: string; up: boolean }
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-[24px] border border-border/40 bg-white dark:bg-slate-900 p-6 flex flex-col gap-1 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] duration-500">
+    <div className="group relative overflow-hidden rounded-[40px] border border-border/40 bg-white dark:bg-slate-900 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500">
       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
       
       <div className="flex items-center justify-between mb-2">
@@ -249,7 +249,7 @@ export default function Dashboard() {
 
         {/* Segmented Control iOS Style */}
         <div className="flex flex-col gap-4">
-          <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex items-center shadow-inner self-start md:self-auto min-w-[300px]">
+          <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full flex items-center shadow-inner self-start md:self-auto min-w-[300px]">
             {[
               { id: 'MONTH', label: 'Este Mes' },
               { id: 'QUARTER', label: 'Trimestre' },
@@ -258,7 +258,7 @@ export default function Dashboard() {
               <button
                 key={item.id}
                 onClick={() => setRange(item.id as TimeRange)}
-                className={`flex-1 h-9 rounded-[14px] flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                className={`flex-1 h-10 rounded-full flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
                   range === item.id 
                     ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-black/5 scale-[1.02]' 
                     : 'text-muted-foreground hover:text-foreground opacity-60'
@@ -299,7 +299,7 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="mt-8 rounded-[32px] border border-border/40 bg-white/50 dark:bg-slate-900/50 p-6 md:p-8 shadow-sm overflow-hidden relative">
+        <div className="mt-8 rounded-[40px] border border-border/40 bg-white/50 dark:bg-slate-900/50 p-8 md:p-10 shadow-sm overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-2xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center">
@@ -352,7 +352,7 @@ export default function Dashboard() {
               icon={TrendingUp}
               trend={{ val: "Estable", up: true }}
             />
-            <div className="rounded-[24px] border border-border/40 bg-primary p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden group active:scale-95 transition-all">
+            <div className="rounded-[40px] border border-border/40 bg-primary p-8 text-white shadow-[0_20px_50px_rgba(0,122,255,0.25)] relative overflow-hidden group hover:scale-[1.02] active:scale-95 transition-all duration-500">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500" />
               <span className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-2 block">Performance Rango</span>
               <div className="text-3xl font-black tracking-tighter leading-none mb-1">{winRate >= 50 ? 'Alta' : winRate > 0 ? 'Media' : 'Pendiente'}</div>
@@ -361,7 +361,7 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="rounded-[32px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+          <div className="rounded-[40px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500">
             <div className="p-6 border-b border-border/40 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
               <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Causas de Cierre Perdido</h3>
               <span className="text-[9px] font-black bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded-lg border border-rose-500/20">ALERTA ROJA</span>
@@ -374,7 +374,7 @@ export default function Dashboard() {
 
         <div className="space-y-6">
           <SectionTitle title="Logística Industrial" sub="Mercado por segmento y zona" />
-          <div className="rounded-[32px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm flex-1 flex flex-col h-full">
+          <div className="rounded-[40px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500 flex-1 flex flex-col h-full">
             <div className="p-6 border-b border-border/40 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
               <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Segmentos Clientes</h3>
               <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-lg border border-primary/20">PULSO INDUSTRIAL</span>
@@ -397,7 +397,7 @@ export default function Dashboard() {
           { label: 'Cierres GANADOS', value: ganados.length, icon: TrendingUp },
           { label: 'Cierres PERDIDOS', value: perdidos.length, icon: TrendingDown },
         ].map(item => (
-          <div key={item.label} className="flex flex-col items-center gap-2 p-5 bg-white dark:bg-slate-900 border border-border/40 rounded-[28px] shadow-sm hover:translate-y-[-4px] transition-all duration-500 group cursor-default">
+          <div key={item.label} className="flex flex-col items-center gap-2 p-6 bg-white dark:bg-slate-900 border border-border/40 rounded-[32px] shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:translate-y-[-4px] transition-all duration-500 group cursor-default">
             <item.icon className="h-4 w-4 text-primary opacity-40 group-hover:opacity-100 transition-opacity" />
             <div className="text-2xl font-black tabular-nums tracking-tighter text-foreground">{item.value}</div>
             <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-60 leading-none">{item.label}</div>

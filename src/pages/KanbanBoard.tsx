@@ -122,9 +122,9 @@ export default function KanbanBoard() {
                 <button
                   key={stage.id}
                   onClick={() => setActiveStageId(stage.id)}
-                  className={`shrink-0 h-10 px-4 rounded-2xl flex items-center gap-2 transition-all border ${
+                  className={`shrink-0 h-12 px-6 rounded-full flex items-center gap-3 transition-all border ${
                     isActive 
-                      ? 'bg-primary border-primary text-white shadow-lg shadow-primary/25 scale-105' 
+                      ? 'bg-primary border-primary text-white shadow-[0_10px_30px_rgba(0,122,255,0.3)] scale-105' 
                       : 'bg-slate-50 dark:bg-slate-800 border-border/40 text-muted-foreground'
                   }`}
                 >
@@ -146,14 +146,14 @@ export default function KanbanBoard() {
                <div 
                  key={deal.id}
                  onClick={() => openDeal(deal)}
-                 className="bg-white dark:bg-slate-900 border border-border/40 rounded-[32px] p-6 shadow-sm relative overflow-hidden group active:scale-95 transition-all duration-300"
+                 className="bg-white dark:bg-slate-900 border border-border/40 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-500"
                >
-                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
                  
                  <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
-                       <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center border border-border/20 shadow-sm relative z-10">
-                          <Building2 className="h-6 w-6 text-primary/60" />
+                       <div className="w-14 h-14 rounded-[20px] bg-white dark:bg-slate-800 flex items-center justify-center border border-border/20 shadow-sm relative z-10">
+                          <Building2 className="h-7 w-7 text-primary/60" />
                        </div>
                        <div>
                           <h3 className="font-black text-lg tracking-tighter text-foreground leading-tight">{deal.companies?.razon_social || 'Empresa'}</h3>
@@ -227,7 +227,7 @@ export default function KanbanBoard() {
                       <div
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        className={`flex flex-col gap-4 p-3 transition-all duration-300 rounded-[32px] min-h-[600px] border shadow-inner ${
+                        className={`flex flex-col gap-4 p-4 transition-all duration-500 rounded-[40px] min-h-[600px] border shadow-inner ${
                           snapshot.isDraggingOver ? 'bg-primary/[0.04] border-primary/20 shadow-primary/5' : 'bg-slate-50/50 dark:bg-white/[0.02] border-transparent'
                         }`}
                       >
@@ -239,13 +239,13 @@ export default function KanbanBoard() {
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 onClick={() => openDeal(deal)}
-                                className={`bg-white dark:bg-slate-900 border border-border/40 dark:border-white/5 rounded-[24px] p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 cursor-grab active:cursor-grabbing group relative overflow-hidden
-                                  ${snapshot.isDragging ? 'ring-[3px] ring-primary/40 scale-105 shadow-2xl rotate-2 z-50' : ''}
-                                  ${deal.stage === 6 ? 'border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-950/20' : ''}
-                                  ${deal.stage === 7 ? 'border-rose-500/30 bg-rose-50/30 dark:bg-rose-950/20' : ''}
+                                className={`bg-white dark:bg-slate-900 border border-border/40 dark:border-white/5 rounded-[32px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 cursor-grab active:cursor-grabbing group relative overflow-hidden
+                                  ${snapshot.isDragging ? 'ring-[3px] ring-primary/40 scale-105 shadow-[0_30px_60px_rgba(0,0,0,0.12)] rotate-2 z-50' : ''}
+                                  ${deal.stage === 6 ? 'border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20' : ''}
+                                  ${deal.stage === 7 ? 'border-rose-500/30 bg-rose-50/50 dark:bg-rose-950/20' : ''}
                                 `}
                               >
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-primary/10 transition-colors" />
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
                                 
                                 <div className="flex items-start justify-between mb-4">
                                   <div className="flex-1 min-w-0">

@@ -221,7 +221,7 @@ export default function AppLayout() {
         </main>
 
         {/* Mobile Bottom Navigation - Estilo iOS Premium Apple */}
-        <nav className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[28px] md:hidden bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-white/40 dark:border-white/10 flex items-center justify-around px-2 z-40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-none">
+        <nav className="fixed bottom-6 left-6 right-6 h-[72px] rounded-full md:hidden bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-white/40 dark:border-white/10 flex items-center justify-around px-2 z-40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-none">
           {navItems.map((item) => (
              <NavLink
                key={item.path}
