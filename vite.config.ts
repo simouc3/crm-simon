@@ -30,12 +30,12 @@ export default defineConfig({
             src: 'icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ],
         display: 'standalone',
         background_color: '#ffffff',
-        start_url: '/calendar',
+        start_url: '/',
         orientation: 'portrait'
       }
     })

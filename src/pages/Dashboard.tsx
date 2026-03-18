@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
-import { ArrowUpRight, TrendingUp, TrendingDown, Activity, DollarSign, Target, Briefcase } from "lucide-react"
+import { ArrowUpRight, TrendingUp, TrendingDown, Activity, DollarSign, Target, Briefcase, Calendar } from "lucide-react"
 
 const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
-const fmtNum = (n: number) => new Intl.NumberFormat('es-CL').format(n)
+
+type TimeRange = 'MONTH' | 'QUARTER' | 'YEAR'
 
 // ── Mini SVG Pie Chart ────────────────────────────────────────────────
 function PieChart({ data }: { data: { label: string; value: number; color: string }[] }) {
   const total = data.reduce((s, d) => s + d.value, 0)
-  if (total === 0) return <div className="text-center text-muted-foreground text-xs py-10 font-medium font-sans">Sin datos disponibles</div>
+  if (total === 0) return <div className="text-center text-muted-foreground text-[10px] py-10 font-bold uppercase tracking-widest opacity-40">Sin datos en este rango</div>
 
   let cumAngle = -90
   const slices = data.map(d => {
@@ -94,7 +95,7 @@ function KpiCard({ label, value, sub, icon: Icon, trend }: {
   label: string; value: string; sub: string; icon: any; trend?: { val: string; up: boolean }
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-[32px] border border-border/40 bg-white dark:bg-slate-900 p-6 flex flex-col gap-1 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] dark:shadow-none transition-all hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] active:scale-95 duration-500">
+    <div className="group relative overflow-hidden rounded-[24px] border border-border/40 bg-white dark:bg-slate-900 p-6 flex flex-col gap-1 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] duration-500">
       <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-primary/10 transition-colors" />
       
       <div className="flex items-center justify-between mb-2">
@@ -147,9 +148,11 @@ function SectionTitle({ title, sub }: { title: string; sub: string }) {
 export default function Dashboard() {
   const [deals, setDeals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [range, setRange] = useState<TimeRange>('MONTH')
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true)
       const { data } = await supabase
         .from('deals')
         .select('*, companies(razon_social, segmento, comuna, m2_estimados, condiciones_pago)')
@@ -170,10 +173,25 @@ export default function Dashboard() {
     </div>
   )
 
-  const ganados = deals.filter(d => d.stage === 6)
-  const perdidos = deals.filter(d => d.stage === 7)
-  const propuestas = deals.filter(d => d.stage === 4)
-  const activos = deals.filter(d => d.stage >= 1 && d.stage <= 5)
+  // Filtrado por Tiempo
+  const now = new Date()
+  const filteredDeals = deals.filter(deal => {
+    const created = new Date(deal.created_at)
+    if (range === 'MONTH') {
+      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
+    }
+    if (range === 'QUARTER') {
+      const q_now = Math.floor(now.getMonth() / 3)
+      const q_created = Math.floor(created.getMonth() / 3)
+      return q_now === q_created && created.getFullYear() === now.getFullYear()
+    }
+    return created.getFullYear() === now.getFullYear()
+  })
+
+  const ganados = filteredDeals.filter(d => d.stage === 6)
+  const perdidos = filteredDeals.filter(d => d.stage === 7)
+  const propuestas = filteredDeals.filter(d => d.stage === 4)
+  const activos = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5)
 
   const mrr = ganados.reduce((s, d) => s + (d.valor_neto || 0), 0)
   const pipelineForecast = propuestas.reduce((s, d) => s + (d.valor_neto || 0), 0)
@@ -215,26 +233,44 @@ export default function Dashboard() {
   })()
 
   return (
-    <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto">
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 mx-[-1.5rem] mt-[-1.5rem] p-6 md:mx-0 md:mt-0 md:p-0 border-b md:border-none border-border/40">
+    <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans">
+      
+      {/* Header Premium con Selector de Rango Estilo Apple */}
+      <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 mx-[-1.5rem] mt-[-1.5rem] p-8 md:mx-0 md:mt-0 md:p-0 border-b md:border-none border-border/40 mb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-black text-primary bg-primary/10 dark:bg-primary/20 px-2 py-0.5 rounded-lg tracking-wider">VERSION 2.0</span>
-            <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Control Central</span>
+            <span className="text-[10px] font-black text-primary bg-primary/10 dark:bg-primary/20 px-2 py-0.5 rounded-lg tracking-wider">EXECUTIVE PANEL</span>
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Industrial Intelligence</span>
           </div>
           <h1 className="text-[32px] font-black tracking-tighter text-foreground leading-[1.1] md:text-4xl">
             Resumen de <span className="text-primary italic">Ventas</span>
           </h1>
         </div>
-        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-3xl border border-border/40 shadow-sm md:w-auto">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Operaciones en Vuelo</span>
-            <span className="text-[20px] font-black text-foreground tabular-nums tracking-tighter">{fmtNum(deals.length)}</span>
+
+        {/* Segmented Control iOS Style */}
+        <div className="flex flex-col gap-4">
+          <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex items-center shadow-inner self-start md:self-auto min-w-[300px]">
+            {[
+              { id: 'MONTH', label: 'Este Mes' },
+              { id: 'QUARTER', label: 'Trimestre' },
+              { id: 'YEAR', label: 'Año' }
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setRange(item.id as TimeRange)}
+                className={`flex-1 h-9 rounded-[14px] flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                  range === item.id 
+                    ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-black/5 scale-[1.02]' 
+                    : 'text-muted-foreground hover:text-foreground opacity-60'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-          <div className="w-px h-8 bg-border/40" />
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-primary uppercase opacity-60">Fuerza Comercial</span>
-            <span className="text-[10px] font-black text-foreground uppercase tracking-tight">Activa</span>
+          <div className="flex items-center gap-2 px-2 opacity-40">
+            <Calendar className="h-3 w-3 text-muted-foreground" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Viendo datos de {range === 'MONTH' ? 'Cierre Mensual' : range === 'QUARTER' ? 'Estrategia Q' : 'Visión Anual'}</span>
           </div>
         </div>
       </div>
@@ -283,8 +319,8 @@ export default function Dashboard() {
               { label: 'Propuesta emitida', stage: 4, c: '#f59e0b' },
               { label: 'Cierre negociación', stage: 5, c: '#fb923c' },
             ].map(s => {
-              const count = deals.filter(d => d.stage === s.stage).length
-              const val = deals.filter(d => d.stage === s.stage).reduce((a, d) => a + (d.valor_neto || 0), 0)
+              const count = filteredDeals.filter(d => d.stage === s.stage).length
+              const val = filteredDeals.filter(d => d.stage === s.stage).reduce((a, d) => a + (d.valor_neto || 0), 0)
               const pct = activos.length > 0 ? (count / activos.length) * 100 : 0
               return (
                 <div key={s.stage} className="flex flex-col gap-2 group">
@@ -295,7 +331,7 @@ export default function Dashboard() {
                     </div>
                     <span className="text-[11px] font-black tabular-nums">{val > 0 ? fmtCLP(val) : '-'}</span>
                   </div>
-                  <div className="h-[6px] w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-[6px] w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden border border-border/5">
                     <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: s.c }} />
                   </div>
                 </div>
@@ -316,11 +352,11 @@ export default function Dashboard() {
               icon={TrendingUp}
               trend={{ val: "Estable", up: true }}
             />
-            <div className="rounded-[32px] border border-border/40 bg-primary p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden group">
+            <div className="rounded-[24px] border border-border/40 bg-primary p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden group active:scale-95 transition-all">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500" />
-              <span className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-2 block">Performance Total</span>
+              <span className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-2 block">Performance Rango</span>
               <div className="text-3xl font-black tracking-tighter leading-none mb-1">{winRate >= 50 ? 'Alta' : winRate > 0 ? 'Media' : 'Pendiente'}</div>
-              <p className="text-[11px] font-bold text-white/80 opacity-80 decoration-white/20 underline underline-offset-4 decoration-dashed">Potencial B2B Detectado</p>
+              <p className="text-[11px] font-bold text-white/80 opacity-80 decoration-white/20 underline underline-offset-4 decoration-dashed italic">Enfoque B2B Táctico</p>
               <ArrowUpRight className="absolute bottom-4 right-4 text-white/40 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </div>
           </div>
@@ -331,7 +367,7 @@ export default function Dashboard() {
               <span className="text-[9px] font-black bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded-lg border border-rose-500/20">ALERTA ROJA</span>
             </div>
             <div className="p-6">
-              {motivosPerdida.length > 0 ? <PieChart data={motivosPerdida} /> : <div className="text-center py-10 opacity-40">Sin métricas de pérdida</div>}
+              {motivosPerdida.length > 0 ? <PieChart data={motivosPerdida} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin métricas de pérdida en este período</div>}
             </div>
           </div>
         </div>
@@ -344,11 +380,11 @@ export default function Dashboard() {
               <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-lg border border-primary/20">PULSO INDUSTRIAL</span>
             </div>
             <div className="p-6 flex-1">
-               {porIndustria.length > 0 ? <PieChart data={porIndustria} /> : <div className="text-center py-10 opacity-40 font-sans text-xs">Sin datos geográficos</div>}
+               {porIndustria.length > 0 ? <PieChart data={porIndustria} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos de segmentación en este período</div>}
             </div>
             <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 border-t border-border/40">
               <h3 className="font-black text-[12px] text-foreground uppercase tracking-widest mb-6 opacity-60">Top Comunas (Facturación)</h3>
-              {porComuna.length > 0 ? <BarChart data={porComuna} /> : <div className="text-center py-4 opacity-40 font-sans text-xs">Sin datos</div>}
+              {porComuna.length > 0 ? <BarChart data={porComuna} /> : <div className="text-center py-4 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos geográficos</div>}
             </div>
           </div>
         </div>
@@ -356,13 +392,13 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 pt-4">
         {[
-          { label: 'Operación Total', value: deals.length, icon: Briefcase },
+          { label: 'Operación Rango', value: filteredDeals.length, icon: Briefcase },
           { label: 'Oportunidades', value: activos.length, icon: Target },
           { label: 'Cierres GANADOS', value: ganados.length, icon: TrendingUp },
           { label: 'Cierres PERDIDOS', value: perdidos.length, icon: TrendingDown },
         ].map(item => (
-          <div key={item.label} className="flex flex-col items-center gap-2 p-5 bg-white dark:bg-slate-900 border border-border/40 rounded-[24px] shadow-sm hover:translate-y-[-4px] transition-all duration-500">
-            <item.icon className="h-4 w-4 text-primary opacity-40" />
+          <div key={item.label} className="flex flex-col items-center gap-2 p-5 bg-white dark:bg-slate-900 border border-border/40 rounded-[28px] shadow-sm hover:translate-y-[-4px] transition-all duration-500 group cursor-default">
+            <item.icon className="h-4 w-4 text-primary opacity-40 group-hover:opacity-100 transition-opacity" />
             <div className="text-2xl font-black tabular-nums tracking-tighter text-foreground">{item.value}</div>
             <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-60 leading-none">{item.label}</div>
           </div>
