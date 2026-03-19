@@ -99,13 +99,13 @@ export default function AppLayout() {
   ]
 
   return (
-    <div className={`flex h-screen bg-[#F8FAFC] dark:bg-slate-950 text-foreground font-sans antialiased overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
-      {/* Sidebar Desktop - Estilo Glass Premium Apple */}
-      <aside className="w-[220px] bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-r border-border/40 dark:border-white/5 hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)]">
+    <div className={`flex h-screen bg-[#F5F5F7] dark:bg-black text-foreground font-sans antialiased overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
+      {/* Sidebar Desktop */}
+      <aside className="w-[220px] bg-white/70 dark:bg-[#1C1C1E]/90 backdrop-blur-2xl border-r border-border/30 dark:border-transparent hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-none">
         
         <div className="p-10 pb-8">
           <div className="flex flex-col gap-5 group cursor-pointer transition-all">
-            <div className="w-14 h-14 rounded-[20px] bg-primary shadow-2xl shadow-primary/30 flex items-center justify-center overflow-hidden shrink-0 border border-white/20 transition-all group-hover:scale-105 duration-500">
+            <div className="w-14 h-14 rounded-[20px] bg-primary shadow-2xl shadow-primary/30 dark:shadow-none flex items-center justify-center overflow-hidden shrink-0 border border-white/20 dark:border-transparent transition-all group-hover:scale-105 duration-500">
               {branding.logo ? (
                 <img src={branding.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
               ) : (
@@ -144,11 +144,11 @@ export default function AppLayout() {
         </nav>
         
         {/* User Panel — Bottom */}
-        <div className="p-4 mt-auto border-t border-border/40 dark:border-white/5">
+        <div className="p-4 mt-auto border-t border-border/30 dark:border-white/[0.06]">
           
           {/* Avatar + Info */}
           <div className="flex items-center gap-3 px-2 py-3 mb-3">
-            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-border/40 flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0 shadow-sm">
+            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-border/30 dark:border-transparent flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -200,11 +200,11 @@ export default function AppLayout() {
       </aside>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-slate-950">
-        {/* Mobile Header Premium Glass */}
-        <header className="h-[80px] border-b border-border/40 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl flex items-center px-8 justify-between md:hidden sticky top-0 z-30">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-black">
+        {/* Mobile Header */}
+        <header className="h-[80px] border-b border-border/30 dark:border-transparent bg-white/60 dark:bg-[#1C1C1E]/80 backdrop-blur-3xl flex items-center px-8 justify-between md:hidden sticky top-0 z-30">
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-[14px] bg-foreground flex items-center justify-center shadow-xl shadow-foreground/20 overflow-hidden shrink-0 border border-border/20">
+            <div className="w-11 h-11 rounded-[14px] bg-foreground flex items-center justify-center shadow-xl shadow-foreground/20 dark:shadow-none overflow-hidden shrink-0 border border-border/20 dark:border-transparent">
                {branding.logo ? (
                 <img src={branding.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
               ) : (
@@ -221,7 +221,7 @@ export default function AppLayout() {
               variant="ghost" 
               size="icon" 
               onClick={() => setIsDarkMode(!isDarkMode)} 
-              className="rounded-2xl w-11 h-11 bg-slate-50 dark:bg-white/5 border border-border/20"
+              className="rounded-2xl w-11 h-11 bg-slate-50 dark:bg-[#2C2C2E] border border-border/20 dark:border-transparent"
             >
               {isDarkMode ? <Sun className="h-[20px] w-[20px]" /> : <Moon className="h-[20px] w-[20px]" />}
             </Button>
@@ -229,12 +229,12 @@ export default function AppLayout() {
         </header>
 
         {/* Dynamic Outlet Content */}
-        <main className="flex-1 min-h-0 bg-[#F8FAFC] dark:bg-black/10 overflow-y-auto pb-32 md:pb-0 safe-top">
+        <main className="flex-1 min-h-0 bg-[#F5F5F7] dark:bg-black overflow-y-auto pb-32 md:pb-0 safe-top">
           <Outlet context={{ isDarkMode }} />
         </main>
 
         {/* Mobile Bottom Navigation - Estilo iOS Premium Apple */}
-        <nav className="fixed bottom-6 left-6 right-6 h-[72px] rounded-full md:hidden bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl border border-white/40 dark:border-white/10 flex items-center justify-around px-2 z-40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-none">
+        <nav className="fixed bottom-6 left-6 right-6 h-[72px] rounded-full md:hidden bg-white/70 dark:bg-[#1C1C1E]/85 backdrop-blur-3xl border border-white/40 dark:border-white/[0.06] flex items-center justify-around px-2 z-40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
           {navItems.map((item) => (
              <NavLink
                key={item.path}

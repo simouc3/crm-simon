@@ -122,7 +122,7 @@ export default function CalendarPage() {
     <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-black">
       {/* Header Premium — Card Redondeada */}
       <div className="shrink-0 p-4 md:p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm border border-border/40 max-w-7xl mx-auto">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm dark:shadow-none border border-border/30 dark:border-white/[0.06] max-w-7xl mx-auto">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">AGENDA</span>

@@ -76,7 +76,7 @@ export default function KanbanBoard() {
     <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-black">
       {/* Header Premium — Card Redondeada */}
       <div className="shrink-0 p-4 md:p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm border border-border/40 max-w-7xl mx-auto">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm dark:shadow-none border border-border/30 dark:border-white/[0.06] max-w-7xl mx-auto">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">COMERCIAL</span>
@@ -88,7 +88,7 @@ export default function KanbanBoard() {
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex bg-slate-50 dark:bg-[#2C2C2E] p-4 rounded-2xl border border-border/40 gap-4">
+            <div className="hidden sm:flex bg-slate-50 dark:bg-[#2C2C2E] p-4 rounded-2xl border border-border/30 dark:border-transparent gap-4">
               <div className="flex flex-col">
                 <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Total Ganado</span>
                 <span className="text-[18px] font-black text-emerald-600 tabular-nums tracking-tighter">{fmtCLP(totalGanado)}</span>
@@ -105,13 +105,13 @@ export default function KanbanBoard() {
       </div>
 
       {/* Mobile Stage Selector (Carousel) */}
-      <div className="md:hidden shrink-0 bg-white dark:bg-slate-900 border-b border-border/40 sticky top-0 z-20 py-4 flex flex-col gap-4">
+      <div className="md:hidden shrink-0 bg-white dark:bg-[#1C1C1E] border-b border-border/30 dark:border-transparent sticky top-0 z-20 py-4 flex flex-col gap-4">
          <div className="px-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
                <Activity className="h-4 w-4 text-primary" />
                <span className="text-[11px] font-black text-foreground uppercase tracking-widest">Estado: {KANBAN_STAGES.find(s => s.id === activeStageId)?.name}</span>
             </div>
-            <span className="text-[11px] font-black bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full tabular-nums">{fmtCLP(activeStageValue)}</span>
+            <span className="text-[11px] font-black bg-slate-100 dark:bg-[#2C2C2E] px-3 py-1 rounded-full tabular-nums">{fmtCLP(activeStageValue)}</span>
          </div>
          
          <div className="flex overflow-x-auto px-6 gap-2 no-scrollbar pb-1">
@@ -125,7 +125,7 @@ export default function KanbanBoard() {
                   className={`shrink-0 h-12 px-6 rounded-full flex items-center gap-3 transition-all border ${
                     isActive 
                       ? 'bg-primary border-primary text-white shadow-[0_10px_30px_rgba(0,122,255,0.3)] scale-105' 
-                      : 'bg-slate-50 dark:bg-slate-800 border-border/40 text-muted-foreground'
+                      : 'bg-slate-50 dark:bg-[#2C2C2E] border-border/30 dark:border-transparent text-muted-foreground'
                   }`}
                 >
                   <span className="text-[11px] font-black uppercase tracking-tight">{stage.name}</span>
