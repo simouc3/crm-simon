@@ -143,60 +143,59 @@ export default function AppLayout() {
           ))}
         </nav>
         
-        <div className="p-6 mt-auto border-t border-border/40 dark:border-white/5 bg-slate-50/30 dark:bg-black/20">
-          <div 
-            onClick={() => setShowSettings(true)}
-            className="flex items-center gap-4 px-4 py-4 mb-6 cursor-pointer hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all group border border-transparent hover:border-slate-200 dark:hover:border-white/10 shadow-sm md:shadow-none"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-border/40 flex items-center justify-center text-foreground font-black text-sm shadow-sm group-hover:scale-105 transition-transform overflow-hidden relative">
-               {avatarUrl ? (
-                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-               ) : (
-                 <>
-                   <div className="absolute inset-0 bg-foreground/5 group-hover:bg-foreground/10 transition-colors" />
-                   <span className="relative z-10">{user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}</span>
-                 </>
-               )}
+        {/* User Panel — Bottom */}
+        <div className="p-4 mt-auto border-t border-border/40 dark:border-white/5">
+          
+          {/* Avatar + Info */}
+          <div className="flex items-center gap-3 px-2 py-3 mb-3">
+            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-border/40 flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0 shadow-sm">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span>{user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}</span>
+              )}
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[14px] font-black text-foreground truncate leading-tight group-hover:text-foreground/80 transition-colors">
-                {user?.user_metadata?.full_name || 'Usuario'}
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-[13px] font-black text-foreground truncate leading-tight">
+                {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
               </span>
-              <span className="text-[10px] text-primary font-black uppercase tracking-[0.15em]">
-                {userRole === 'SALES_OPS' || userRole === 'VENDEDOR' ? 'Comercial' : 'Administrador'}
+              <span className="text-[10px] text-primary font-black uppercase tracking-[0.12em] opacity-80">
+                {userRole === 'SALES_OPS' || userRole === 'VENDEDOR' ? 'Comercial' : 'Admin'}
               </span>
             </div>
           </div>
 
-          <div className="grid gap-3">
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="icon"
-                className="flex-1 rounded-xl border-border/40 hover:border-primary/40 hover:bg-white dark:hover:bg-slate-800 h-11 transition-all" 
-                onClick={() => setIsDarkMode(!isDarkMode)}
-              >
-                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon"
-                className="flex-1 rounded-xl border-border/40 hover:border-primary/40 hover:bg-white dark:hover:bg-slate-800 h-11 transition-all" 
-                onClick={() => setShowSettings(true)}
-              >
-                <SettingsIcon className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start gap-3 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-500 h-11 px-4 transition-all" 
-              onClick={signOut}
+          {/* Action Row */}
+          <div className="flex gap-2 mb-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex-1 rounded-xl h-9 bg-slate-100/80 dark:bg-[#2C2C2E] hover:bg-slate-200 dark:hover:bg-[#3A3A3C] border-0"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              title={isDarkMode ? 'Modo claro' : 'Modo oscuro'}
             >
-              <LogOut className="h-4 w-4" />
-              <span className="text-[11px] font-black uppercase tracking-widest">Desconectar</span>
+              {isDarkMode ? <Sun className="h-[15px] w-[15px]" /> : <Moon className="h-[15px] w-[15px]" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex-1 rounded-xl h-9 bg-slate-100/80 dark:bg-[#2C2C2E] hover:bg-slate-200 dark:hover:bg-[#3A3A3C] border-0"
+              onClick={() => setShowSettings(true)}
+              title="Configuración"
+            >
+              <SettingsIcon className="h-[15px] w-[15px]" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex-1 rounded-xl h-9 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-500 border-0"
+              onClick={signOut}
+              title="Salir"
+            >
+              <LogOut className="h-[15px] w-[15px]" />
             </Button>
           </div>
+
         </div>
       </aside>
       
