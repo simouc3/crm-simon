@@ -73,10 +73,10 @@ export default function KanbanBoard() {
   const activeStageValue = activeStageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
 
   return (
-    <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-slate-950">
-      {/* Header Premium */}
-      <div className="shrink-0 p-6 md:p-10 bg-white dark:bg-slate-900 border-b border-border/40 dark:border-white/5 mx-[-1.5rem] mt-[-1.5rem] md:mx-0 md:mt-0 shadow-sm md:shadow-none">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between max-w-7xl mx-auto">
+    <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-black">
+      {/* Header Premium — Card Redondeada */}
+      <div className="shrink-0 p-4 md:p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm border border-border/40 max-w-7xl mx-auto">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">COMERCIAL</span>
@@ -88,14 +88,14 @@ export default function KanbanBoard() {
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex bg-slate-50 dark:bg-slate-800 p-4 rounded-3xl border border-border/40 gap-4">
+            <div className="hidden sm:flex bg-slate-50 dark:bg-[#2C2C2E] p-4 rounded-2xl border border-border/40 gap-4">
               <div className="flex flex-col">
                 <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Total Ganado</span>
                 <span className="text-[18px] font-black text-emerald-600 tabular-nums tracking-tighter">{fmtCLP(totalGanado)}</span>
               </div>
               <div className="w-px h-8 bg-border/40" />
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-primary uppercase opacity-60">En Vuelo</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">En Vuelo</span>
                 <span className="text-[18px] font-black text-foreground tabular-nums tracking-tighter">{deals.filter(d => d.stage < 6).length}</span>
               </div>
             </div>

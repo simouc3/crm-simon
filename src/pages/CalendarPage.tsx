@@ -119,29 +119,34 @@ export default function CalendarPage() {
   const selectedDayEvents = events.filter(e => e.scheduled_at.startsWith(selectedDateStr || ''))
 
   return (
-    <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-slate-950">
-      {/* Header Premium Mobile */}
-      <div className="shrink-0 p-6 md:p-10 border-b border-border/40 dark:border-white/5 bg-white dark:bg-slate-900">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between max-w-7xl mx-auto">
+    <div className="h-full flex flex-col bg-[#F8FAFC] dark:bg-black">
+      {/* Header Premium — Card Redondeada */}
+      <div className="shrink-0 p-4 md:p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm border border-border/40 max-w-7xl mx-auto">
           <div className="space-y-1">
-            <h1 className="text-3xl font-black tracking-tighter text-foreground leading-[1.1]">Agenda <span className="text-primary italic">Comercial</span></h1>
-            <p className="text-muted-foreground text-xs font-black uppercase tracking-widest opacity-60">Gestión de actividades y visitas</p>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">AGENDA</span>
+              <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Gestión Comercial</span>
+            </div>
+            <h1 className="text-[28px] md:text-[36px] font-black tracking-tighter text-foreground leading-[1.1]">
+              Agenda <span className="text-primary italic">Comercial</span>
+            </h1>
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-             <div className="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-2xl border border-border/40 flex items-center shadow-sm">
-                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-700">
+             <div className="bg-slate-50 dark:bg-[#2C2C2E] p-1.5 rounded-2xl border border-border/40 flex items-center shadow-sm">
+                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-[#3A3A3C]">
                   <ChevronLeft size={18} />
                 </Button>
                 <span className="px-4 text-[11px] font-black uppercase tracking-[0.1em] text-foreground min-w-[140px] text-center">
                   {currentDate.toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
                 </span>
-                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-700">
+                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-[#3A3A3C]">
                   <ChevronRight size={18} />
                 </Button>
              </div>
              
-             <div className="bg-slate-50 dark:bg-slate-800 p-1 rounded-2xl border border-border/40 hidden sm:flex">
+             <div className="bg-slate-50 dark:bg-[#2C2C2E] p-1 rounded-2xl border border-border/40 hidden sm:flex">
                <Button 
                 variant={viewMode === 'GRID' ? 'secondary' : 'ghost'} 
                 size="sm" 
