@@ -19,6 +19,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const [companyName, setCompanyName] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
   const [userName, setUserName] = useState("")
+  const [avatarUrl, setAvatarUrl] = useState("")
   const [uploading, setUploading] = useState(false)
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushToggling, setPushToggling] = useState(false)
@@ -64,6 +65,36 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
     if (user?.user_metadata?.full_name) {
       setUserName(user.user_metadata.full_name)
     }
+    if (user?.user_metadata?.avatar_url) {
+      setAvatarUrl(user.user_metadata.avatar_url)
+    }
+  }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return
+    
+    setUploading(true)
+    const file = e.target.files[0]
+    const fileExt = file.name.split('.').pop()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const fileName = `avatar_${user.id}.${fileExt}`
+    const filePath = `avatars/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('deal-documents')
+      .upload(filePath, file, { upsert: true })
+
+    if (uploadError) {
+      alert("Error subiendo foto: " + uploadError.message)
+    } else {
+      const { data: { publicUrl } } = supabase.storage
+        .from('deal-documents')
+        .getPublicUrl(filePath)
+      
+      setAvatarUrl(publicUrl)
+    }
+    setUploading(false)
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,7 +136,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
 
     // Update User metadata
     await supabase.auth.updateUser({
-      data: { full_name: userName }
+      data: { full_name: userName, avatar_url: avatarUrl }
     })
 
     if (error) {
@@ -153,13 +184,13 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
                 <Input 
                   id="logo" 
                   type="file" 
-                  accept="image/*" 
+                  accept="image/png" 
                   className="hidden" 
                   onChange={handleLogoUpload}
                   disabled={uploading}
                 />
               </Label>
-              <p className="text-[10px] text-muted-foreground italic">Recomendado: SVG o PNG transperente (200x200px)</p>
+              <p className="text-[10px] text-muted-foreground italic text-center">Obligatorio: Formato PNG<br/>(Fondo transparente para diseño B&W)</p>
             </div>
           </div>
 
@@ -174,16 +205,38 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
                 />
               </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="userName">Tu Nombre / Usuario</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground/50" />
-                    <Input
-                      id="userName"
-                      value={userName}
-                      onChange={(e) => setUserName(e.target.value)}
-                      placeholder="Tu nombre completo"
-                      className="pl-10"
-                    />
+                  <Label>Tu Nombre y Foto de Perfil</Label>
+                  <div className="flex gap-4 items-center">
+                    <div className="relative w-14 h-14 rounded-full border border-border/40 flex items-center justify-center overflow-hidden bg-muted/30 shrink-0">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-5 h-5 text-muted-foreground/40" />
+                      )}
+                      
+                      <Label htmlFor="avatar" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                        <Upload className="w-3 h-3 text-white" />
+                        <Input 
+                          id="avatar" 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handleAvatarUpload}
+                          disabled={uploading}
+                        />
+                      </Label>
+                    </div>
+                    
+                    <div className="relative flex-1">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                      <Input
+                        id="userName"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                        placeholder="Tu nombre completo"
+                        className="pl-12 w-full h-12 rounded-full"
+                      />
+                    </div>
                   </div>
                 </div>
 

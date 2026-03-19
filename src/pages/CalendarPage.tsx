@@ -162,7 +162,7 @@ export default function CalendarPage() {
                </Button>
              </div>
 
-             <Button onClick={() => setIsAddOpen(true)} className="gap-2 rounded-2xl h-11 px-6 shadow-lg shadow-primary/20 flex-1 md:flex-none">
+             <Button onClick={() => setIsAddOpen(true)} className="gap-2 rounded-2xl h-11 px-6 shadow-lg shadow-black/20 bg-foreground text-background hover:bg-foreground/90 flex-1 md:flex-none">
                 <Plus size={18} />
                 <span className="text-xs font-black uppercase tracking-widest">Nueva</span>
              </Button>
@@ -176,7 +176,7 @@ export default function CalendarPage() {
         {/* Calendar Mobile Optimized Grid */}
         <section className="space-y-4">
            <div className="flex items-center gap-2 mb-2 px-2">
-             <div className="w-1.5 h-4 bg-primary rounded-full" />
+             <div className="w-1.5 h-4 bg-foreground rounded-full" />
              <h3 className="font-black text-[13px] uppercase tracking-widest text-muted-foreground opacity-60">Seleccionar Día</h3>
            </div>
            
@@ -197,9 +197,9 @@ export default function CalendarPage() {
                     onClick={() => setSelectedDate(day.date)}
                     className={`relative aspect-square flex flex-col items-center justify-center rounded-2xl transition-all border ${
                       isSelected 
-                        ? 'bg-primary border-primary text-white shadow-lg shadow-primary/40 scale-105 z-10' 
+                        ? 'bg-foreground border-foreground text-background shadow-lg shadow-black/30 scale-105 z-10' 
                         : isToday 
-                          ? 'bg-primary/10 border-primary/20 text-primary'
+                          ? 'bg-slate-200 dark:bg-slate-800 border-border/80 text-foreground font-black'
                           : !day.isCurrentMonth
                             ? 'opacity-20 border-transparent'
                             : 'bg-white dark:bg-slate-900 border-border/40 hover:border-primary/40'
@@ -207,7 +207,7 @@ export default function CalendarPage() {
                   >
                     <span className="text-xs font-black tracking-tighter">{day.date.getDate()}</span>
                     {hasEvents && !isSelected && (
-                      <div className={`absolute bottom-2 w-1 h-1 rounded-full ${isToday ? 'bg-primary' : 'bg-primary/40'}`} />
+                      <div className={`absolute bottom-2 w-1 h-1 rounded-full ${isToday ? 'bg-foreground' : 'bg-foreground/40'}`} />
                     )}
                   </button>
                 )
@@ -219,7 +219,7 @@ export default function CalendarPage() {
         <section className="space-y-6">
            <div className="flex items-center justify-between px-2">
              <div className="flex items-center gap-2">
-               <div className="w-1.5 h-4 bg-primary rounded-full shadow-lg shadow-primary/20" />
+               <div className="w-1.5 h-4 bg-foreground rounded-full shadow-lg shadow-black/20" />
                <h3 className="font-black text-[18px] tracking-tight">{selectedDate?.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric' })}</h3>
              </div>
              <Badge className="bg-slate-100 dark:bg-slate-800 text-muted-foreground border-transparent px-3 py-1 text-[10px] font-black uppercase">
@@ -235,7 +235,7 @@ export default function CalendarPage() {
                    onClick={() => { setSelectedEvent(event); setIsDetailOpen(true); }}
                    className={`group bg-white dark:bg-slate-900 border border-border/40 p-5 rounded-[28px] shadow-sm hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all duration-300 relative overflow-hidden ${event.completed ? 'opacity-60 grayscale-[0.5]' : ''}`}
                  >
-                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-foreground/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-foreground/10 transition-colors" />
                    
                    <div className="flex items-start gap-4 h-full">
                      <div className={`p-3 rounded-2xl shrink-0 transition-all ${
@@ -249,9 +249,9 @@ export default function CalendarPage() {
                      
                      <div className="flex-1 min-w-0">
                        <div className="flex items-center gap-2 mb-1">
-                         <span className="text-[10px] font-black text-primary uppercase tracking-widest">{event.activity_type}</span>
+                         <span className="text-[10px] font-black text-foreground uppercase tracking-widest">{event.activity_type}</span>
                          {event.completed && (
-                           <Badge className="bg-emerald-500/10 text-emerald-600 border-none text-[8px] h-4 font-black">COMPLETADA</Badge>
+                           <Badge className="bg-slate-100 text-muted-foreground border-transparent text-[8px] h-4 font-black">COMPLETADA</Badge>
                          )}
                        </div>
                        <h4 className="font-black text-[17px] tracking-tight truncate mb-1 text-foreground dark:text-slate-100">
@@ -293,8 +293,8 @@ export default function CalendarPage() {
            <div className="p-8">
               <DialogHeader className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                    <Plus className="text-white" size={20} />
+                  <div className="w-10 h-10 rounded-2xl bg-foreground flex items-center justify-center shadow-lg shadow-black/20">
+                    <Plus className="text-background" size={20} />
                   </div>
                   <DialogTitle className="text-2xl font-black tracking-tighter">Nueva Gestión</DialogTitle>
                 </div>
@@ -332,7 +332,7 @@ export default function CalendarPage() {
                         onClick={() => setActivityType(t.id)}
                         className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${
                           activityType === t.id 
-                            ? 'bg-primary/10 border-primary text-primary shadow-sm' 
+                            ? 'bg-foreground border-foreground text-background shadow-sm' 
                             : 'bg-white dark:bg-slate-800/40 border-transparent text-muted-foreground hover:border-slate-200'
                         }`}
                       >
@@ -355,7 +355,7 @@ export default function CalendarPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-3 mt-10">
-                <Button onClick={handleSaveActivity} disabled={loading || !selectedCompany} className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20">
+                <Button onClick={handleSaveActivity} disabled={loading || !selectedCompany} className="h-14 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-black/20 bg-foreground text-background">
                   {loading ? 'Sincronizando...' : 'Confirmar Gestión'}
                 </Button>
                 <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="h-12 rounded-2xl font-black text-[10px] uppercase text-muted-foreground opacity-60">Volver</Button>
@@ -369,26 +369,26 @@ export default function CalendarPage() {
         <DialogContent className="sm:max-w-[500px] border-none bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl safe-p-bottom">
           {selectedEvent && (
             <div className="animate-in slide-in-from-bottom-6 duration-500">
-              <div className="h-24 bg-primary relative overflow-hidden">
+              <div className="h-24 bg-foreground relative overflow-hidden">
                 <div className="absolute inset-0 bg-black/10" />
-                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/20 rounded-full blur-3xl" />
-                <div className="absolute top-4 right-6 uppercase text-[9px] font-black text-white/60 tracking-widest">Agenda Comercial</div>
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-background/20 rounded-full blur-3xl" />
+                <div className="absolute top-4 right-6 uppercase text-[9px] font-black text-background/60 tracking-widest">Agenda Comercial</div>
               </div>
               
               <div className="p-8 -mt-12 bg-white dark:bg-slate-900 rounded-t-[3rem] relative z-10">
                 <div className="flex items-start justify-between mb-8">
                   <div className="space-y-4 flex-1">
                     <div className="p-3 rounded-2xl bg-white dark:bg-slate-800 shadow-xl shadow-black/5 inline-flex mb-2 border border-border/20">
-                      {selectedEvent.activity_type === 'LLAMADA' ? <Phone className="h-6 w-6 text-primary" /> : 
+                      {selectedEvent.activity_type === 'LLAMADA' ? <Phone className="h-6 w-6 text-foreground" /> : 
                        selectedEvent.activity_type === 'VISITA' ? <MapPin className="h-6 w-6 text-emerald-500" /> :
-                       <MessageSquare className="h-6 w-6 text-sky-500" />}
+                       <MessageSquare className="h-6 w-6 text-foreground" />}
                     </div>
                     <div>
                       <h2 className="text-3xl font-black text-foreground tracking-tighter leading-none mb-2">
                         {selectedEvent.companies?.razon_social || 'Gestión'}
                       </h2>
                       <div className="flex items-center gap-3">
-                        <Badge className={`${selectedEvent.completed ? 'bg-emerald-500' : 'bg-primary'} text-white border-none h-5 text-[9px] font-black uppercase tracking-widest px-2`}>
+                        <Badge className={`${selectedEvent.completed ? 'bg-emerald-500 text-white' : 'bg-foreground text-background'} border-none h-5 text-[9px] font-black uppercase tracking-widest px-2 shadow-lg shadow-black/10`}>
                           {selectedEvent.completed ? 'Realizada' : 'Acción Pendiente'}
                         </Badge>
                         <span className="text-[10px] font-black text-muted-foreground uppercase opacity-40 tabular-nums">ID: {selectedEvent.id.slice(0, 8)}</span>

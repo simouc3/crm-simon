@@ -267,6 +267,7 @@ export default function KanbanBoard() {
                                     {deal.companies?.segmento?.replace(/_/g, ' ') || 'Industrial'}
                                   </Badge>
                                   {deal.visita_realizada && <Badge className="text-[8px] font-black px-2 h-5 bg-emerald-500/10 text-emerald-600 border-none tracking-widest uppercase">Visitado</Badge>}
+                                  {deal.is_contract && <Badge className="text-[8px] font-black px-2 h-5 bg-blue-500/10 text-blue-600 border-none tracking-widest uppercase">✨ Contrato ({deal.contract_months}M)</Badge>}
                                 </div>
 
                                 <div className="flex items-center justify-between pt-4 border-t border-border/40">

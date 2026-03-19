@@ -34,6 +34,8 @@ export interface Deal {
   valor_neto: number
   valor_total: number
   motivo_perdida?: string
+  is_contract?: boolean
+  contract_months?: number
   stage_updated_at?: string
   created_at?: string
 }

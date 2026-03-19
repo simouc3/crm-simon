@@ -124,8 +124,8 @@ export default function AppLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
                   isActive 
-                    ? 'bg-primary text-white shadow-xl shadow-primary/25 translate-x-1' 
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1'
+                    ? 'bg-foreground text-background shadow-xl translate-x-1' 
+                    : 'text-muted-foreground hover:bg-slate-100/50 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1'
                 }`
               }
             >
@@ -140,12 +140,12 @@ export default function AppLayout() {
             onClick={() => setShowSettings(true)}
             className="flex items-center gap-4 px-4 py-4 mb-6 cursor-pointer hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all group border border-transparent hover:border-slate-200 dark:hover:border-white/10 shadow-sm md:shadow-none"
           >
-            <div className="w-11 h-11 rounded-2xl bg-white dark:bg-slate-700 border border-border/40 flex items-center justify-center text-primary font-black text-sm shadow-sm group-hover:scale-105 transition-transform overflow-hidden relative">
-               <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors" />
+            <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-border/40 flex items-center justify-center text-foreground font-black text-sm shadow-sm group-hover:scale-105 transition-transform overflow-hidden relative">
+               <div className="absolute inset-0 bg-foreground/5 group-hover:bg-foreground/10 transition-colors" />
                <span className="relative z-10">{user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}</span>
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[14px] font-black text-foreground truncate leading-tight group-hover:text-primary transition-colors">
+              <span className="text-[14px] font-black text-foreground truncate leading-tight group-hover:text-foreground/80 transition-colors">
                 {user?.user_metadata?.full_name || 'Usuario'}
               </span>
               <span className="text-[10px] text-primary font-black uppercase tracking-[0.15em]">
@@ -191,11 +191,11 @@ export default function AppLayout() {
         {/* Mobile Header Premium Glass */}
         <header className="h-[80px] border-b border-border/40 dark:border-white/5 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl flex items-center px-8 justify-between md:hidden sticky top-0 z-30">
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center shadow-xl shadow-primary/20 overflow-hidden shrink-0 border border-white/20">
+            <div className="w-11 h-11 rounded-[14px] bg-foreground flex items-center justify-center shadow-xl shadow-foreground/20 overflow-hidden shrink-0 border border-border/20">
                {branding.logo ? (
                 <img src={branding.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
               ) : (
-                <span className="text-white font-black text-xl tracking-tighter">{branding.name.charAt(0)}</span>
+                <span className="text-background font-black text-xl tracking-tighter">{branding.name.charAt(0)}</span>
               )}
             </div>
             <div className="flex flex-col">
@@ -229,8 +229,8 @@ export default function AppLayout() {
                className={({ isActive }) =>
                  `flex flex-col items-center gap-1.5 px-4 h-full justify-center rounded-2xl transition-all duration-300 relative ${
                    isActive 
-                     ? 'text-primary scale-105' 
-                     : 'text-slate-400 dark:text-slate-500'
+                     ? 'text-foreground scale-105' 
+                     : 'text-muted-foreground opacity-60'
                  }`
                }
              >
@@ -243,7 +243,7 @@ export default function AppLayout() {
                     {item.name}
                    </span>
                    {isActive && (
-                      <div className="absolute top-1 right-2 w-1.5 h-1.5 rounded-full bg-primary" />
+                      <div className="absolute top-1 right-2 w-1.5 h-1.5 rounded-full bg-foreground" />
                    )}
                  </>
                )}

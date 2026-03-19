@@ -195,9 +195,18 @@ export default function Dashboard() {
   const propuestas = filteredDeals.filter(d => d.stage === 4)
   const activos = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5)
 
-  const mrr = ganados.reduce((s, d) => s + (d.valor_neto || 0), 0)
+  const mrrContractual = ganados
+    .filter(d => d.is_contract && d.contract_months)
+    .reduce((s, d) => s + ((d.valor_total || 0) / (d.contract_months || 1)), 0)
+
+  const ventasUnicas = ganados
+    .filter(d => !d.is_contract)
+    .reduce((s, d) => s + (d.valor_neto || 0), 0)
+
+  const ingresosMes = mrrContractual + ventasUnicas
+
   const pipelineForecast = propuestas.reduce((s, d) => s + (d.valor_neto || 0), 0)
-  const ticketPromedio = ganados.length > 0 ? mrr / ganados.length : 0
+  const ticketPromedio = ganados.length > 0 ? (ganados.reduce((s, d) => s + (d.valor_neto || 0), 0)) / ganados.length : 0
   const winRate = (ganados.length + perdidos.length) > 0 ? Math.round((ganados.length / (ganados.length + perdidos.length)) * 100) : 0
 
   const motivosPerdida = (() => {
@@ -281,9 +290,9 @@ export default function Dashboard() {
         <SectionTitle title="Ventas & Proyecciones" sub="Estado financiero de contratos y propuestas enviadas" />
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <KpiCard
-            label="MRR · Facturación Neta"
-            value={fmtCLP(mrr)}
-            sub={`${ganados.length} Contratos Firmados`}
+            label="Nuevos Ingresos (Ventas + MRR)"
+            value={fmtCLP(ingresosMes)}
+            sub={`${ganados.length} Cierres en el Periodo`}
             icon={DollarSign}
             trend={{ val: "+12.5%", up: true }}
             gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400 bg-noise"

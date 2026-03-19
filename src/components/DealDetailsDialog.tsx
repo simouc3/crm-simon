@@ -63,6 +63,10 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
   const [isEditingValor, setIsEditingValor] = useState(false)
   const [newValorNeto, setNewValorNeto] = useState("")
 
+  // State for recurring contracts (MRR)
+  const [isContract, setIsContract] = useState(false)
+  const [contractMonths, setContractMonths] = useState("")
+
   const fetchFiles = async () => {
     if (!deal) return
     const { data } = await supabase.from('deal_files').select('*').eq('deal_id', deal.id).order('created_at', { ascending: false })
@@ -79,6 +83,8 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
       setUltimoCorreoAt(deal.ultimo_correo_at || null)
       setCorreoRespondido(deal.correo_respondido || false)
       setMotivoPerdida(deal.motivo_perdida || "")
+      setIsContract(deal.is_contract || false)
+      setContractMonths(deal.contract_months ? String(deal.contract_months) : "")
       fetchFiles()
     }
   }, [deal])
@@ -266,6 +272,22 @@ Equipo Comercial`)
     }
   }
 
+  const saveContractConfig = async () => {
+    setLoading(true)
+    const months = parseInt(contractMonths) || 0
+    const { error } = await supabase.from('deals').update({
+      is_contract: isContract,
+      contract_months: isContract ? months : 0
+    }).eq('id', deal.id)
+    setLoading(false)
+    if (!error) {
+      if (onDealUpdated) onDealUpdated()
+      alert("Configuración de contrato guardada exitosamente.")
+    } else {
+      alert("Error guardando contrato: " + error.message)
+    }
+  }
+
   if (!deal) return null
 
   return (
@@ -319,6 +341,59 @@ Equipo Comercial`)
                 <SelectItem value="Otros">Otros / Sin respuesta</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        )}
+
+        {/* Configuración de Contrato (solo si es Etapa 6) */}
+        {currentStage === 6 && (
+          <div className="bg-emerald-500/5 rounded-2xl p-5 border border-emerald-500/20 space-y-4 shadow-inner">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4" /> Configuración de Cierre
+                </p>
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">¿Este negocio es un contrato recurrente?</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
+                <input type="checkbox" className="sr-only peer" checked={isContract} onChange={(e) => setIsContract(e.target.checked)} />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500 shadow-inner"></div>
+              </label>
+            </div>
+            
+            {isContract && (
+              <div className="flex flex-col gap-3 pt-4 border-t border-emerald-500/10">
+                <label className="text-[10px] font-black text-emerald-700/80 uppercase tracking-widest">Duración del contrato (meses)</label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="number" 
+                    min="1"
+                    placeholder="Ej. 12"
+                    value={contractMonths}
+                    onChange={(e) => setContractMonths(e.target.value)}
+                    className="h-10 rounded-xl bg-white dark:bg-slate-900 border-emerald-500/30 focus-visible:ring-emerald-500/20 tabular-nums font-bold"
+                  />
+                  <Button onClick={saveContractConfig} disabled={loading} className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] tracking-widest px-6 shadow-md shadow-emerald-500/20">
+                    {loading ? '...' : 'Guardar MRR'}
+                  </Button>
+                </div>
+                {contractMonths && parseInt(contractMonths) > 0 && deal.valor_total > 0 && (
+                  <div className="mt-2 bg-emerald-100 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/20 flex items-center justify-between">
+                     <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">MRR Estimado Mensual</span>
+                     <span className="text-[14px] font-black text-emerald-600 tabular-nums tracking-tighter">
+                       {fmtCLP(deal.valor_total / parseInt(contractMonths))}
+                     </span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {!isContract && (
+              <div className="pt-2 border-t border-emerald-500/10">
+                 <Button onClick={saveContractConfig} disabled={loading} variant="outline" className="w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
+                   Confirmar Venta Única
+                 </Button>
+              </div>
+            )}
           </div>
         )}
 

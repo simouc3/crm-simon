@@ -8,6 +8,9 @@ export function NotificationPrompt() {
 
   useEffect(() => {
     async function check() {
+      const dismissed = localStorage.getItem('pushPromptDismissed')
+      if (dismissed === 'true') return
+
       const permission = await checkNotificationPermission()
       if (permission === 'default') {
         // Mostrar después de un breve delay para no ser intrusivo
@@ -18,11 +21,21 @@ export function NotificationPrompt() {
   }, [])
 
   const handleSubscribe = async () => {
-    const success = await subscribeToPush()
-    if (success) {
-      setShow(false)
-      alert("¡Notificaciones activadas con éxito!")
+    setShow(false)
+    localStorage.setItem('pushPromptDismissed', 'true')
+    try {
+      const success = await subscribeToPush()
+      if (success) {
+        alert("¡Notificaciones activadas con éxito!")
+      }
+    } catch (err) {
+      console.warn("User dismissed or blocked notification prompt", err)
     }
+  }
+
+  const handleDismiss = () => {
+    setShow(false)
+    localStorage.setItem('pushPromptDismissed', 'true')
   }
 
   if (!show) return null
@@ -33,7 +46,7 @@ export function NotificationPrompt() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
         
         <button 
-          onClick={() => setShow(false)}
+          onClick={handleDismiss}
           className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground opacity-40 hover:opacity-100 transition-all"
         >
           <X size={16} />
@@ -57,7 +70,7 @@ export function NotificationPrompt() {
            <Button 
             variant="outline" 
             className="rounded-xl border-border/40 text-[10px] font-black uppercase tracking-widest h-10 opacity-60 hover:opacity-100"
-            onClick={() => setShow(false)}
+            onClick={handleDismiss}
            >
              Quizás luego
            </Button>
