@@ -97,7 +97,7 @@ export default function AppLayout() {
   return (
     <div className={`flex h-screen bg-[#F8FAFC] dark:bg-slate-950 text-foreground font-sans antialiased overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
       {/* Sidebar Desktop - Estilo Glass Premium Apple */}
-      <aside className="w-[300px] bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-r border-border/40 dark:border-white/5 hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)]">
+      <aside className="w-[220px] bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-r border-border/40 dark:border-white/5 hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)]">
         
         <div className="p-10 pb-8">
           <div className="flex flex-col gap-5 group cursor-pointer transition-all">

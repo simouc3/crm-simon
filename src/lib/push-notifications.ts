@@ -1,76 +1,63 @@
-import { supabase } from './supabase/client'
+/**
+ * Simplified Push Notifications Module
+ * Uses the native Notification API with a fallback approach.
+ * Full Web Push (with VAPID) requires a backend; here we use
+ * Notification.requestPermission() which works on Chrome/Safari/Firefox
+ * and enables local in-app alerts when the app is open.
+ */
 
-const PUBLIC_VAPID_KEY = 'BD6zX...' // El usuario debería proporcionar esto o lo generamos como placeholder
-
-export async function subscribeToPush() {
-  try {
-    const registration = await navigator.serviceWorker.ready
-    
-    // Verificar si ya existe una suscripción
-    let subscription = await registration.pushManager.getSubscription()
-    
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: PUBLIC_VAPID_KEY
-      })
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    // Guardar la suscripción en Supabase (Se asume tabla push_subscriptions)
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .upsert({
-        user_id: user.id,
-        subscription: subscription.toJSON(),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' })
-
-    if (error) throw error
-    return true
-  } catch (error) {
-    console.error('Error suscribiendo a Push:', error)
-    return false
-  }
-}
-
-export async function unsubscribeFromPush() {
-  try {
-    const registration = await navigator.serviceWorker.ready
-    const subscription = await registration.pushManager.getSubscription()
-    
-    if (subscription) {
-      await subscription.unsubscribe()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        // Opcional: eliminar el registro en backend
-        await supabase
-          .from('push_subscriptions')
-          .delete()
-          .eq('user_id', user.id)
-      }
-    }
-    return true
-  } catch (error) {
-    console.error('Error desuscribiendo de Push:', error)
-    return false
-  }
-}
-
-export async function checkNotificationPermission() {
+export async function checkNotificationPermission(): Promise<NotificationPermission | 'unsupported'> {
   if (!('Notification' in window)) return 'unsupported'
-  if (Notification.permission === 'granted') {
-     // Verify if we actually have a subscription
-     try {
-       const registration = await navigator.serviceWorker.ready
-       const subscription = await registration.pushManager.getSubscription()
-       if (!subscription) return 'default'
-       return 'granted'
-     } catch(e) {
-       return 'default'
-     }
-  }
   return Notification.permission
+}
+
+export async function subscribeToPush(): Promise<boolean> {
+  try {
+    if (!('Notification' in window)) {
+      alert('Tu navegador no soporta notificaciones.')
+      return false
+    }
+
+    const permission = await Notification.requestPermission()
+
+    if (permission === 'granted') {
+      // Show a confirmation notification immediately so the user knows it works
+      new Notification('✅ Notificaciones Activadas', {
+        body: 'Recibirás alertas de actividades y seguimiento de clientes.',
+        icon: '/icons/icon-192x192.png',
+      })
+      return true
+    }
+
+    if (permission === 'denied') {
+      alert(
+        'Las notificaciones están bloqueadas en tu navegador. Para activarlas, ve a Configuración del sitio en la barra de direcciones y cambia el permiso a "Permitir".'
+      )
+      return false
+    }
+
+    // 'default' — user dismissed without choosing
+    return false
+  } catch (error) {
+    console.error('Error activando notificaciones:', error)
+    return false
+  }
+}
+
+export async function unsubscribeFromPush(): Promise<boolean> {
+  // Nothing to unsubscribe from on the native Notification API
+  // Just return true so the UI updates correctly
+  return true
+}
+
+/**
+ * Utility to send an in-app notification (only works when app is open)
+ */
+export function sendLocalNotification(title: string, body: string) {
+  if (Notification.permission === 'granted') {
+    new Notification(title, {
+      body,
+      icon: '/icons/icon-192x192.png',
+    })
+  }
 }

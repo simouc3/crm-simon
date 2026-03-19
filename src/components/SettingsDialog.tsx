@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { supabase } from "../lib/supabase/client"
-import { Upload, Building2, User, Save, Bell } from "lucide-react"
+import { Upload, User, Save, Bell } from "lucide-react"
 import { checkNotificationPermission, subscribeToPush, unsubscribeFromPush } from "../lib/push-notifications"
 
 interface SettingsDialogProps {
@@ -17,7 +17,6 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: SettingsDialogProps) {
   const [loading, setLoading] = useState(false)
   const [companyName, setCompanyName] = useState("")
-  const [logoUrl, setLogoUrl] = useState("")
   const [userName, setUserName] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
   const [uploading, setUploading] = useState(false)
@@ -51,76 +50,38 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const fetchSettings = async () => {
     const { data } = await supabase
       .from('app_settings')
-      .select('*')
+      .select('company_name')
       .eq('id', '00000000-0000-0000-0000-000000000001')
       .single()
 
-    if (data) {
-      setCompanyName(data.company_name)
-      setLogoUrl(data.company_logo_url || "")
-    }
+    if (data) setCompanyName(data.company_name)
 
-    // Fetch User metadata
     const { data: { user } } = await supabase.auth.getUser()
-    if (user?.user_metadata?.full_name) {
-      setUserName(user.user_metadata.full_name)
-    }
-    if (user?.user_metadata?.avatar_url) {
-      setAvatarUrl(user.user_metadata.avatar_url)
-    }
+    if (user?.user_metadata?.full_name) setUserName(user.user_metadata.full_name)
+    if (user?.user_metadata?.avatar_url) setAvatarUrl(user.user_metadata.avatar_url)
   }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
-    
     setUploading(true)
     const file = e.target.files[0]
-    const fileExt = file.name.split('.').pop()
+    const fileExt = file.type.includes('png') ? 'png' : 'jpg'
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const fileName = `avatar_${user.id}.${fileExt}`
-    const filePath = `avatars/${fileName}`
+    if (!user) { setUploading(false); return }
 
+    const filePath = `${user.id}/avatar.${fileExt}`
     const { error: uploadError } = await supabase.storage
-      .from('deal-documents')
-      .upload(filePath, file, { upsert: true })
+      .from('avatars')
+      .upload(filePath, file, { upsert: true, contentType: file.type })
 
     if (uploadError) {
       alert("Error subiendo foto: " + uploadError.message)
     } else {
-      const { data: { publicUrl } } = supabase.storage
-        .from('deal-documents')
-        .getPublicUrl(filePath)
-      
-      setAvatarUrl(publicUrl)
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath)
+      setAvatarUrl(`${urlData.publicUrl}?t=${Date.now()}`)
     }
     setUploading(false)
-  }
-
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return
-    
-    setUploading(true)
-    const file = e.target.files[0]
-    const fileExt = file.name.split('.').pop()
-    const fileName = `company_logo.${fileExt}`
-    const filePath = `branding/${fileName}`
-
-    // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from('deal-documents') // Reciclando el bucket existente por ahora
-      .upload(filePath, file, { upsert: true })
-
-    if (uploadError) {
-      alert("Error subiendo logo: " + uploadError.message)
-    } else {
-      const { data: { publicUrl } } = supabase.storage
-        .from('deal-documents')
-        .getPublicUrl(filePath)
-      
-      setLogoUrl(publicUrl)
-    }
-    setUploading(false)
+    e.target.value = ''
   }
 
   const handleSave = async () => {
@@ -130,21 +91,17 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
       .upsert({
         id: '00000000-0000-0000-0000-000000000001',
         company_name: companyName,
-        company_logo_url: logoUrl,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' })
 
-    // Update User metadata
     await supabase.auth.updateUser({
       data: { full_name: userName, avatar_url: avatarUrl }
     })
 
     if (error) {
-      alert("Error guardando configuración: " + error.message)
+      alert("Error guardando: " + error.message)
     } else {
       if (onSettingsUpdated) onSettingsUpdated()
-      // No cerramos el diálogo inmediatamente para dar tiempo a la suscripción si es necesario, 
-      // o simplemente dejamos que el usuario lo cierre. Pero para UX rápida, lo mantendremos así.
       onOpenChange(false)
     }
     setLoading(false)
@@ -152,140 +109,105 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>Configuración del Sistema</DialogTitle>
           <DialogDescription>
-            Personaliza la apariencia de tu CRM con el logo y nombre de tu empresa.
+            Ajusta el nombre de tu empresa y tu perfil personal.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          {/* Logo Section */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative w-24 h-24 rounded-2xl border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/30">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
-              ) : (
-                <Building2 className="w-10 h-10 text-muted-foreground/40" />
-              )}
-              {uploading && (
-                <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col items-center gap-1.5">
-              <Label htmlFor="logo" className="cursor-pointer">
-                <div className="flex items-center gap-2 text-xs font-semibold text-primary hover:underline">
-                  <Upload className="w-3.5 h-3.5" />
-                  {logoUrl ? "Cambiar Logo" : "Subir Logo"}
-                </div>
-                <Input 
-                  id="logo" 
-                  type="file" 
-                  accept="image/png" 
-                  className="hidden" 
-                  onChange={handleLogoUpload}
-                  disabled={uploading}
+        <div className="grid gap-5 py-2">
+          {/* Empresa */}
+          <div className="grid gap-2">
+            <Label htmlFor="companyName">Nombre de la Empresa</Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="Ej: LimpioSur SPA"
+              className="rounded-full"
+            />
+          </div>
+
+          {/* Perfil */}
+          <div className="grid gap-2">
+            <Label>Tu Nombre y Foto de Perfil</Label>
+            <div className="flex gap-4 items-center">
+              <div className="relative w-14 h-14 rounded-full border border-border/40 flex items-center justify-center overflow-hidden bg-muted/30 shrink-0">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-5 h-5 text-muted-foreground/40" />
+                )}
+                <Label htmlFor="avatar" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer rounded-full">
+                  <Upload className="w-3 h-3 text-white" />
+                  <Input
+                    id="avatar"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={uploading}
+                  />
+                </Label>
+              </div>
+              <div className="relative flex-1">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                <Input
+                  id="userName"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Tu nombre completo"
+                  className="pl-12 w-full h-12 rounded-full"
                 />
-              </Label>
-              <p className="text-[10px] text-muted-foreground italic text-center">Obligatorio: Formato PNG<br/>(Fondo transparente para diseño B&W)</p>
+              </div>
             </div>
           </div>
 
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="companyName">Nombre de la Empresa</Label>
-                <Input
-                  id="companyName"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Ej: Limpiezas Industriales S.A."
-                />
-              </div>
-                <div className="grid gap-2">
-                  <Label>Tu Nombre y Foto de Perfil</Label>
-                  <div className="flex gap-4 items-center">
-                    <div className="relative w-14 h-14 rounded-full border border-border/40 flex items-center justify-center overflow-hidden bg-muted/30 shrink-0">
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="w-5 h-5 text-muted-foreground/40" />
-                      )}
-                      
-                      <Label htmlFor="avatar" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                        <Upload className="w-3 h-3 text-white" />
-                        <Input 
-                          id="avatar" 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
-                          onChange={handleAvatarUpload}
-                          disabled={uploading}
-                        />
-                      </Label>
-                    </div>
-                    
-                    <div className="relative flex-1">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-                      <Input
-                        id="userName"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
-                        placeholder="Tu nombre completo"
-                        className="pl-12 w-full h-12 rounded-full"
-                      />
-                    </div>
-                  </div>
+          {/* Notificaciones */}
+          <div className="pt-4 border-t border-border/40">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Bell className="w-4 h-4 text-primary" />
                 </div>
-
-                {/* Ajuste de Notificaciones */}
-                <div className="mt-4 pt-6 border-t border-border/40">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Bell className="w-4 h-4 text-primary" />
-                         </div>
-                         <div className="flex flex-col">
-                           <span className="text-xs font-bold text-foreground">Notificaciones Push</span>
-                           <span className="text-[10px] text-muted-foreground">Alertas en tiempo real</span>
-                         </div>
-                      </div>
-                      <Switch 
-                        checked={pushEnabled}
-                        onCheckedChange={handleTogglePush}
-                        disabled={pushToggling}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Directorio de Usuarios Link for Admins */}
-                <div className="mt-4 pt-6 border-t border-border/40">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-foreground">Gestión de Equipo</span>
-                        <span className="text-[10px] text-muted-foreground">Administra los roles y perfiles de los vendedores.</span>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          onOpenChange(false);
-                          window.history.pushState({}, '', '/users');
-                          window.dispatchEvent(new PopStateEvent('popstate'));
-                        }}
-                        className="border-primary/20 text-primary hover:bg-primary/5 rounded-xl font-bold text-[10px] uppercase tracking-wider h-8"
-                      >
-                        Ver Directorio
-                      </Button>
-                    </div>
-                  </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-foreground">Notificaciones Push</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {pushEnabled ? '✅ Activadas' : 'Alertas en tiempo real'}
+                  </span>
                 </div>
               </div>
+              <Switch
+                checked={pushEnabled}
+                onCheckedChange={handleTogglePush}
+                disabled={pushToggling}
+              />
+            </div>
+          </div>
+
+          {/* Gestión de Equipo */}
+          <div className="pt-4 border-t border-border/40">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-foreground">Gestión de Equipo</span>
+                <span className="text-[11px] text-muted-foreground">Roles y perfiles de vendedores</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onOpenChange(false)
+                  window.history.pushState({}, '', '/users')
+                  window.dispatchEvent(new PopStateEvent('popstate'))
+                }}
+                className="border-primary/20 text-primary hover:bg-primary/5 rounded-xl font-bold text-[10px] uppercase tracking-wider h-8"
+              >
+                Ver Directorio
+              </Button>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
