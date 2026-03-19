@@ -140,13 +140,13 @@ export default function KanbanBoard() {
       <div className="flex-1 overflow-x-auto md:overflow-visible custom-scrollbar px-6 md:px-10 py-8 max-w-7xl mx-auto w-full">
         
         {/* Mobile Vertical List View */}
-        <div className="md:hidden space-y-4 pb-20">
+        <div className="md:hidden space-y-3 pb-24 px-2">
            {activeStageDeals.length > 0 ? (
              activeStageDeals.map((deal) => (
                <div 
                  key={deal.id}
                  onClick={() => openDeal(deal)}
-                 className="bg-white dark:bg-slate-900 border border-border/40 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-500"
+                 className="bg-white dark:bg-slate-900 border border-border/40 rounded-[24px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] relative overflow-hidden active:scale-[0.98] active:shadow-none transition-all duration-150"
                >
                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
                  

@@ -152,6 +152,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [range, setRange] = useState<TimeRange>('MONTH')
 
+  const now = new Date()
+  const rangeLabels: Record<TimeRange, string> = {
+    MONTH: new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(now),
+    QUARTER: `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`,
+    YEAR: String(now.getFullYear()),
+  }
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
@@ -175,19 +182,20 @@ export default function Dashboard() {
     </div>
   )
 
-  // Filtrado por Tiempo
-  const now = new Date()
+  // Filtrado por Tiempo — usa stage_changed_at para ganados/perdidos, created_at para activos
   const filteredDeals = deals.filter(deal => {
-    const created = new Date(deal.created_at)
+    // Usamos la fecha más significativa: stage_changed_at si existe, si no created_at
+    const dateStr = deal.stage_changed_at || deal.created_at
+    const d = new Date(dateStr)
     if (range === 'MONTH') {
-      return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     }
     if (range === 'QUARTER') {
       const q_now = Math.floor(now.getMonth() / 3)
-      const q_created = Math.floor(created.getMonth() / 3)
-      return q_now === q_created && created.getFullYear() === now.getFullYear()
+      const q_d = Math.floor(d.getMonth() / 3)
+      return q_now === q_d && d.getFullYear() === now.getFullYear()
     }
-    return created.getFullYear() === now.getFullYear()
+    return d.getFullYear() === now.getFullYear()
   })
 
   const ganados = filteredDeals.filter(d => d.stage === 6)
@@ -259,10 +267,10 @@ export default function Dashboard() {
         </div>
 
         {/* Segmented Control iOS Style */}
-        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
           <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full flex items-center shadow-inner self-start md:self-auto min-w-[300px]">
             {[
-              { id: 'MONTH', label: 'Este Mes' },
+              { id: 'MONTH', label: 'Mes' },
               { id: 'QUARTER', label: 'Trimestre' },
               { id: 'YEAR', label: 'Año' }
             ].map(item => (
@@ -271,7 +279,7 @@ export default function Dashboard() {
                 onClick={() => setRange(item.id as TimeRange)}
                 className={`flex-1 h-10 rounded-full flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
                   range === item.id 
-                    ? 'bg-white dark:bg-slate-700 text-primary shadow-lg shadow-black/5 scale-[1.02]' 
+                    ? 'bg-white dark:bg-slate-700 text-foreground shadow-lg shadow-black/5 scale-[1.02]' 
                     : 'text-muted-foreground hover:text-foreground opacity-60'
                 }`}
               >
@@ -279,9 +287,11 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-2 px-2 opacity-40">
+          <div className="flex items-center gap-2 px-2 opacity-50">
             <Calendar className="h-3 w-3 text-muted-foreground" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Viendo datos de {range === 'MONTH' ? 'Cierre Mensual' : range === 'QUARTER' ? 'Estrategia Q' : 'Visión Anual'}</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Viendo: <span className="text-foreground capitalize">{rangeLabels[range]}</span>
+            </span>
           </div>
         </div>
       </div>

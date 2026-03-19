@@ -4,48 +4,48 @@
 
 @layer base {
   :root {
-    --background: 240 24% 97%; /* Apple System Gray 6 (#f2f2f7) */
-    --foreground: 0 0% 0%; /* Apple Black */
+    --background: 0 0% 97%; /* Off-white Apple System */
+    --foreground: 0 0% 6%; /* Near Black */
     --card: 0 0% 100%; /* Pure White */
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 0 0% 6%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 211 100% 50%; /* Apple System Blue (#007aff) */
+    --popover-foreground: 0 0% 6%;
+    --primary: 0 0% 6%; /* BLACK — Apple CTA Style */
     --primary-foreground: 0 0% 100%; /* Pure White */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 0 0% 0%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 0 0% 53%; /* Gris medio-claro (#888888) */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 100% 60%; /* Apple System Red (#ff3b30) */
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 6%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 46%; /* Gris medio */
+    --accent: 0 0% 94%;
+    --accent-foreground: 0 0% 6%;
+    --destructive: 0 86% 55%; /* Apple System Red */
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 93%; /* #EEEEEE divisor súper delgado */
+    --border: 0 0% 90%; /* Borde muy sutil */
     --input: 0 0% 93%;
-    --ring: 0 0% 0%; /* Acciones primarias negras */
-    --radius: 1.5rem; /* iOS standard radius ampliado */
+    --ring: 0 0% 6%; /* Ring negro */
+    --radius: 1.25rem;
   }
 
   .dark {
-    --background: 0 0% 0%; /* OLED Black (#000000) */
-    --foreground: 0 0% 100%; /* Pure White */
-    --card: 240 5% 10%; /* Apple Dark Gray */
-    --card-foreground: 0 0% 100%;
-    --popover: 240 5% 10%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 210 100% 52%; /* Apple System Blue Dark (#0a84ff) */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 222 47% 15%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 222 47% 15%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 222 47% 15%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 100% 65%; /* Apple System Red Dark (#ff453a) */
-    --destructive-foreground: 210 40% 98%;
-    --border: 240 5% 18%;
-    --input: 240 5% 18%;
-    --ring: 210 100% 52%; /* Apple System Blue Dark */
+    --background: 0 0% 5%; /* Near Black */
+    --foreground: 0 0% 98%; /* Near White */
+    --card: 0 0% 10%; /* Dark Card */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 96%; /* WHITE — Apple CTA Dark Mode */
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 86% 58%; /* Apple System Red Dark */
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 98%;
   }
 }
 
