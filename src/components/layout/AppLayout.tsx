@@ -12,6 +12,7 @@ export default function AppLayout() {
   const [showSettings, setShowSettings] = useState(false)
   const [branding, setBranding] = useState({ name: 'CRM SIMON', logo: '' })
   const [userRole, setUserRole] = useState<string>('VENDEDOR')
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
 
   const fetchBranding = async () => {
     const { data } = await supabase
@@ -32,10 +33,13 @@ export default function AppLayout() {
     if (!user) return
     const { data } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, avatar_url')
       .eq('id', user.id)
       .single()
-    if (data) setUserRole(data.role)
+    if (data) {
+      setUserRole(data.role)
+      if (data.avatar_url) setAvatarUrl(data.avatar_url)
+    }
   }
 
   useEffect(() => {
@@ -141,8 +145,14 @@ export default function AppLayout() {
             className="flex items-center gap-4 px-4 py-4 mb-6 cursor-pointer hover:bg-white dark:hover:bg-slate-800 rounded-2xl transition-all group border border-transparent hover:border-slate-200 dark:hover:border-white/10 shadow-sm md:shadow-none"
           >
             <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-border/40 flex items-center justify-center text-foreground font-black text-sm shadow-sm group-hover:scale-105 transition-transform overflow-hidden relative">
-               <div className="absolute inset-0 bg-foreground/5 group-hover:bg-foreground/10 transition-colors" />
-               <span className="relative z-10">{user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}</span>
+               {avatarUrl ? (
+                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+               ) : (
+                 <>
+                   <div className="absolute inset-0 bg-foreground/5 group-hover:bg-foreground/10 transition-colors" />
+                   <span className="relative z-10">{user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}</span>
+                 </>
+               )}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-[14px] font-black text-foreground truncate leading-tight group-hover:text-foreground/80 transition-colors">
