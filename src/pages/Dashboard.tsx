@@ -255,7 +255,7 @@ export default function Dashboard() {
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans">
       
       {/* Header Premium con Selector de Rango Estilo Apple */}
-      <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between bg-white dark:bg-slate-900 mx-[-1.5rem] mt-[-1.5rem] p-8 md:mx-0 md:mt-0 md:p-0 border-b md:border-none border-border/40 mb-4">
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between pb-2 mb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black text-primary bg-primary/10 dark:bg-primary/20 px-2 py-0.5 rounded-lg tracking-wider">EXECUTIVE PANEL</span>
