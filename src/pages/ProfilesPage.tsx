@@ -35,34 +35,68 @@ export default function ProfilesPage() {
     
     setIsUpdating(true)
     const file = e.target.files[0]
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${profileId}_${Math.random()}.${fileExt}`
-    const filePath = `avatars/${fileName}`
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert("Por favor selecciona una imagen (JPG, PNG, HEIC, etc.)")
+      setIsUpdating(false)
+      return
+    }
 
+    const fileExt = file.type.includes('png') ? 'png' : 'jpg'
+    const filePath = `${profileId}/avatar.${fileExt}`
+
+    // Try uploading to 'avatars' bucket first, fallback to 'deal-documents'
+    let publicUrl = ''
+    
     const { error: uploadError } = await supabase.storage
-      .from('deal-documents')
-      .upload(filePath, file)
+      .from('avatars')
+      .upload(filePath, file, { upsert: true, contentType: file.type })
 
     if (uploadError) {
-      alert("Error subiendo foto")
-    } else {
-      const { data: { publicUrl } } = supabase.storage
+      // Fallback: try deal-documents bucket
+      const fallbackPath = `avatars/${profileId}_avatar.${fileExt}`
+      const { error: fallbackError } = await supabase.storage
         .from('deal-documents')
-        .getPublicUrl(filePath)
+        .upload(fallbackPath, file, { upsert: true, contentType: file.type })
       
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', profileId)
+      if (fallbackError) {
+        alert(`Error subiendo foto: ${fallbackError.message}`)
+        setIsUpdating(false)
+        return
+      }
+      
+      const { data: fallbackData } = supabase.storage
+        .from('deal-documents')
+        .getPublicUrl(fallbackPath)
+      publicUrl = fallbackData.publicUrl
+    } else {
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath)
+      publicUrl = urlData.publicUrl
+    }
 
-      if (!updateError) {
-        setProfiles(profiles.map(p => p.id === profileId ? { ...p, avatar_url: publicUrl } : p))
-        if (selectedProfile?.id === profileId) {
-          setSelectedProfile({ ...selectedProfile, avatar_url: publicUrl })
-        }
+    // Add cache-busting timestamp
+    publicUrl = `${publicUrl}?t=${Date.now()}`
+    
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl })
+      .eq('id', profileId)
+
+    if (updateError) {
+      alert(`Error actualizando perfil: ${updateError.message}`)
+    } else {
+      setProfiles(profiles.map(p => p.id === profileId ? { ...p, avatar_url: publicUrl } : p))
+      if (selectedProfile?.id === profileId) {
+        setSelectedProfile({ ...selectedProfile, avatar_url: publicUrl })
       }
     }
+    
     setIsUpdating(false)
+    // Reset input so same file can be re-selected
+    e.target.value = ''
   }
 
   const deleteProfile = async (profileId: string) => {

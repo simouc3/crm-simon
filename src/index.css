@@ -4,48 +4,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 97%; /* Off-white Apple System */
-    --foreground: 0 0% 6%; /* Near Black */
-    --card: 0 0% 100%; /* Pure White */
-    --card-foreground: 0 0% 6%;
+    /* ── Light Mode: Apple Premium ────────────────────────── */
+    --background: 240 8% 96%;        /* #F5F5F7 — off-white lienzo Apple */
+    --foreground: 0 0% 7%;           /* #111111 — casi negro, no puro */
+    --card: 0 0% 100%;               /* Blanco puro para cards que resaltan */
+    --card-foreground: 0 0% 7%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 6%;
-    --primary: 0 0% 6%; /* BLACK — Apple CTA Style */
-    --primary-foreground: 0 0% 100%; /* Pure White */
-    --secondary: 0 0% 95%;
-    --secondary-foreground: 0 0% 6%;
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 46%; /* Gris medio */
-    --accent: 0 0% 94%;
-    --accent-foreground: 0 0% 6%;
-    --destructive: 0 86% 55%; /* Apple System Red */
+    --popover-foreground: 0 0% 7%;
+    --primary: 0 0% 7%;              /* Negro CTA para botones primarios */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 93%;
+    --secondary-foreground: 0 0% 7%;
+    --muted: 220 14% 93%;
+    --muted-foreground: 0 0% 53%;    /* #888888 — gris texto secundario */
+    --accent: 220 14% 91%;
+    --accent-foreground: 0 0% 7%;
+    --destructive: 3 86% 56%;        /* Apple System Red #ff3b30 */
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%; /* Borde muy sutil */
-    --input: 0 0% 93%;
-    --ring: 0 0% 6%; /* Ring negro */
-    --radius: 1.25rem;
+    --border: 220 13% 91%;           /* Borde muy sutil */
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;             /* Apple Blue para focus rings */
+    --radius: 1rem;                  /* 16px base */
   }
 
   .dark {
-    --background: 0 0% 5%; /* Near Black */
-    --foreground: 0 0% 98%; /* Near White */
-    --card: 0 0% 10%; /* Dark Card */
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 96%; /* WHITE — Apple CTA Dark Mode */
-    --primary-foreground: 0 0% 6%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 86% 58%; /* Apple System Red Dark */
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 0% 98%;
+    /* ── Dark Mode: Apple HIG Spec ────────────────────────── */
+    --background: 0 0% 0%;           /* #000000 OLED Black — ahorra batería iPhone */
+    --foreground: 240 9% 95%;        /* #F2F2F7 — blanco suave, sin halation */
+    --card: 240 4% 11%;              /* #1C1C1E — gris oscuro Apple nivel 1 */
+    --card-foreground: 240 9% 95%;
+    --popover: 240 4% 11%;
+    --popover-foreground: 240 9% 95%;
+    --primary: 240 9% 95%;           /* Blanco suave para CTAs primarios */
+    --primary-foreground: 0 0% 7%;
+    --secondary: 240 4% 17%;         /* #2C2C2E — nivel 2 Apple */
+    --secondary-foreground: 240 9% 95%;
+    --muted: 240 4% 17%;
+    --muted-foreground: 240 5% 56%;  /* #8E8E93 — gris azulado iOS */
+    --accent: 240 4% 23%;            /* #3A3A3C — nivel 3 Apple */
+    --accent-foreground: 240 9% 95%;
+    --destructive: 4 86% 62%;        /* Apple Red Dark #ff453a */
+    --destructive-foreground: 240 9% 95%;
+    --border: 0 0% 100% / 0.1;       /* Borde translúcido blanco 10% */
+    --input: 240 4% 17%;
+    --ring: 217 91% 65%;             /* Apple Blue Dark #0a84ff */
   }
 }
 
@@ -55,9 +57,20 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Ruido Grain Premium para fondos de gradientes líquidos */
+  /* ── Scrollbar oculto para carruseles ─── */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ── Scrollbar personalizado ─────────── */
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 99px; }
+
+  /* ── Ruido Grain Premium para gradientes hero ─── */
   .bg-noise {
     position: relative;
   }
@@ -66,10 +79,22 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opactiy='0.1'/%3E%3C/svg%3E");
-    opacity: 0.25;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.18;
     mix-blend-mode: overlay;
     border-radius: inherit;
     z-index: 0;
   }
-} 
+
+  /* ── Squircle pill inputs ─────────────── */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  textarea {
+    border-radius: 9999px !important;
+  }
+  textarea {
+    border-radius: 1rem !important;
+  }
+}
