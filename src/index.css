@@ -11,7 +11,7 @@
     --card-foreground: 0 0% 7%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 7%;
-    --primary: 0 0% 7%;              /* Negro CTA para botones primarios */
+    --primary: 211 100% 50%;      /* #007AFF — Apple System Blue */
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 93%;
     --secondary-foreground: 0 0% 7%;
@@ -35,8 +35,8 @@
     --card-foreground: 240 9% 95%;
     --popover: 240 4% 11%;
     --popover-foreground: 240 9% 95%;
-    --primary: 240 9% 95%;           /* Blanco suave para CTAs primarios */
-    --primary-foreground: 0 0% 7%;
+    --primary: 210 100% 56%;      /* #0A84FF — Apple Blue Dark Mode */
+    --primary-foreground: 0 0% 100%;
     --secondary: 240 4% 17%;         /* #2C2C2E — nivel 2 Apple */
     --secondary-foreground: 240 9% 95%;
     --muted: 240 4% 17%;
@@ -47,7 +47,7 @@
     --destructive-foreground: 240 9% 95%;
     --border: 0 0% 100% / 0.1;       /* Borde translúcido blanco 10% */
     --input: 240 4% 17%;
-    --ring: 217 91% 65%;             /* Apple Blue Dark #0a84ff */
+    --ring: 210 100% 56%;             /* Apple Blue Dark focus ring */
   }
 }
 
