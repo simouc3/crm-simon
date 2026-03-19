@@ -15,30 +15,34 @@ export default function AppLayout() {
   const [avatarUrl, setAvatarUrl] = useState<string>('')
 
   const fetchBranding = async () => {
-    const { data } = await supabase
-      .from('app_settings')
-      .select('company_name, company_logo_url')
-      .eq('id', '00000000-0000-0000-0000-000000000001')
-      .single()
-    
-    if (data) {
-      setBranding({
-        name: data.company_name || 'CRM SIMON',
-        logo: data.company_logo_url || ''
-      })
+    try {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('company_name')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .single()
+      if (data) {
+        setBranding({ name: data.company_name || 'CRM SIMON', logo: '' })
+      }
+    } catch (e) {
+      console.warn('fetchBranding error:', e)
     }
   }
 
   const fetchUserRole = async () => {
     if (!user) return
-    const { data } = await supabase
-      .from('profiles')
-      .select('role, avatar_url')
-      .eq('id', user.id)
-      .single()
-    if (data) {
-      setUserRole(data.role)
-      if (data.avatar_url) setAvatarUrl(data.avatar_url)
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role, avatar_url')
+        .eq('id', user.id)
+        .single()
+      if (data) {
+        setUserRole(data.role || 'VENDEDOR')
+        if (data.avatar_url) setAvatarUrl(data.avatar_url)
+      }
+    } catch (e) {
+      console.warn('fetchUserRole error:', e)
     }
   }
 
