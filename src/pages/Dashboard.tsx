@@ -25,7 +25,7 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
   }
 
   return (
-    <div className="flex flex-col sm:flex-row gap-6 items-center bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[40px] border border-border/40 shadow-sm hover:shadow-lg transition-shadow duration-500">
+    <div className="flex flex-col sm:flex-row gap-6 items-center bg-slate-50/50 dark:bg-white/[0.03] p-6 rounded-[28px] border border-border/30 dark:border-white/[0.06]">
       <div className="relative w-36 h-36 shrink-0">
         <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl rotate-0 transition-transform duration-700 hover:rotate-6">
           {total > 0 && slices.length === 1 ? (
@@ -50,16 +50,17 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
           <circle cx="50" cy="50" r="22" fill="var(--card)" className="dark:fill-slate-900" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[10px] font-black text-muted-foreground uppercase leading-none opacity-40">Total</span>
-          <span className="text-xs font-black text-foreground">{total}</span>
+          <span className="text-[8px] font-black text-muted-foreground uppercase leading-none opacity-40">Total</span>
+          <span className="text-[10px] font-black text-foreground">{fmtCLP(total)}</span>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 flex-1 w-full">
         {slices.map((s, i) => (
           <div key={i} className="flex items-center gap-3 text-xs p-1">
             <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ background: s.color }} />
-            <span className="truncate text-muted-foreground font-bold tracking-tight">{s.label}</span>
-            <span className="ml-auto font-black tabular-nums bg-white dark:bg-slate-800 px-2 py-0.5 rounded-lg shadow-sm border border-border/20">{Math.round(s.pct * 100)}%</span>
+            <span className="truncate text-muted-foreground font-bold tracking-tight flex-1">{s.label}</span>
+            <span className="font-black tabular-nums text-[10px] text-muted-foreground mr-1">{fmtCLP(s.value)}</span>
+            <span className="font-black tabular-nums bg-white dark:bg-[#2C2C2E] px-2 py-0.5 rounded-lg border border-border/20 dark:border-transparent">{Math.round(s.pct * 100)}%</span>
           </div>
         ))}
       </div>
@@ -151,12 +152,17 @@ export default function Dashboard() {
   const [deals, setDeals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [range, setRange] = useState<TimeRange>('MONTH')
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
+  const [selectedQuarter, setSelectedQuarter] = useState(Math.floor(new Date().getMonth() / 3))
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  const now = new Date()
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  const availableYears = [2024, 2025, 2026]
+
   const rangeLabels: Record<TimeRange, string> = {
-    MONTH: new Intl.DateTimeFormat('es-CL', { month: 'long', year: 'numeric' }).format(now),
-    QUARTER: `Q${Math.floor(now.getMonth() / 3) + 1} ${now.getFullYear()}`,
-    YEAR: String(now.getFullYear()),
+    MONTH: `${monthNames[selectedMonth]} ${selectedYear}`,
+    QUARTER: `Q${selectedQuarter + 1} ${selectedYear}`,
+    YEAR: String(selectedYear),
   }
 
   useEffect(() => {
@@ -184,18 +190,16 @@ export default function Dashboard() {
 
   // Filtrado por Tiempo — usa stage_changed_at para ganados/perdidos, created_at para activos
   const filteredDeals = deals.filter(deal => {
-    // Usamos la fecha más significativa: stage_changed_at si existe, si no created_at
     const dateStr = deal.stage_changed_at || deal.created_at
     const d = new Date(dateStr)
     if (range === 'MONTH') {
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+      return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear
     }
     if (range === 'QUARTER') {
-      const q_now = Math.floor(now.getMonth() / 3)
       const q_d = Math.floor(d.getMonth() / 3)
-      return q_now === q_d && d.getFullYear() === now.getFullYear()
+      return q_d === selectedQuarter && d.getFullYear() === selectedYear
     }
-    return d.getFullYear() === now.getFullYear()
+    return d.getFullYear() === selectedYear
   })
 
   const ganados = filteredDeals.filter(d => d.stage === 6)
@@ -268,7 +272,7 @@ export default function Dashboard() {
 
         {/* Segmented Control iOS Style */}
           <div className="flex flex-col gap-4">
-          <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full flex items-center shadow-inner self-start md:self-auto min-w-[300px]">
+          <div className="bg-slate-100 dark:bg-[#2C2C2E] p-1.5 rounded-full flex items-center self-start md:self-auto min-w-[280px]">
             {[
               { id: 'MONTH', label: 'Mes' },
               { id: 'QUARTER', label: 'Trimestre' },
@@ -279,7 +283,7 @@ export default function Dashboard() {
                 onClick={() => setRange(item.id as TimeRange)}
                 className={`flex-1 h-10 rounded-full flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
                   range === item.id 
-                    ? 'bg-white dark:bg-slate-700 text-foreground shadow-lg shadow-black/5 scale-[1.02]' 
+                    ? 'bg-white dark:bg-[#3A3A3C] text-foreground shadow-lg shadow-black/5 dark:shadow-none scale-[1.02]' 
                     : 'text-muted-foreground hover:text-foreground opacity-60'
                 }`}
               >
@@ -287,6 +291,39 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
+
+          {/* Selector específico */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {range === 'MONTH' && (
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="h-9 px-3 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border-0 text-[11px] font-black uppercase tracking-wider text-foreground appearance-none cursor-pointer"
+                style={{ borderRadius: '9999px' }}
+              >
+                {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+              </select>
+            )}
+            {range === 'QUARTER' && (
+              <select
+                value={selectedQuarter}
+                onChange={(e) => setSelectedQuarter(Number(e.target.value))}
+                className="h-9 px-3 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border-0 text-[11px] font-black uppercase tracking-wider text-foreground appearance-none cursor-pointer"
+                style={{ borderRadius: '9999px' }}
+              >
+                {[0,1,2,3].map(q => <option key={q} value={q}>Q{q+1} (Ene-Mar/Abr-Jun/Jul-Sep/Oct-Dic)</option>)}
+              </select>
+            )}
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="h-9 px-3 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border-0 text-[11px] font-black uppercase tracking-wider text-foreground appearance-none cursor-pointer"
+              style={{ borderRadius: '9999px' }}
+            >
+              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+
           <div className="flex items-center gap-2 px-2 opacity-50">
             <Calendar className="h-3 w-3 text-muted-foreground" />
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -323,7 +360,7 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="mt-8 rounded-[40px] border border-border/40 bg-white/50 dark:bg-slate-900/50 p-8 md:p-10 shadow-sm overflow-hidden relative">
+        <div className="mt-8 rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white/50 dark:bg-[#1C1C1E]/50 p-8 md:p-10 dark:shadow-none overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-2xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center">
@@ -385,8 +422,8 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="rounded-[40px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500">
-            <div className="p-6 border-b border-border/40 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
+            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
               <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Causas de Cierre Perdido</h3>
               <span className="text-[9px] font-black bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded-lg border border-rose-500/20">ALERTA ROJA</span>
             </div>
@@ -398,15 +435,15 @@ export default function Dashboard() {
 
         <div className="space-y-6">
           <SectionTitle title="Logística Industrial" sub="Mercado por segmento y zona" />
-          <div className="rounded-[40px] border border-border/40 bg-white dark:bg-slate-900 overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-500 flex-1 flex flex-col h-full">
-            <div className="p-6 border-b border-border/40 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
+          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500 flex-1 flex flex-col h-full">
+            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
               <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Segmentos Clientes</h3>
               <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-lg border border-primary/20">PULSO INDUSTRIAL</span>
             </div>
             <div className="p-6 flex-1">
                {porIndustria.length > 0 ? <PieChart data={porIndustria} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos de segmentación en este período</div>}
             </div>
-            <div className="p-6 bg-slate-50/50 dark:bg-slate-800/20 border-t border-border/40">
+            <div className="p-6 bg-slate-50/50 dark:bg-white/[0.02] border-t border-border/30 dark:border-white/[0.06]">
               <h3 className="font-black text-[12px] text-foreground uppercase tracking-widest mb-6 opacity-60">Top Comunas (Facturación)</h3>
               {porComuna.length > 0 ? <BarChart data={porComuna} /> : <div className="text-center py-4 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos geográficos</div>}
             </div>
@@ -421,7 +458,7 @@ export default function Dashboard() {
           { label: 'Cierres GANADOS', value: ganados.length, icon: TrendingUp },
           { label: 'Cierres PERDIDOS', value: perdidos.length, icon: TrendingDown },
         ].map(item => (
-          <div key={item.label} className="flex flex-col items-center gap-2 p-6 bg-white dark:bg-slate-900 border border-border/40 rounded-[32px] shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:translate-y-[-4px] transition-all duration-500 group cursor-default">
+          <div key={item.label} className="flex flex-col items-center gap-2 p-6 bg-white dark:bg-[#1C1C1E] border border-border/30 dark:border-white/[0.06] rounded-[28px] shadow-sm dark:shadow-none hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:translate-y-[-4px] transition-all duration-500 group cursor-default">
             <item.icon className="h-4 w-4 text-primary opacity-40 group-hover:opacity-100 transition-opacity" />
             <div className="text-2xl font-black tabular-nums tracking-tighter text-foreground">{item.value}</div>
             <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-60 leading-none">{item.label}</div>
