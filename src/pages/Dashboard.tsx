@@ -435,17 +435,24 @@ export default function Dashboard() {
 
         <div className="space-y-6">
           <SectionTitle title="Logística Industrial" sub="Mercado por segmento y zona" />
-          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500 flex-1 flex flex-col h-full">
+          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
             <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
               <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Segmentos Clientes</h3>
               <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-lg border border-primary/20">PULSO INDUSTRIAL</span>
             </div>
-            <div className="p-6 flex-1">
+            <div className="p-6">
                {porIndustria.length > 0 ? <PieChart data={porIndustria} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos de segmentación en este período</div>}
             </div>
-            <div className="p-6 bg-slate-50/50 dark:bg-white/[0.02] border-t border-border/30 dark:border-white/[0.06]">
-              <h3 className="font-black text-[12px] text-foreground uppercase tracking-widest mb-6 opacity-60">Top Comunas (Facturación)</h3>
-              {porComuna.length > 0 ? <BarChart data={porComuna} /> : <div className="text-center py-4 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos geográficos</div>}
+          </div>
+
+          {/* Top Comunas — Tarjeta Separada */}
+          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
+            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
+              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Comunas (Facturación)</h3>
+              <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-lg border border-emerald-500/20">GEOGRAFÍA</span>
+            </div>
+            <div className="p-6">
+              {porComuna.length > 0 ? <BarChart data={porComuna} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos geográficos</div>}
             </div>
           </div>
         </div>

@@ -146,7 +146,7 @@ export default function KanbanBoard() {
                <div 
                  key={deal.id}
                  onClick={() => openDeal(deal)}
-                 className="bg-white dark:bg-slate-900 border border-border/40 rounded-[24px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] relative overflow-hidden active:scale-[0.98] active:shadow-none transition-all duration-150"
+                 className="bg-white dark:bg-[#1C1C1E] border border-border/30 dark:border-white/[0.06] rounded-[24px] p-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-none relative overflow-hidden active:scale-[0.98] transition-all duration-150"
                >
                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-primary/10 transition-colors" />
                  
@@ -213,7 +213,7 @@ export default function KanbanBoard() {
                         }`} />
                         <h3 className="text-[12px] font-black uppercase tracking-widest text-foreground/80">{stage.name}</h3>
                       </div>
-                      <span className="text-[11px] font-black tabular-nums bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-xl">
+                      <span className="text-[11px] font-black tabular-nums bg-slate-100 dark:bg-[#2C2C2E] px-2 py-1 rounded-xl">
                         {stageDeals.length}
                       </span>
                     </div>
@@ -227,8 +227,8 @@ export default function KanbanBoard() {
                       <div
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        className={`flex flex-col gap-4 p-4 transition-all duration-500 rounded-[40px] min-h-[600px] border shadow-inner ${
-                          snapshot.isDraggingOver ? 'bg-primary/[0.04] border-primary/20 shadow-primary/5' : 'bg-slate-50/50 dark:bg-white/[0.02] border-transparent'
+                        className={`flex flex-col gap-4 p-4 transition-all duration-500 rounded-[32px] min-h-[600px] border ${
+                          snapshot.isDraggingOver ? 'bg-primary/[0.04] border-primary/20' : 'bg-transparent border-transparent'
                         }`}
                       >
                         {stageDeals.map((deal, index) => (
@@ -239,7 +239,7 @@ export default function KanbanBoard() {
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 onClick={() => openDeal(deal)}
-                                className={`bg-white dark:bg-slate-900 border border-border/40 dark:border-white/5 rounded-[32px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 cursor-grab active:cursor-grabbing group relative overflow-hidden
+                                className={`bg-white dark:bg-[#1C1C1E] border border-border/30 dark:border-white/[0.06] rounded-[28px] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 cursor-grab active:cursor-grabbing group relative overflow-hidden
                                   ${snapshot.isDragging ? 'ring-[3px] ring-primary/40 scale-105 shadow-[0_30px_60px_rgba(0,0,0,0.12)] rotate-2 z-50' : ''}
                                   ${deal.stage === 6 ? 'border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20' : ''}
                                   ${deal.stage === 7 ? 'border-rose-500/30 bg-rose-50/50 dark:bg-rose-950/20' : ''}
