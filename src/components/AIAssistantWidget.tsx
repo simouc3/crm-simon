@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Key, Mail, Activity, Check, Lock, Loader2 } from 'lucide-react';
+import { Sparkles, Key, Mail, Activity, Check, Lock, Loader2, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '../lib/supabase/client';
@@ -10,8 +10,9 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
   const [hasKey, setHasKey] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
   
-  const [loadingType, setLoadingType] = useState<'summary'|'email'|null>(null);
+  const [loadingType, setLoadingType] = useState<'summary'|'email'|'voice'|null>(null);
   const [response, setResponse] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
 
   // Cargar llave desde localStorage al montar
   useEffect(() => {
@@ -128,6 +129,98 @@ Etapa del Embudo (1-6): ${deal.stage}
      callGemini(prompt, 'email');
   };
 
+  const processVoiceTranscript = async (text: string) => {
+    setLoadingType('voice');
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      
+      const prompt = `Alguien de ventas B2B recién dictó esta nota de terreno: "${text}".
+Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON puro sin formato markdown, con esta estructura:
+{
+  "resumen_nota": "La nota redactada de forma profesional y clara corporativamente, corrigiendo posibles errores de dicción",
+  "tiene_tarea": true o false,
+  "titulo_tarea": "Títular corto de la tarea a realizar" o null,
+  "dias_para_vencer": número de días estimado desde hoy para cumplirla o null
+}`;
+
+      const res = await model.generateContent(prompt);
+      const rawText = res.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+      const parsed = JSON.parse(rawText);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // 1. Guardar la Nota Mejorada
+      let notesAdded = `🎙️ Nota de voz transcrita: "${text}"\n\n✨ Resumen IA: ${parsed.resumen_nota}`;
+      await supabase.from('activities').insert([{
+         deal_id: deal.id,
+         user_id: user.id,
+         title: 'Nota de Visita (Voz)',
+         type: 'Nota Interna',
+         status: 'Completada',
+         notes: notesAdded
+      }]);
+
+      let uiRespons = `¡Nota de voz guardada y transcrita con éxito!\n\n${parsed.resumen_nota}`;
+
+      // 2. Crear Tarea si la IA detecta que la hay
+      if (parsed.tiene_tarea && parsed.titulo_tarea) {
+         const d = new Date();
+         d.setDate(d.getDate() + (parsed.dias_para_vencer || 1));
+         await supabase.from('activities').insert([{
+           deal_id: deal.id,
+           user_id: user.id,
+           title: parsed.titulo_tarea,
+           type: 'Por Hacer',
+           status: 'Pendiente',
+           notes: 'Generado automáticamente por Gemini desde nota de voz en terreno.',
+           start_date: d.toISOString()
+         }]);
+         uiRespons += `\n\n✅ Se auto-agendó la tarea: "${parsed.titulo_tarea}" para los próximos días.`;
+      }
+
+      setResponse(uiRespons);
+      if (onNewActivity) onNewActivity();
+
+    } catch (err: any) {
+       setResponse(`Error procesando la nota con IA: ${err.message}`);
+    } finally {
+       setLoadingType(null);
+    }
+  };
+
+  const handleVoiceNote = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Tu navegador no soporta grabación de voz nativa.");
+      return;
+    }
+    
+    if (isRecording) return;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-CL';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      setResponse("🎙️ Grabando te escucho... (Habla claro y conciso)");
+    };
+
+    recognition.onresult = async (event: any) => {
+      const text = event.results[0][0].transcript;
+      setIsRecording(false);
+      setResponse(`Procesando nota de voz transcrita: "${text}"...`);
+      await processVoiceTranscript(text);
+    };
+
+    recognition.onerror = () => setIsRecording(false);
+    recognition.onend = () => setIsRecording(false);
+    recognition.start();
+  };
+
+
   return (
     <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500 mb-6 group relative">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors" />
@@ -198,11 +291,20 @@ Etapa del Embudo (1-6): ${deal.stage}
                
                <Button 
                 onClick={handleEmailDraft} 
-                disabled={loadingType !== null}
+                disabled={loadingType !== null || isRecording}
                 className="flex-1 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
                >
                  {loadingType === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
                  <span className="font-black text-[11px] uppercase tracking-wider">Redactar Seguimiento</span>
+               </Button>
+               
+               <Button 
+                onClick={handleVoiceNote} 
+                disabled={loadingType !== null || isRecording}
+                className={`w-full rounded-2xl border h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none ${isRecording ? 'bg-rose-500 text-white animate-pulse border-rose-600' : 'bg-slate-100 dark:bg-[#2C2C2E] hover:bg-slate-200 text-foreground border-border/40'}`}
+               >
+                 {loadingType === 'voice' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mic className={`h-5 w-5 ${isRecording ? 'animate-bounce' : ''}`} />}
+                 <span className="font-black text-[11px] uppercase tracking-wider">{isRecording ? 'Escuchando...' : 'Grabar Nota en Terreno'}</span>
                </Button>
             </div>
 

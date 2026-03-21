@@ -1,6 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { LayoutDashboard, Users, Columns3, LogOut, Settings as SettingsIcon, CalendarDays, Moon, Sun } from 'lucide-react'
+import { LayoutDashboard, Users, Columns3, LogOut, Settings as SettingsIcon, CalendarDays, Moon, Sun, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
@@ -234,34 +234,29 @@ export default function AppLayout() {
         </main>
 
         {/* Mobile Bottom Navigation - Estilo iOS Premium Apple */}
-        <nav className="fixed bottom-6 left-6 right-6 h-[72px] rounded-full md:hidden bg-white/70 dark:bg-[#1C1C1E]/85 backdrop-blur-3xl border border-white/40 dark:border-white/[0.06] flex items-center justify-around px-2 z-40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          {navItems.map((item) => (
-             <NavLink
-               key={item.path}
-               to={item.path}
-               className={({ isActive }) =>
-                 `flex flex-col items-center gap-1.5 px-4 h-full justify-center rounded-2xl transition-all duration-300 relative ${
-                   isActive 
-                     ? 'text-foreground scale-105' 
-                     : 'text-muted-foreground opacity-60'
-                 }`
-               }
-             >
-               {({ isActive }) => (
-                 <>
-                   <div className={`transition-all duration-500 ${isActive ? 'translate-y-[-2px]' : ''}`}>
-                    <item.icon className={`h-[24px] w-[24px] ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-                   </div>
-                   <span className={`text-[10px] font-black uppercase tracking-tight transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-40'}`}>
-                    {item.name}
-                   </span>
-                   {isActive && (
-                      <div className="absolute top-1 right-2 w-1.5 h-1.5 rounded-full bg-foreground" />
-                   )}
-                 </>
-               )}
-             </NavLink>
-          ))}
+        <nav className="fixed bottom-6 left-6 right-6 h-[72px] rounded-[2.5rem] md:hidden bg-white/80 dark:bg-[#1C1C1E]/85 backdrop-blur-3xl border border-white/40 dark:border-white/[0.06] flex items-center justify-between px-6 z-40 shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+           <NavLink to="/" className={({ isActive }) => `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-foreground scale-105' : 'text-muted-foreground opacity-60'}`}>
+             <LayoutDashboard className="h-[22px] w-[22px]" />
+           </NavLink>
+           
+           <NavLink to="/pipeline" className={({ isActive }) => `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-foreground scale-105' : 'text-muted-foreground opacity-60'}`}>
+             <Columns3 className="h-[22px] w-[22px]" />
+           </NavLink>
+           
+           {/* Action Center FAB */}
+           <div className="relative -top-6">
+             <Button size="icon" className="h-[60px] w-[60px] rounded-full bg-foreground text-background shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-4 border-[#F5F5F7] dark:border-black flex items-center justify-center" onClick={() => alert("Acción Rápida en desarrollo...")}>
+               <Plus className="h-7 w-7" />
+             </Button>
+           </div>
+
+           <NavLink to="/clients" className={({ isActive }) => `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-foreground scale-105' : 'text-muted-foreground opacity-60'}`}>
+             <Users className="h-[22px] w-[22px]" />
+           </NavLink>
+           
+           <NavLink to="/calendar" className={({ isActive }) => `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-foreground scale-105' : 'text-muted-foreground opacity-60'}`}>
+             <CalendarDays className="h-[22px] w-[22px]" />
+           </NavLink>
         </nav>
       </div>
 

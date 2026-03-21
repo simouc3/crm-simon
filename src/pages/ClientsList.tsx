@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Mail, Phone, MapPin, Building2, User, Search } from "lucide-react"
+import { Pencil, Trash2, Mail, Phone, MapPin, Building2, User, Search, MessageSquare } from "lucide-react"
 import { type Company } from "../types/database"
 import { ClientFormDialog } from "../components/ClientFormDialog"
 import { ImportClientsDialog } from "../components/ImportClientsDialog"
@@ -140,11 +140,22 @@ export default function ClientsList() {
 
                <div className="flex items-center justify-between pt-4 border-t border-border/40">
                  <div className="flex items-center gap-2">
-                   {client.contact_phone && (
-                     <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600" onClick={() => window.open(`tel:${client.contact_phone}`)}>
-                       <Phone className="h-4 w-4" />
-                     </Button>
-                   )}
+                   {client.contact_phone && (() => {
+                     const digits = client.contact_phone.replace(/\D/g, '');
+                     let waUrl = null;
+                     if (digits.startsWith('569')) waUrl = `https://wa.me/${digits}`;
+                     else if (digits.startsWith('9') && digits.length === 9) waUrl = `https://wa.me/56${digits}`;
+                     
+                     return waUrl ? (
+                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/50 transition-colors" onClick={() => window.open(waUrl, '_blank')} title="WhatsApp">
+                           <MessageSquare className="h-4 w-4 fill-emerald-600" />
+                         </Button>
+                     ) : (
+                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600" onClick={() => window.open(`tel:${client.contact_phone}`)}>
+                           <Phone className="h-4 w-4" />
+                         </Button>
+                     );
+                   })()}
                    {client.contact_email && (
                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-sky-50 text-sky-600" onClick={() => window.open(`mailto:${client.contact_email}`)}>
                        <Mail className="h-4 w-4" />
@@ -217,7 +228,20 @@ export default function ClientsList() {
                     <div className="font-bold text-[13px] tracking-tight">{client.contact_name || '—'}</div>
                     <div className="flex gap-3 mt-1">
                        {client.contact_email && <a href={`mailto:${client.contact_email}`} className="text-primary hover:underline text-[11px] font-bold uppercase tracking-tight">Email</a>}
-                       {client.contact_phone && <a href={`tel:${client.contact_phone}`} className="text-emerald-600 hover:underline text-[11px] font-bold uppercase tracking-tight">Llamar</a>}
+                       {client.contact_phone && (() => {
+                         const digits = client.contact_phone.replace(/\D/g, '');
+                         let waUrl = null;
+                         if (digits.startsWith('569')) waUrl = `https://wa.me/${digits}`;
+                         else if (digits.startsWith('9') && digits.length === 9) waUrl = `https://wa.me/56${digits}`;
+                         
+                         return waUrl ? (
+                           <a href={waUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline text-[11px] font-bold uppercase tracking-tight flex items-center gap-1">
+                             <MessageSquare className="h-3 w-3 inline fill-emerald-600" /> WhatsApp
+                           </a>
+                         ) : (
+                           <a href={`tel:${client.contact_phone}`} className="text-emerald-600 hover:underline text-[11px] font-bold uppercase tracking-tight">Llamar</a>
+                         );
+                       })()}
                     </div>
                   </TableCell>
                   <TableCell>
