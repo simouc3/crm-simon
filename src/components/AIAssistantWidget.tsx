@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Key, MessageSquareText, Mail, Send, Activity, Trash2, Check, Lock, Loader2 } from 'lucide-react';
+import { Sparkles, Key, Mail, Activity, Check, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '../lib/supabase/client';
 
 const API_URL = "https://api.openai.com/v1/chat/completions";
