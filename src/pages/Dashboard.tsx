@@ -258,21 +258,20 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans">
       
-      {/* Header Premium con Selector de Rango Estilo Apple */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm dark:shadow-none border border-border/30 dark:border-white/[0.06] mb-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-primary bg-primary/10 dark:bg-primary/20 px-2 py-0.5 rounded-lg tracking-wider">EXECUTIVE PANEL</span>
-            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Industrial Intelligence</span>
-          </div>
-          <h1 className="text-[32px] font-black tracking-tighter text-foreground leading-[1.1] md:text-4xl">
-            Resumen de <span className="text-primary italic">Ventas</span>
+      {/* Header */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        <div>
+          <h1 className="text-[28px] md:text-[34px] font-black tracking-tight text-foreground leading-none">
+            Dashboard
           </h1>
+          <p className="text-[12px] text-muted-foreground font-semibold mt-1">
+            Resumen ejecutivo de ventas y métricas comerciales
+          </p>
         </div>
 
-        {/* Segmented Control iOS Style */}
-          <div className="flex flex-col gap-4">
-          <div className="bg-slate-100 dark:bg-[#2C2C2E] p-1.5 rounded-full flex items-center self-start md:self-auto min-w-[280px]">
+        {/* Segmented Control */}
+        <div className="flex flex-col gap-3">
+          <div className="bg-slate-100 dark:bg-[#2C2C2E] p-1 rounded-full flex items-center min-w-[260px]">
             {[
               { id: 'MONTH', label: 'Mes' },
               { id: 'QUARTER', label: 'Trimestre' },

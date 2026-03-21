@@ -114,7 +114,7 @@ export default function KanbanBoard() {
       </div>
 
       {/* Location */}
-      <div className="flex items-center gap-1.5 mb-3 ml-[42px]">
+      <div className="flex items-center gap-1.5 mt-2.5">
         <MapPin className="h-3 w-3 text-muted-foreground/30 shrink-0" />
         <span className="text-[10px] text-muted-foreground/60 font-semibold truncate uppercase tracking-wider">
           {deal.companies?.comuna?.replace(/_/g, ' ') || 'Sin ubicación'}
@@ -122,18 +122,18 @@ export default function KanbanBoard() {
       </div>
 
       {/* Bottom: Tags + Value */}
-      <div className="flex items-center justify-between ml-[42px]">
+      <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-border/10 dark:border-white/[0.04]">
         <div className="flex gap-1.5 flex-wrap">
-          <Badge className="text-[8px] font-bold px-2 h-5 bg-slate-100 dark:bg-[#2C2C2E] text-muted-foreground border-none tracking-wide">
+          <Badge className="text-[9px] font-bold px-2 h-5 bg-slate-100 dark:bg-[#2C2C2E] text-muted-foreground border-none tracking-wide">
             {deal.companies?.segmento?.replace(/_/g, ' ') || 'Industrial'}
           </Badge>
           {deal.is_contract && (
-            <Badge className="text-[8px] font-bold px-2 h-5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-none tracking-wide">
+            <Badge className="text-[9px] font-bold px-2 h-5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-none tracking-wide">
               {deal.contract_months}M
             </Badge>
           )}
         </div>
-        <span className="text-[13px] font-black text-foreground tabular-nums tracking-tight">
+        <span className="text-[14px] font-black text-foreground tabular-nums tracking-tight">
           {fmtCLP(deal.valor_neto || 0)}
         </span>
       </div>

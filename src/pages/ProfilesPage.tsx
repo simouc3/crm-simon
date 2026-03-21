@@ -129,22 +129,15 @@ export default function ProfilesPage() {
 
   return (
     <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
-      {/* Header Section */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 shadow-sm dark:shadow-none border border-border/30 dark:border-white/[0.06]">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg tracking-wider">EQUIPO</span>
-            <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Fuerza Comercial</span>
-          </div>
-          <h1 className="text-[32px] font-black tracking-tighter text-foreground leading-[1.1] md:text-4xl">
-            Gestión de <span className="text-primary italic">Perfiles</span>
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-[28px] md:text-[34px] font-black tracking-tight text-foreground leading-none">
+            Usuarios
           </h1>
-        </div>
-        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/80 p-4 rounded-3xl border border-border/40 shadow-sm md:w-auto">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Activos</span>
-            <span className="text-[20px] font-black text-foreground tabular-nums tracking-tighter">{profiles.length}</span>
-          </div>
+          <p className="text-[12px] text-muted-foreground font-semibold mt-1">
+            {profiles.length} activos · Equipo comercial
+          </p>
         </div>
       </div>
 
