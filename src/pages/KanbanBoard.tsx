@@ -41,6 +41,7 @@ export default function KanbanBoard() {
     if (destination.droppableId === source.droppableId && destination.index === source.index) return
 
     const newStageId = parseInt(destination.droppableId)
+    const oldStageId = parseInt(source.droppableId)
     const dealId = draggableId
 
     const updatedDeals = deals.map(d => 
@@ -55,6 +56,35 @@ export default function KanbanBoard() {
         stage_changed_at: new Date().toISOString()
       })
       .eq('id', dealId)
+
+    if (!error && newStageId !== oldStageId) {
+      // Automatización: Crear Tarea según la nueva etapa
+      const d = new Date()
+      let taskTitle = ''
+      let daysToAdd = 0
+
+      if (newStageId === 2) { taskTitle = 'Seguimiento de contacto inicial'; daysToAdd = 2; }
+      else if (newStageId === 3) { taskTitle = 'Coordinar y preparar visita técnica'; daysToAdd = 2; }
+      else if (newStageId === 4) { taskTitle = 'Hacer seguimiento de propuesta comercial'; daysToAdd = 3; }
+      else if (newStageId === 5) { taskTitle = 'Revisar estado de cierre de negociación'; daysToAdd = 2; }
+
+      if (taskTitle) {
+        d.setDate(d.getDate() + daysToAdd)
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const dealTitle = deals.find(x => x.id === dealId)?.nombre_proyecto || 'Oportunidad'
+          await supabase.from('activities').insert([{
+            deal_id: dealId,
+            user_id: user.id,
+            title: `[Automático] ${taskTitle} - ${dealTitle}`,
+            type: 'Tarea',
+            status: 'Pendiente',
+            scheduled_at: d.toISOString(),
+            notes: `Generado automáticamente al mover oportunidad a etapa: ${KANBAN_STAGES.find(s => s.id === newStageId)?.name || 'Nueva Etapa'}`
+          }])
+        }
+      }
+    }
 
     if (error) fetchDeals()
   }

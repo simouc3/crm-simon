@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { AIAssistantWidget } from "./AIAssistantWidget"
 
 const fmtCLP = (val: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(val)
@@ -396,6 +397,9 @@ Equipo Comercial`)
             )}
           </div>
         )}
+
+        {/* AI Assistant Copilot */}
+        <AIAssistantWidget deal={deal} onNewActivity={onDealUpdated} />
 
         <div className="grid gap-4">
           {/* Card: Información del Cliente */}
