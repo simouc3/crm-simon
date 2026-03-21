@@ -120,27 +120,27 @@ export default function CalendarPage() {
 
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] dark:bg-black">
-      {/* Premium Header */}
+      {/* Ultra Minimalist Header */}
       <div className="shrink-0 p-4 md:p-6 pb-0 md:pb-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-[1600px] mx-auto bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none">
-          <div>
-            <h1 className="text-[28px] md:text-[36px] font-black tracking-tight text-foreground leading-none">
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-4 border border-black/[0.02] dark:border-white/[0.02] max-w-[1600px] mx-auto">
+          <div className="space-y-1">
+            <h1 className="text-[36px] md:text-[42px] font-black tracking-tight text-foreground leading-none">
               Agenda
             </h1>
-            <p className="text-[13px] text-muted-foreground font-semibold mt-1">
+            <p className="text-[13px] text-muted-foreground font-semibold">
               Calendario de actividades comerciales
             </p>
           </div>
           
-          <div className="flex flex-wrap items-center gap-3">
-             <div className="bg-white dark:bg-[#2C2C2E] p-1 rounded-full flex items-center shadow-sm border border-border/10 dark:border-transparent">
-                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-[#3A3A3C]">
+          <div className="flex items-center gap-3 mt-6 md:mt-0">
+             <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] p-1.5 rounded-full flex items-center">
+                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-9 w-9 rounded-full hover:bg-white dark:hover:bg-[#3A3A3C] shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                   <ChevronLeft size={16} />
                 </Button>
-                <span className="px-3 text-[11px] font-bold text-foreground min-w-[120px] text-center capitalize">
+                <span className="px-5 text-[11px] font-black uppercase tracking-widest text-foreground min-w-[140px] text-center">
                   {currentDate.toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
                 </span>
-                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-[#3A3A3C]">
+                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-9 w-9 rounded-full hover:bg-white dark:hover:bg-[#3A3A3C] shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                   <ChevronRight size={16} />
                 </Button>
              </div>

@@ -258,20 +258,22 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans">
       
-      {/* Premium Header */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none mb-2">
-        <div>
-          <h1 className="text-[28px] md:text-[34px] font-black tracking-tight text-foreground leading-none">
+      {/* Ultra Minimalist Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-8 border border-black/[0.02] dark:border-white/[0.02]">
+        <div className="space-y-1">
+          <h1 className="text-[36px] md:text-[42px] font-black tracking-tight text-foreground leading-none">
             Dashboard
           </h1>
-          <p className="text-[12px] text-muted-foreground font-semibold mt-1">
+          <p className="text-[13px] text-muted-foreground font-semibold">
             Resumen ejecutivo de ventas y métricas comerciales
           </p>
         </div>
 
-        {/* Segmented Control */}
-        <div className="flex flex-col gap-3">
-          <div className="bg-slate-100 dark:bg-[#2C2C2E] p-1 rounded-full flex items-center min-w-[260px]">
+        {/* Right side controls */}
+        <div className="flex flex-col md:items-end gap-3 mt-6 md:mt-0">
+          
+          {/* Segmented Control */}
+          <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] p-1.5 rounded-full flex items-center">
             {[
               { id: 'MONTH', label: 'Mes' },
               { id: 'QUARTER', label: 'Trimestre' },
@@ -280,10 +282,10 @@ export default function Dashboard() {
               <button
                 key={item.id}
                 onClick={() => setRange(item.id as TimeRange)}
-                className={`flex-1 h-10 rounded-full flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                className={`h-9 px-6 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
                   range === item.id 
-                    ? 'bg-white dark:bg-[#3A3A3C] text-foreground shadow-lg shadow-black/5 dark:shadow-none scale-[1.02]' 
-                    : 'text-muted-foreground hover:text-foreground opacity-60'
+                    ? 'bg-white dark:bg-[#3A3A3C] text-black dark:text-white shadow-[0_2px_10px_rgba(0,0,0,0.04)] dark:shadow-none' 
+                    : 'text-muted-foreground hover:text-foreground opacity-50'
                 }`}
               >
                 {item.label}
@@ -291,42 +293,47 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Selector específico */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            {/* Sector Month/Quarter */}
             {range === 'MONTH' && (
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="h-9 px-3 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border-0 text-[11px] font-black uppercase tracking-wider text-foreground appearance-none cursor-pointer"
-                style={{ borderRadius: '9999px' }}
-              >
-                {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
-              </select>
+              <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 flex items-center shrink-0">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                  className="bg-transparent border-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer appearance-none text-center"
+                >
+                  {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                </select>
+              </div>
             )}
             {range === 'QUARTER' && (
-              <select
-                value={selectedQuarter}
-                onChange={(e) => setSelectedQuarter(Number(e.target.value))}
-                className="h-9 px-3 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border-0 text-[11px] font-black uppercase tracking-wider text-foreground appearance-none cursor-pointer"
-                style={{ borderRadius: '9999px' }}
-              >
-                {[0,1,2,3].map(q => <option key={q} value={q}>Q{q+1} (Ene-Mar/Abr-Jun/Jul-Sep/Oct-Dic)</option>)}
-              </select>
+              <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 flex items-center shrink-0">
+                <select
+                  value={selectedQuarter}
+                  onChange={(e) => setSelectedQuarter(Number(e.target.value))}
+                  className="bg-transparent border-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer appearance-none text-center"
+                >
+                  {[0,1,2,3].map(q => <option key={q} value={q}>Q{q+1}</option>)}
+                </select>
+              </div>
             )}
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="h-9 px-3 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border-0 text-[11px] font-black uppercase tracking-wider text-foreground appearance-none cursor-pointer"
-              style={{ borderRadius: '9999px' }}
-            >
-              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
+            
+            {/* Sector Year */}
+            <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-5 h-9 flex items-center shrink-0">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="bg-transparent border-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer appearance-none text-center"
+              >
+                {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 px-2 opacity-50">
-            <Calendar className="h-3 w-3 text-muted-foreground" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Viendo: <span className="text-foreground capitalize">{rangeLabels[range]}</span>
+          <div className="flex items-center gap-1.5 opacity-40 mt-1 mr-1">
+            <Calendar className="h-3 w-3 text-foreground" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-foreground">
+              Viendo: <span className="capitalize font-bold">{rangeLabels[range]}</span>
             </span>
           </div>
         </div>

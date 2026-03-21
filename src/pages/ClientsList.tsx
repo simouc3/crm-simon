@@ -69,17 +69,17 @@ export default function ClientsList() {
 
   return (
     <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
-      {/* Premium Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none">
-        <div>
-          <h1 className="text-[28px] md:text-[36px] font-black tracking-tight text-foreground leading-none">
+      {/* Ultra Minimalist Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-8 border border-black/[0.02] dark:border-white/[0.02]">
+        <div className="space-y-1">
+          <h1 className="text-[36px] md:text-[42px] font-black tracking-tight text-foreground leading-none">
             Clientes
           </h1>
-          <p className="text-[13px] text-muted-foreground font-semibold mt-1">
+          <p className="text-[13px] text-muted-foreground font-semibold">
             {filteredClients.length} empresas · Directorio B2B
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-6 md:mt-0">
           <ImportClientsDialog onImported={fetchCompanies} />
           <ClientFormDialog onClientCreated={fetchCompanies} />
         </div>

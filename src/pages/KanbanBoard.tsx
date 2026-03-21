@@ -143,18 +143,20 @@ export default function KanbanBoard() {
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] dark:bg-black">
       
-      {/* Premium Header */}
+      {/* Ultra Minimalist Header */}
       <div className="shrink-0 p-4 md:p-6 pb-0 md:pb-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-[1600px] mx-auto bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none mb-2">
-          <div>
-            <h1 className="text-[28px] md:text-[36px] font-black tracking-tight text-foreground leading-none">
+        <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-4 border border-black/[0.02] dark:border-white/[0.02] max-w-[1600px] mx-auto">
+          <div className="space-y-1">
+            <h1 className="text-[36px] md:text-[42px] font-black tracking-tight text-foreground leading-none">
               Pipeline
             </h1>
-            <p className="text-[13px] text-muted-foreground font-semibold mt-1">
+            <p className="text-[13px] text-muted-foreground font-semibold">
               {totalDeals} oportunidades · {fmtCLP(totalPipeline)} en vuelo
             </p>
           </div>
-          <DealFormDialog onDealCreated={fetchDeals} />
+          <div className="mt-6 md:mt-0">
+            <DealFormDialog onDealCreated={fetchDeals} />
+          </div>
         </div>
       </div>
 
