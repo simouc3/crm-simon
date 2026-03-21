@@ -47,11 +47,11 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
               )
             })
           )}
-          <circle cx="50" cy="50" r="22" fill="var(--card)" className="dark:fill-slate-900" />
+          <circle cx="50" cy="50" r="26" fill="#000" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[8px] font-black text-muted-foreground uppercase leading-none opacity-40">Total</span>
-          <span className="text-[10px] font-black text-foreground">{fmtCLP(total)}</span>
+          <span className="text-[8px] font-black text-white/50 uppercase leading-none">Total</span>
+          <span className="text-[10px] font-black text-white mt-0.5">{fmtCLP(total)}</span>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 flex-1 w-full">
@@ -437,10 +437,7 @@ export default function Dashboard() {
               {motivosPerdida.length > 0 ? <PieChart data={motivosPerdida} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin métricas de pérdida en este período</div>}
             </div>
           </div>
-        </div>
 
-        <div className="space-y-6">
-          <SectionTitle title="Logística Industrial" sub="Mercado por segmento y zona" />
           <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
             <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
               <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Segmentos Clientes</h3>
@@ -448,6 +445,38 @@ export default function Dashboard() {
             </div>
             <div className="p-6">
                {porIndustria.length > 0 ? <PieChart data={porIndustria} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos de segmentación en este período</div>}
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <SectionTitle title="Análisis de Ventas" sub="Ingresos recurrentes y mercado" />
+          
+          {/* MRR Projection */}
+          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
+            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
+              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Proyección MRR (6 Meses)</h3>
+              <span className="text-[9px] font-black bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-lg border border-blue-500/20">RECURRENTE</span>
+            </div>
+            <div className="p-6">
+              {(() => {
+                const result = Array.from({ length: 6 }, (_, i) => {
+                  const d = new Date()
+                  d.setMonth(d.getMonth() + i)
+                  return { label: d.toLocaleString('es-CL', { month: 'short', year: 'numeric' }), value: 0, date: d }
+                })
+                deals.filter(d => d.stage === 6 && d.is_contract).forEach(d => {
+                  const start = new Date(d.stage_changed_at || d.created_at)
+                  const monthsActive = d.contract_months || 0
+                  const mrr = d.valor_neto || 0
+                  result.forEach(projMonth => {
+                    const diffMonths = (projMonth.date.getFullYear() - start.getFullYear()) * 12 + projMonth.date.getMonth() - start.getMonth()
+                    if (diffMonths >= 0 && diffMonths < monthsActive) projMonth.value += mrr
+                  })
+                })
+                const chartData = result.map(r => ({ label: r.label, value: r.value }))
+                return chartData.some(m => m.value > 0) ? <BarChart data={chartData} color="#3b82f6" /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin contratos recurrentes vigentes</div>
+              })()}
             </div>
           </div>
 
