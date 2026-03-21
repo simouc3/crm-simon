@@ -6,10 +6,12 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { SettingsDialog } from '../SettingsDialog'
 import { NotificationPrompt } from '../NotificationPrompt'
+import { MobileActionSheet } from '../MobileActionSheet'
 
 export default function AppLayout() {
   const { signOut, user } = useAuth()
   const [showSettings, setShowSettings] = useState(false)
+  const [showMobileActionSheet, setShowMobileActionSheet] = useState(false)
   const [branding, setBranding] = useState({ name: 'CRM SIMON', logo: '' })
   const [userRole, setUserRole] = useState<string>('VENDEDOR')
   const [avatarUrl, setAvatarUrl] = useState<string>('')
@@ -245,7 +247,7 @@ export default function AppLayout() {
            
            {/* Action Center FAB */}
            <div className="relative -top-6">
-             <Button size="icon" className="h-[60px] w-[60px] rounded-full bg-foreground text-background shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-4 border-[#F5F5F7] dark:border-black flex items-center justify-center" onClick={() => alert("Acción Rápida en desarrollo...")}>
+             <Button size="icon" className="h-[60px] w-[60px] rounded-full bg-foreground text-background shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-4 border-[#F5F5F7] dark:border-black flex items-center justify-center" onClick={() => setShowMobileActionSheet(true)}>
                <Plus className="h-7 w-7" />
              </Button>
            </div>
@@ -264,6 +266,10 @@ export default function AppLayout() {
         open={showSettings} 
         onOpenChange={setShowSettings} 
         onSettingsUpdated={fetchBranding} 
+      />
+      <MobileActionSheet 
+        isOpen={showMobileActionSheet} 
+        onClose={() => setShowMobileActionSheet(false)} 
       />
       <NotificationPrompt />
     </div>
