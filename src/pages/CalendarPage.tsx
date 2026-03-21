@@ -120,27 +120,27 @@ export default function CalendarPage() {
 
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] dark:bg-black">
-      {/* Header */}
+      {/* Premium Header */}
       <div className="shrink-0 p-4 md:p-6 pb-0 md:pb-0">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-[1600px] mx-auto bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none">
           <div>
-            <h1 className="text-[28px] md:text-[34px] font-black tracking-tight text-foreground leading-none">
+            <h1 className="text-[28px] md:text-[36px] font-black tracking-tight text-foreground leading-none">
               Agenda
             </h1>
-            <p className="text-[12px] text-muted-foreground font-semibold mt-1">
+            <p className="text-[13px] text-muted-foreground font-semibold mt-1">
               Calendario de actividades comerciales
             </p>
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-             <div className="bg-slate-100 dark:bg-[#2C2C2E] p-1 rounded-full flex items-center">
-                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-[#3A3A3C]">
+             <div className="bg-white dark:bg-[#2C2C2E] p-1 rounded-full flex items-center shadow-sm border border-border/10 dark:border-transparent">
+                <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-[#3A3A3C]">
                   <ChevronLeft size={16} />
                 </Button>
                 <span className="px-3 text-[11px] font-bold text-foreground min-w-[120px] text-center capitalize">
                   {currentDate.toLocaleString('es-CL', { month: 'long', year: 'numeric' })}
                 </span>
-                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-[#3A3A3C]">
+                <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-[#3A3A3C]">
                   <ChevronRight size={16} />
                 </Button>
              </div>

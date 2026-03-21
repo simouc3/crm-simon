@@ -258,8 +258,8 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans">
       
-      {/* Header */}
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      {/* Premium Header */}
+      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none mb-2">
         <div>
           <h1 className="text-[28px] md:text-[34px] font-black tracking-tight text-foreground leading-none">
             Dashboard

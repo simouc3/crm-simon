@@ -129,13 +129,13 @@ export default function ProfilesPage() {
 
   return (
     <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      {/* Premium Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none">
         <div>
-          <h1 className="text-[28px] md:text-[34px] font-black tracking-tight text-foreground leading-none">
+          <h1 className="text-[28px] md:text-[36px] font-black tracking-tight text-foreground leading-none">
             Usuarios
           </h1>
-          <p className="text-[12px] text-muted-foreground font-semibold mt-1">
+          <p className="text-[13px] text-muted-foreground font-semibold mt-1">
             {profiles.length} activos · Equipo comercial
           </p>
         </div>

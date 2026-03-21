@@ -143,14 +143,14 @@ export default function KanbanBoard() {
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] dark:bg-black">
       
-      {/* ── Header ────────────────────────────────────── */}
+      {/* Premium Header */}
       <div className="shrink-0 p-4 md:p-6 pb-0 md:pb-0">
-        <div className="flex items-center justify-between max-w-[1600px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-[1600px] mx-auto bg-white/70 dark:bg-[#1C1C1E]/50 backdrop-blur-3xl border border-white/50 dark:border-white/[0.05] rounded-[32px] p-6 md:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none mb-2">
           <div>
-            <h1 className="text-[28px] md:text-[34px] font-black tracking-tight text-foreground leading-none">
+            <h1 className="text-[28px] md:text-[36px] font-black tracking-tight text-foreground leading-none">
               Pipeline
             </h1>
-            <p className="text-[12px] text-muted-foreground font-semibold mt-1">
+            <p className="text-[13px] text-muted-foreground font-semibold mt-1">
               {totalDeals} oportunidades · {fmtCLP(totalPipeline)} en vuelo
             </p>
           </div>
