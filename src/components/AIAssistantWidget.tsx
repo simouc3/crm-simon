@@ -15,12 +15,15 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
 
   // Cargar llave desde localStorage al montar
   useEffect(() => {
+    const defaultKey = "AIzaSyAF4O7kEc1Vj2LuWbbgB6uvUEPy1TrwjD0";
     const stored = localStorage.getItem('gemini_api_key');
     if (stored) {
       setApiKey(stored);
       setHasKey(true);
     } else {
-      setIsConfiguring(true);
+      // Inyectar la llave predeterminada entregada por el usuario
+      setApiKey(defaultKey);
+      setHasKey(true);
     }
   }, []);
 
