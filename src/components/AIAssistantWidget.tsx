@@ -3,8 +3,7 @@ import { Sparkles, Key, Mail, Activity, Check, Lock, Loader2 } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '../lib/supabase/client';
-
-const API_URL = "https://api.openai.com/v1/chat/completions";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewActivity?: () => void }) {
   const [apiKey, setApiKey] = useState('');
@@ -16,7 +15,7 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
 
   // Cargar llave desde localStorage al montar
   useEffect(() => {
-    const stored = localStorage.getItem('openai_api_key');
+    const stored = localStorage.getItem('gemini_api_key');
     if (stored) {
       setApiKey(stored);
       setHasKey(true);
@@ -26,15 +25,17 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
   }, []);
 
   const saveKey = () => {
-    if (apiKey.trim().length > 20) {
-      localStorage.setItem('openai_api_key', apiKey.trim());
+    if (apiKey.trim().startsWith('AIza') && apiKey.trim().length > 30) {
+      localStorage.setItem('gemini_api_key', apiKey.trim());
       setHasKey(true);
       setIsConfiguring(false);
+    } else {
+      alert('La clave de Gemini debe comenzar con "AIza" y tener la longitud correcta.');
     }
   };
 
   const removeKey = () => {
-    localStorage.removeItem('openai_api_key');
+    localStorage.removeItem('gemini_api_key');
     setApiKey('');
     setHasKey(false);
     setIsConfiguring(true);
@@ -50,26 +51,16 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
     return data || [];
   };
 
-  const callOpenAI = async (prompt: string, type: 'summary' | 'email') => {
+  const callGemini = async (prompt: string, type: 'summary' | 'email') => {
     setLoadingType(type);
     setResponse('');
     try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7
-        })
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error.message);
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
       
-      const text = json.choices[0].message.content;
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      
       setResponse(text);
       
       // Auto-guardar como actividad tipo IA
@@ -78,7 +69,7 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
         await supabase.from('activities').insert([{
           deal_id: deal.id,
           user_id: user.id,
-          title: type === 'summary' ? 'Resumen Ejecutivo AI' : 'Draft de Email Guardado (AI)',
+          title: type === 'summary' ? 'Resumen Ejecutivo AI (Gemini)' : 'Draft de Email Guardado (Gemini)',
           type: type === 'summary' ? 'Nota Interna' : 'Email',
           status: 'Completada',
           notes: text
@@ -87,7 +78,7 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
       }
 
     } catch (err: any) {
-      setResponse(`Error: ${err.message || 'No se pudo conectar con OpenAI. Revisa tu API Key.'}`);
+      setResponse(`Error: ${err.message || 'No se pudo conectar con Google Gemini. Revisa tu API Key.'}`);
     } finally {
       setLoadingType(null);
     }
@@ -95,7 +86,18 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
 
   const handleSummarize = async () => {
     const activities = await fetchActivities();
-    let prompt = `Eres un asistente ejecutivo de ventas B2B experto. Tu misión es leer el historial de este Negocio y devolver 2 cosas: 1) Un resumen sucinto en 2-3 líneas de estado. 2) Tres viñetas (bullet points) concretas sobre qué acciones debería tomar el vendedor inmediatamente.\n\nContexto del Negocio:\nCliente: ${deal.companies?.razon_social || 'Desconocido'}\nMonto: $${deal.valor_neto || 0}\nEtapa actual: ${deal.stage}\n\nHistorial Reciente de Actividades:\n`;
+    let prompt = `Eres un Gerente Comercial experto en el mercado B2B chileno. Tu misión es leer el siguiente historial de este Negocio y devolver lo siguiente utilizando viñetas cortas: 
+1) Un resumen ejecutivo del estado actual. 
+2) El valor estimado del trato: $${deal.valor_neto || 0}. 
+3) Los dolores o necesidades principales del cliente detectados. 
+4) Tres acciones concretas que el vendedor debería tomar inmediatamente.
+
+Contexto del Negocio:
+Cliente: ${deal.companies?.razon_social || 'Desconocido'}
+Etapa actual: ${deal.stage}
+
+Historial Reciente de Actividades:
+`;
     
     if (activities.length === 0) {
       prompt += "No hay actividades registradas en este negocio.";
@@ -105,14 +107,22 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
       });
     }
     
-    callOpenAI(prompt, 'summary');
+    callGemini(prompt, 'summary');
   };
 
   const handleEmailDraft = async () => {
      const activities = await fetchActivities();
-     let prompt = `Eres un asistente de ventas experto en B2B. Redacta un correo electrónico persuasivo, elegante y directo para enviárselo al cliente de este negocio con el objetivo de empujar el cierre o concretar una reunión clave. No uses placeholders o corchetes, redacta un texto que esté listo para enviar.\n\nContexto:\nCliente: ${deal.companies?.razon_social || 'Prospecto'}\nProyecto: ${deal.nombre_proyecto || 'Servicio Corporativo'}\nEtapa del Embudo (1-6): ${deal.stage}\n\nÚltima actividad registrada (para contexto): ${activities.length > 0 ? activities[0].notes : 'Ninguna'}`;
+     let prompt = `Eres un Gerente Comercial experto en el mercado corporativo B2B de Chile. Redacta un correo electrónico persuasivo, formal pero dinámico y moderno (al estilo de negocios chilenos) para dar seguimiento a este negocio. 
+El correo debe ser ideal para enviárselo a un Gerente de Operaciones o Administrador de Clínica, con el objetivo de empujar el cierre o concretar una reunión clave. No uses placeholders ni corchetes que deba rellenar el usuario, infiere o inventa elegantemente si falta un detalle para entregar el texto 100% completo, listo para enviar.
+
+Contexto:
+Cliente: ${deal.companies?.razon_social || 'Prospecto'}
+Proyecto: ${deal.nombre_proyecto || 'Servicio Corporativo'}
+Etapa del Embudo (1-6): ${deal.stage}
+
+Última actividad registrada (para guiar el correo): ${activities.length > 0 ? activities[0].notes : 'Ninguna'}`;
      
-     callOpenAI(prompt, 'email');
+     callGemini(prompt, 'email');
   };
 
   return (
@@ -127,7 +137,7 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
           </div>
           <div>
             <h3 className="font-black text-[15px] tracking-tight dark:text-slate-100 uppercase">Copiloto AI</h3>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Impulsado por OpenAI</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Impulsado por Google Gemini</p>
           </div>
         </div>
         
@@ -144,19 +154,19 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
             <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-border/30">
               <Key className="h-8 w-8 text-primary shrink-0 opacity-50" />
               <div>
-                <p className="text-xs font-bold text-foreground">Conecta tu clave de API de OpenAI</p>
-                <p className="text-[10px] text-muted-foreground font-semibold">Tus llamadas saldrán directo desde tu navegador. La llave se guardará localmente (encriptada en localStorage).</p>
+                <p className="text-xs font-bold text-foreground">Conecta tu clave Gemini API</p>
+                <p className="text-[10px] text-muted-foreground font-semibold">Consigue tu llave gratis en Google AI Studio. Se guardará de forma segura en tu propio navegador.</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Input 
                 type="password" 
-                placeholder="sk-proj-..........." 
+                placeholder="AIzaSy..." 
                 value={apiKey} 
                 onChange={(e) => setApiKey(e.target.value)}
                 className="rounded-full bg-slate-50 dark:bg-slate-800 border-border/50 h-10 px-4 text-xs font-mono"
               />
-              <Button onClick={saveKey} className="rounded-full h-10 px-6 font-bold text-xs" disabled={apiKey.length < 20}>
+              <Button onClick={saveKey} className="rounded-full h-10 px-6 font-bold text-xs" disabled={apiKey.length < 10}>
                  Conectar
               </Button>
               {hasKey && (
