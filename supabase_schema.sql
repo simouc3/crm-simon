@@ -24,6 +24,8 @@ create policy "Profiles visible to authenticated" on profiles for select using (
 create policy "Users manage own profile" on profiles for update using (auth.uid() = id);
 create policy "Admins manage all profiles" on profiles for update 
   using (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'));
+create policy "Admins insert profiles" on profiles for insert 
+  with check (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'));
 create policy "Admins delete profiles" on profiles for delete 
   using (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'));
 
