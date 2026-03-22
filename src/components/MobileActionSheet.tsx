@@ -50,7 +50,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
         {/* Left Button - Nuevo Cliente */}
         <button 
           onClick={() => { setShowQuickClient(true); onClose(); }}
-          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-100px] translate-y-[-100px] scale-100 pointer-events-auto shadow-2xl' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
+          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-100px] translate-y-[-100px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
         >
           <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-blue-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
             <UserPlus className="h-6 w-6" />
@@ -61,7 +61,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
         {/* Center Button - Mic / IA */}
         <button 
           onClick={() => { setShowVoiceRecorder(true); onClose(); }}
-          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-75 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-28px] translate-y-[-140px] scale-100 pointer-events-auto shadow-2xl' : 'opacity-0 translate-x-[-28px] translate-y-0 scale-50 pointer-events-none'}`}
+          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-75 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-28px] translate-y-[-140px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-[-28px] translate-y-0 scale-50 pointer-events-none'}`}
         >
            <div className="w-16 h-16 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-purple-600 shadow-xl hover:scale-110 active:scale-95 transition-transform">
             <Mic className="h-7 w-7" />
@@ -72,7 +72,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
         {/* Right Button - Camera */}
         <button 
           onClick={handleCameraClick}
-          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[44px] translate-y-[-100px] scale-100 pointer-events-auto shadow-2xl' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
+          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[44px] translate-y-[-100px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
         >
           <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-emerald-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
             <Camera className="h-6 w-6" />
