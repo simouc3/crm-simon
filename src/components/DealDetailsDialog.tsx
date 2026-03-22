@@ -432,10 +432,10 @@ Equipo Comercial`)
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-4 text-sm">
               <div className="flex flex-col">
                 <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Razón Social</span>
-                <span className="font-bold tracking-tight">{deal.companies?.razon_social || 'N/A'}</span>
+                <span className="font-bold tracking-tight break-words">{deal.companies?.razon_social || 'N/A'}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">RUT Empresa</span>
@@ -443,7 +443,7 @@ Equipo Comercial`)
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Contacto Principal</span>
-                <span className="font-bold tracking-tight">{deal.companies?.contact_name || 'N/A'}</span>
+                <span className="font-bold tracking-tight break-words">{deal.companies?.contact_name || 'N/A'}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Teléfono</span>
@@ -451,16 +451,16 @@ Equipo Comercial`)
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Email Contacto</span>
-                <span className="font-bold tracking-tight text-primary truncate max-w-[200px]">{deal.companies?.contact_email || 'N/A'}</span>
+                <span className="font-bold tracking-tight text-primary break-all">{deal.companies?.contact_email || 'N/A'}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Ubicación / Comuna</span>
                 <span className="font-bold tracking-tight">{deal.companies?.comuna?.replace(/_/g, ' ') || 'N/A'}</span>
               </div>
               {deal.companies?.direccion && (
-                <div className="flex flex-col col-span-2">
+                <div className="flex flex-col sm:col-span-2">
                   <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Dirección</span>
-                  <span>{deal.companies.direccion}</span>
+                  <span className="break-words italic opacity-80">{deal.companies.direccion}</span>
                 </div>
               )}
             </div>
@@ -581,14 +581,14 @@ Equipo Comercial`)
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="flex flex-col">
                   <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Valor Neto Estimado</span>
                   <span className="text-xl font-black tracking-tight text-foreground">
                     {fmtCLP(deal.valor_neto || 0)}
                   </span>
                 </div>
-                <div className="flex flex-col items-end text-right">
+                <div className="flex flex-col sm:items-end sm:text-right">
                   <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Valor Total (IVA Inc.)</span>
                   <span className="text-xl font-black tracking-tight text-primary">
                     {fmtCLP(deal.valor_total || 0)}

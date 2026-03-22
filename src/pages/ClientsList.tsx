@@ -79,9 +79,13 @@ export default function ClientsList() {
             {filteredClients.length} empresas · Directorio B2B
           </p>
         </div>
-        <div className="flex items-center gap-2 mt-6 md:mt-0">
-          <ImportClientsDialog onImported={fetchCompanies} />
-          <ClientFormDialog onClientCreated={fetchCompanies} />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-8 md:mt-0 w-full md:w-auto">
+          <div className="w-full sm:w-auto">
+            <ImportClientsDialog onImported={fetchCompanies} />
+          </div>
+          <div className="w-full sm:w-auto">
+            <ClientFormDialog onClientCreated={fetchCompanies} />
+          </div>
         </div>
       </div>
 
@@ -121,7 +125,7 @@ export default function ClientsList() {
                  <Badge className="bg-primary/10 text-primary border-none text-[9px] font-black uppercase">{client.segmento?.replace(/_/g, ' ') || 'S/E'}</Badge>
                </div>
 
-               <div className="grid grid-cols-2 gap-4 mb-6">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                  <div className="flex flex-col gap-1">
                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Responsable</span>
                    <div className="flex items-center gap-2">

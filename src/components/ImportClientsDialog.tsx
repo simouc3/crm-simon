@@ -185,7 +185,7 @@ export function ImportClientsDialog({ onImported }: Props) {
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetState() }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2 w-full">
           <Upload className="h-4 w-4" />
           Importar Excel/CSV
         </Button>

@@ -186,7 +186,7 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger ? trigger : <Button>+ Nueva Empresa</Button>}
+        {trigger ? trigger : <Button className="w-full">+ Nueva Empresa</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[520px] rounded-[32px] border-border/40 shadow-[0_40px_80px_rgba(0,0,0,0.1)]">
         <DialogHeader className="pb-2">
