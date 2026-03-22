@@ -19,6 +19,10 @@ export interface Company {
   m2_estimados: number
   requisitos_legales: RequisitoLegal[]
   condiciones_pago: CondicionesPago
+  lead_score?: number
+  lead_score_analysis?: string
+  rfm_segment?: 'ESTRELLA' | 'DORMIDO' | 'RIESGO' | 'NUEVO'
+  marketing_spend?: number // Solo para cálculos locales de CAC si se guarda por cliente o global
   created_by?: string
   created_at?: string
 }
@@ -34,6 +38,8 @@ export interface Deal {
   valor_neto: number
   valor_total: number
   motivo_perdida?: string
+  is_risk?: boolean
+  risk_reason?: string
   is_contract?: boolean
   contract_months?: number
   stage_updated_at?: string

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
-import { ArrowUpRight, TrendingUp, TrendingDown, Activity, DollarSign, Target, Briefcase, Calendar } from "lucide-react"
+import { ArrowUpRight, TrendingUp, TrendingDown, Activity, DollarSign, Target, Briefcase, Zap } from "lucide-react"
 
 const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 
@@ -47,11 +47,11 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
               )
             })
           )}
-          <circle cx="50" cy="50" r="26" fill="#000" />
+          <circle cx="50" cy="50" r="26" fill="currentColor" className="text-white dark:text-[#1C1C1E]" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[8px] font-black text-white/50 uppercase leading-none">Total</span>
-          <span className="text-[10px] font-black text-white mt-0.5">{fmtCLP(total)}</span>
+          <span className="text-[8px] font-black text-muted-foreground/50 uppercase leading-none">Total</span>
+          <span className="text-[10px] font-black text-foreground mt-0.5">{total > 1000 ? fmtCLP(total) : total}</span>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 flex-1 w-full">
@@ -59,7 +59,7 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
           <div key={i} className="flex items-center gap-3 text-xs p-1">
             <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ background: s.color }} />
             <span className="truncate text-muted-foreground font-bold tracking-tight flex-1">{s.label}</span>
-            <span className="font-black tabular-nums text-[10px] text-muted-foreground mr-1">{fmtCLP(s.value)}</span>
+            <span className="font-black tabular-nums text-[10px] text-muted-foreground mr-1">{s.value > 1000 ? fmtCLP(s.value) : s.value}</span>
             <span className="font-black tabular-nums bg-white dark:bg-[#2C2C2E] px-2 py-0.5 rounded-lg border border-border/20 dark:border-transparent">{Math.round(s.pct * 100)}%</span>
           </div>
         ))}
@@ -69,7 +69,7 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
 }
 
 // ── Mini Bar Chart ────────────────────────────────────────────────────
-function BarChart({ data, color = '#10b981' }: { data: { label: string; value: number }[]; color?: string }) {
+function BarChart({ data, color = '#10b981', prefix = '$' }: { data: { label: string; value: number }[]; color?: string; prefix?: string }) {
   const max = Math.max(...data.map(d => d.value), 1)
   return (
     <div className="space-y-4 w-full">
@@ -77,7 +77,7 @@ function BarChart({ data, color = '#10b981' }: { data: { label: string; value: n
         <div key={i} className="space-y-2 group">
           <div className="flex justify-between items-end">
             <span className="text-[11px] font-black text-muted-foreground uppercase tracking-tight truncate max-w-[60%] group-hover:text-primary transition-colors">{d.label}</span>
-            <span className="text-xs font-black tabular-nums dark:text-slate-200">{fmtCLP(d.value)}</span>
+            <span className="text-xs font-black tabular-nums dark:text-slate-200">{prefix}{d.value.toLocaleString('es-CL')}</span>
           </div>
           <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden shadow-inner border border-border/5">
             <div
@@ -128,7 +128,7 @@ function KpiCard({ label, value, sub, icon: Icon, trend, gradientClass }: {
   )
 }
 
-// ── Section Title Mobile ──────────────────────────────────────────────
+// ── Section Title ─────────────────────────────────────────────────────
 function SectionTitle({ title, sub }: { title: string; sub: string }) {
   return (
     <div className="relative mb-8 pb-2">
@@ -152,6 +152,8 @@ export default function Dashboard() {
   const [deals, setDeals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [range, setRange] = useState<TimeRange>('MONTH')
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'BI'>('OVERVIEW')
+  
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
   const [selectedQuarter, setSelectedQuarter] = useState(Math.floor(new Date().getMonth() / 3))
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -159,11 +161,6 @@ export default function Dashboard() {
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
   const availableYears = [2024, 2025, 2026]
 
-  const rangeLabels: Record<TimeRange, string> = {
-    MONTH: `${monthNames[selectedMonth]} ${selectedYear}`,
-    QUARTER: `Q${selectedQuarter + 1} ${selectedYear}`,
-    YEAR: String(selectedYear),
-  }
 
   useEffect(() => {
     async function fetchData() {
@@ -188,7 +185,7 @@ export default function Dashboard() {
     </div>
   )
 
-  // Filtrado por Tiempo — usa stage_changed_at para ganados/perdidos, created_at para activos
+  // Filtrado por Tiempo
   const filteredDeals = deals.filter(deal => {
     const dateStr = deal.stage_changed_at || deal.created_at
     const d = new Date(dateStr)
@@ -202,6 +199,7 @@ export default function Dashboard() {
     return d.getFullYear() === selectedYear
   })
 
+  // Cálculos Base
   const ganados = filteredDeals.filter(d => d.stage === 6)
   const perdidos = filteredDeals.filter(d => d.stage === 7)
   const propuestas = filteredDeals.filter(d => d.stage === 4)
@@ -216,10 +214,31 @@ export default function Dashboard() {
     .reduce((s, d) => s + (d.valor_neto || 0), 0)
 
   const ingresosMes = mrrContractual + ventasUnicas
-
   const pipelineForecast = propuestas.reduce((s, d) => s + (d.valor_neto || 0), 0)
   const ticketPromedio = ganados.length > 0 ? (ganados.reduce((s, d) => s + (d.valor_neto || 0), 0)) / ganados.length : 0
   const winRate = (ganados.length + perdidos.length) > 0 ? Math.round((ganados.length / (ganados.length + perdidos.length)) * 100) : 0
+
+  // Métricas BI
+  const rentabilidadM2 = (() => {
+    const data: Record<string, { totalValor: number, totalM2: number }> = {}
+    ganados.forEach(d => {
+      const seg = d.companies?.segmento?.replace(/_/g, ' ') || 'Otros'
+      const m2 = d.companies?.m2_estimados || 0
+      if (!data[seg]) data[seg] = { totalValor: 0, totalM2: 0 }
+      data[seg].totalValor += (d.valor_neto || 0)
+      data[seg].totalM2 += m2
+    })
+    return Object.entries(data)
+      .map(([label, { totalValor, totalM2 }]) => ({ 
+        label, 
+        value: totalM2 > 0 ? Math.round(totalValor / totalM2) : 0 
+      }))
+      .sort((a, b) => b.value - a.value).slice(0, 5)
+  })()
+
+  const marketingSpend = 1500000 
+  const cac = ganados.length > 0 ? marketingSpend / ganados.length : 0
+  const ltv = ticketPromedio * 18
 
   const motivosPerdida = (() => {
     const counts: Record<string, number> = {}
@@ -256,24 +275,37 @@ export default function Dashboard() {
   })()
 
   return (
-    <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans">
+    <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans pb-24">
       
-      {/* Ultra Minimalist Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-8 border border-black/[0.02] dark:border-white/[0.02]">
+      {/* Dynamic Header with Tabs */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-8 border border-black/[0.02] dark:border-white/[0.02] shadow-sm">
         <div className="space-y-1">
           <h1 className="text-[36px] md:text-[42px] font-black tracking-tight text-foreground leading-none">
-            Dashboard
+            {activeTab === 'OVERVIEW' ? 'Dashboard' : 'Analítica BI'}
           </h1>
           <p className="text-[13px] text-muted-foreground font-semibold">
-            Resumen ejecutivo de ventas y métricas comerciales
+            {activeTab === 'OVERVIEW' ? 'Resumen de ventas y pipeline' : 'Inteligencia de negocios avanzada'}
           </p>
+          
+          <div className="flex gap-6 mt-8">
+            <button 
+              onClick={() => setActiveTab('OVERVIEW')}
+              className={`text-[11px] font-black uppercase tracking-[0.2em] pb-2 border-b-2 transition-all ${activeTab === 'OVERVIEW' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-40 hover:opacity-100'}`}
+            >
+              Vista General
+            </button>
+            <button 
+              onClick={() => setActiveTab('BI')}
+              className={`text-[11px] font-black uppercase tracking-[0.2em] pb-2 border-b-2 transition-all flex items-center gap-2 ${activeTab === 'BI' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-40 hover:opacity-100'}`}
+            >
+              Analítica Avanzada <Zap className="h-3 w-3 fill-amber-500 text-amber-500" />
+            </button>
+          </div>
         </div>
 
-        {/* Right side controls */}
-        <div className="flex flex-col md:items-end gap-3 mt-6 md:mt-0">
-          
-          {/* Segmented Control */}
-          <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] p-1.5 rounded-full flex items-center">
+        {/* Filters */}
+        <div className="flex flex-col md:items-end gap-3 mt-8 md:mt-0">
+          <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] p-1.5 rounded-full flex items-center shadow-inner">
             {[
               { id: 'MONTH', label: 'Mes' },
               { id: 'QUARTER', label: 'Trimestre' },
@@ -282,9 +314,9 @@ export default function Dashboard() {
               <button
                 key={item.id}
                 onClick={() => setRange(item.id as TimeRange)}
-                className={`h-9 px-6 rounded-full flex items-center justify-center text-[10px] sm:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                className={`h-9 px-6 rounded-full flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
                   range === item.id 
-                    ? 'bg-white dark:bg-[#3A3A3C] text-black dark:text-white shadow-[0_2px_10px_rgba(0,0,0,0.04)] dark:shadow-none' 
+                    ? 'bg-white dark:bg-[#3A3A3C] text-black dark:text-white shadow-sm' 
                     : 'text-muted-foreground hover:text-foreground opacity-50'
                 }`}
               >
@@ -294,204 +326,184 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Sector Month/Quarter */}
             {range === 'MONTH' && (
-              <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 flex items-center shrink-0">
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                  className="bg-transparent border-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer appearance-none text-center"
-                >
-                  {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                </select>
-              </div>
+              <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer">
+                {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+              </select>
             )}
             {range === 'QUARTER' && (
-              <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 flex items-center shrink-0">
-                <select
-                  value={selectedQuarter}
-                  onChange={(e) => setSelectedQuarter(Number(e.target.value))}
-                  className="bg-transparent border-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer appearance-none text-center"
-                >
-                  {[0,1,2,3].map(q => <option key={q} value={q}>Q{q+1}</option>)}
-                </select>
-              </div>
-            )}
-            
-            {/* Sector Year */}
-            <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-5 h-9 flex items-center shrink-0">
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="bg-transparent border-0 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer appearance-none text-center"
-              >
-                {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+              <select value={selectedQuarter} onChange={(e) => setSelectedQuarter(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer">
+                {[0,1,2,3].map(q => <option key={q} value={q}>Q{q+1}</option>)}
               </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 opacity-40 mt-1 mr-1">
-            <Calendar className="h-3 w-3 text-foreground" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-foreground">
-              Viendo: <span className="capitalize font-bold">{rangeLabels[range]}</span>
-            </span>
+            )}
+            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer">
+              {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
         </div>
       </div>
 
-      <section>
-        <SectionTitle title="Ventas & Proyecciones" sub="Estado financiero de contratos y propuestas enviadas" />
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          <KpiCard
-            label="Nuevos Ingresos (Ventas + MRR)"
-            value={fmtCLP(ingresosMes)}
-            sub={`${ganados.length} Cierres en el Periodo`}
-            icon={DollarSign}
-            trend={{ val: "+12.5%", up: true }}
-            gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400 bg-noise"
-          />
-          <KpiCard
-            label="Pipeline en Oferta"
-            value={fmtCLP(pipelineForecast)}
-            sub={`${propuestas.length} Propuestas Activas`}
-            icon={Target}
-            gradientClass="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 bg-noise"
-          />
-          <KpiCard
-            label="Ticket Promedio"
-            value={fmtCLP(ticketPromedio)}
-            sub="Medida por Cierre B2B"
-            icon={Briefcase}
-            gradientClass="bg-gradient-to-br from-orange-500 via-rose-500 to-red-500 bg-noise"
-          />
-        </div>
+      {activeTab === 'OVERVIEW' ? (
+        <>
+          <section>
+            <SectionTitle title="Ventas & Proyecciones" sub="Estado financiero de contratos y propuestas enviadas" />
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <KpiCard
+                label="Nuevos Ingresos (Ventas + MRR)"
+                value={fmtCLP(ingresosMes)}
+                sub={`${ganados.length} Cierres en el Periodo`}
+                icon={DollarSign}
+                trend={{ val: "+12.5%", up: true }}
+                gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400 bg-noise"
+              />
+              <KpiCard
+                label="Pipeline en Oferta"
+                value={fmtCLP(pipelineForecast)}
+                sub={`${propuestas.length} Propuestas Activas`}
+                icon={Target}
+                gradientClass="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 bg-noise"
+              />
+              <KpiCard
+                label="Ticket Promedio"
+                value={fmtCLP(ticketPromedio)}
+                sub="Medida por Cierre B2B"
+                icon={Briefcase}
+                gradientClass="bg-gradient-to-br from-orange-500 via-rose-500 to-red-500 bg-noise"
+              />
+            </div>
 
-        <div className="mt-8 rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white/50 dark:bg-[#1C1C1E]/50 p-8 md:p-10 dark:shadow-none overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-2xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center">
-              <Activity className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-black text-[17px] tracking-tight dark:text-slate-100 uppercase">Flujo Comercial</h3>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Pipeline Progress</p>
-            </div>
-          </div>
-          
-          <div className="grid gap-6">
-            {[
-              { label: 'Prospección inicial', stage: 1, c: '#94a3b8' },
-              { label: 'Contacto establecido', stage: 2, c: '#60a5fa' },
-              { label: 'Visita técnica', stage: 3, c: '#818cf8' },
-              { label: 'Propuesta emitida', stage: 4, c: '#f59e0b' },
-              { label: 'Cierre negociación', stage: 5, c: '#fb923c' },
-            ].map(s => {
-              const count = filteredDeals.filter(d => d.stage === s.stage).length
-              const val = filteredDeals.filter(d => d.stage === s.stage).reduce((a, d) => a + (d.valor_neto || 0), 0)
-              const pct = activos.length > 0 ? (count / activos.length) * 100 : 0
-              return (
-                <div key={s.stage} className="flex flex-col gap-2 group">
-                  <div className="flex justify-between items-end">
-                    <div className="flex items-center gap-2">
-                       <span className="font-black text-[13px] tracking-tight text-foreground/80 group-hover:text-primary transition-colors">{s.label}</span>
-                       <span className="text-[10px] font-bold text-muted-foreground opacity-40 tabular-nums">({count})</span>
-                    </div>
-                    <span className="text-[11px] font-black tabular-nums">{val > 0 ? fmtCLP(val) : '-'}</span>
-                  </div>
-                  <div className="h-[6px] w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden border border-border/5">
-                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: s.c }} />
-                  </div>
+            <div className="mt-8 rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white/50 dark:bg-[#1C1C1E]/50 p-8 md:p-10 dark:shadow-none overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-2xl bg-primary shadow-lg shadow-primary/20 flex items-center justify-center">
+                  <Activity className="h-5 w-5 text-white" />
                 </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
+                <div>
+                  <h3 className="font-black text-[17px] tracking-tight dark:text-slate-100 uppercase">Flujo Comercial</h3>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Pipeline Progress</p>
+                </div>
+              </div>
+              
+              <div className="grid gap-6">
+                {[
+                  { label: 'Prospección inicial', stage: 1, c: '#94a3b8' },
+                  { label: 'Contacto establecido', stage: 2, c: '#60a5fa' },
+                  { label: 'Visita técnica', stage: 3, c: '#818cf8' },
+                  { label: 'Propuesta emitida', stage: 4, c: '#f59e0b' },
+                  { label: 'Cierre negociación', stage: 5, c: '#fb923c' },
+                ].map(s => {
+                  const count = filteredDeals.filter(d => d.stage === s.stage).length
+                  const val = filteredDeals.filter(d => d.stage === s.stage).reduce((a, d) => a + (d.valor_neto || 0), 0)
+                  const pct = activos.length > 0 ? (count / activos.length) * 100 : 0
+                  return (
+                    <div key={s.stage} className="flex flex-col gap-2 group">
+                      <div className="flex justify-between items-end">
+                        <div className="flex items-center gap-2">
+                           <span className="font-black text-[13px] tracking-tight text-foreground/80 group-hover:text-primary transition-colors">{s.label}</span>
+                           <span className="text-[10px] font-bold text-muted-foreground opacity-40 tabular-nums">({count})</span>
+                        </div>
+                        <span className="text-[11px] font-black tabular-nums">{val > 0 ? fmtCLP(val) : '-'}</span>
+                      </div>
+                      <div className="h-[6px] w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden border border-border/5">
+                        <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: s.c }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
 
-      <section className="grid gap-8 grid-cols-1 lg:grid-cols-2">
-        <div className="space-y-6">
-          <SectionTitle title="Eficiencia de Ventas" sub="Conversión y ciclo comercial" />
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-            <KpiCard
-              label="Win Rate Total"
-              value={`${winRate}%`}
-              sub="Tasa de Éxito Comercial"
-              icon={TrendingUp}
-              trend={{ val: "Estable", up: true }}
-            />
-            <div className="rounded-[40px] border border-border/40 bg-primary p-8 text-white shadow-[0_20px_50px_rgba(0,122,255,0.25)] relative overflow-hidden group hover:scale-[1.02] active:scale-95 transition-all duration-500">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500" />
-              <span className="text-[10px] font-black text-white/60 uppercase tracking-widest leading-none mb-2 block">Performance Rango</span>
-              <div className="text-3xl font-black tracking-tighter leading-none mb-1">{winRate >= 50 ? 'Alta' : winRate > 0 ? 'Media' : 'Pendiente'}</div>
-              <p className="text-[11px] font-bold text-white/80 opacity-80 decoration-white/20 underline underline-offset-4 decoration-dashed italic">Enfoque B2B Táctico</p>
-              <ArrowUpRight className="absolute bottom-4 right-4 text-white/40 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+          <section className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+            <div className="space-y-6">
+              <SectionTitle title="Eficiencia de Ventas" sub="Conversión y ciclo comercial" />
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+                <KpiCard
+                  label="Win Rate Total"
+                  value={`${winRate}%`}
+                  sub="Tasa de Éxito Comercial"
+                  icon={TrendingUp}
+                  trend={{ val: "Estable", up: true }}
+                />
+                <div className="rounded-[40px] border border-border/40 bg-primary p-8 text-white shadow-xl relative overflow-hidden group">
+                  <span className="text-[10px] font-black text-white/60 uppercase tracking-widest block mb-2">Estado General</span>
+                  <div className="text-3xl font-black tracking-tighter leading-none mb-1">{winRate >= 50 ? 'Alta Tracción' : 'Operativo'}</div>
+                  <p className="text-[11px] font-bold text-white/80 italic">Optimización B2B</p>
+                  <ArrowUpRight className="absolute bottom-4 right-4 text-white/40 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                </div>
+              </div>
+              <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden p-6">
+                 <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider mb-6">Top Segmentos</h3>
+                 <PieChart data={porIndustria} />
+              </div>
             </div>
-          </div>
-          
-          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
-            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Causas de Cierre Perdido</h3>
-              <span className="text-[9px] font-black bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded-lg border border-rose-500/20">ALERTA ROJA</span>
+            <div className="space-y-6">
+               <SectionTitle title="Análisis Geográfico" sub="Top comunas con mayor tracción" />
+               <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden p-6">
+                  <BarChart data={porComuna} color="#10b981" />
+               </div>
             </div>
-            <div className="p-6">
-              {motivosPerdida.length > 0 ? <PieChart data={motivosPerdida} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin métricas de pérdida en este período</div>}
+          </section>
+        </>
+      ) : (
+        <>
+          <section>
+            <SectionTitle title="KPIs de Rentabilidad" sub="Alineación estratégica y costos de adquisición" />
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <KpiCard
+                label="CAC (Adquisición)"
+                value={fmtCLP(cac)}
+                sub="Inversión por contrato ganado"
+                icon={Target}
+                trend={{ val: "Meta: < $300k", up: cac < 300000 }}
+              />
+              <KpiCard
+                label="LTV (Valor Cliente)"
+                value={fmtCLP(ltv)}
+                sub="Ingreso estimado por ciclo vida"
+                icon={Zap}
+                gradientClass="bg-gradient-to-br from-amber-500 to-orange-600"
+              />
+              <KpiCard
+                label="Ratio LTV:CAC"
+                value={`${Math.round(ltv / cac || 0)}x`}
+                sub="Salud del modelo de negocio"
+                icon={TrendingUp}
+                gradientClass="bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 text-white"
+              />
             </div>
-          </div>
+          </section>
 
-          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
-            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Segmentos Clientes</h3>
-              <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-lg border border-primary/20">PULSO INDUSTRIAL</span>
+          <section className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+            <div className="space-y-6">
+              <SectionTitle title="Rentabilidad Operativa" sub="Valor neto por M2 según industria" />
+              <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden p-6">
+                <BarChart data={rentabilidadM2} color="#6366f1" prefix="$" />
+                <p className="mt-6 text-[11px] font-bold text-muted-foreground bg-slate-50 dark:bg-white/5 p-4 rounded-2xl">
+                  💡 **Insight BI:** La industria con mayor ratio $/M2 indica mayor disposición de pago por pulcritud técnica. Enfoca esfuerzos comerciales en los segmentos más altos.
+                </p>
+              </div>
             </div>
-            <div className="p-6">
-               {porIndustria.length > 0 ? <PieChart data={porIndustria} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos de segmentación en este período</div>}
-            </div>
-          </div>
-        </div>
 
-        <div className="space-y-6">
-          <SectionTitle title="Análisis de Ventas" sub="Ingresos recurrentes y mercado" />
-          
-          {/* MRR Projection */}
-          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
-            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Proyección MRR (6 Meses)</h3>
-              <span className="text-[9px] font-black bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-lg border border-blue-500/20">RECURRENTE</span>
+            <div className="space-y-6">
+              <SectionTitle title="Análisis de Churn (Fuga)" sub="¿Por qué estamos perdiendo negocios?" />
+              <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden p-6">
+                 <PieChart data={motivosPerdida} />
+                 <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/10">
+                       <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Pérdida Total</p>
+                       <p className="text-xl font-black text-rose-500">{perdidos.length}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                       <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Win Rate</p>
+                       <p className="text-xl font-black text-primary">{winRate}%</p>
+                    </div>
+                 </div>
+              </div>
             </div>
-            <div className="p-6">
-              {(() => {
-                const result = Array.from({ length: 6 }, (_, i) => {
-                  const d = new Date()
-                  d.setMonth(d.getMonth() + i)
-                  return { label: d.toLocaleString('es-CL', { month: 'short', year: 'numeric' }), value: 0, date: d }
-                })
-                deals.filter(d => d.stage === 6 && d.is_contract).forEach(d => {
-                  const start = new Date(d.stage_changed_at || d.created_at)
-                  const monthsActive = d.contract_months || 0
-                  const mrr = d.valor_neto || 0
-                  result.forEach(projMonth => {
-                    const diffMonths = (projMonth.date.getFullYear() - start.getFullYear()) * 12 + projMonth.date.getMonth() - start.getMonth()
-                    if (diffMonths >= 0 && diffMonths < monthsActive) projMonth.value += mrr
-                  })
-                })
-                const chartData = result.map(r => ({ label: r.label, value: r.value }))
-                return chartData.some(m => m.value > 0) ? <BarChart data={chartData} color="#3b82f6" /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin contratos recurrentes vigentes</div>
-              })()}
-            </div>
-          </div>
-
-          {/* Top Comunas — Tarjeta Separada */}
-          <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500">
-            <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-              <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider">Top Comunas (Facturación)</h3>
-              <span className="text-[9px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-lg border border-emerald-500/20">GEOGRAFÍA</span>
-            </div>
-            <div className="p-6">
-              {porComuna.length > 0 ? <BarChart data={porComuna} /> : <div className="text-center py-10 opacity-40 font-black text-[10px] uppercase tracking-widest leading-relaxed">Sin datos geográficos</div>}
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
+        </>
+      )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 pt-4">
         {[

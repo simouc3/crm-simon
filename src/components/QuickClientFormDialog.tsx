@@ -32,14 +32,23 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
       created_by: user?.id
     };
 
-    const { error } = await supabase.from('companies').insert([dataToSave]);
-    setLoading(false);
+    const { data: inserted, error } = await supabase.from('companies').insert([dataToSave]).select().single();
     
     if (error) {
+      setLoading(false);
       alert("Error guardando cliente: " + error.message);
     } else {
+      // Disparar score en segundo plano (no bloquea el cierre del modal)
+      if (inserted) {
+        import("../lib/ai/AIPredictor").then(({ AIPredictor }) => {
+          AIPredictor.scoreCompany(inserted as any);
+        });
+      }
+      
       setFormData({ razon_social: '', contact_name: '', contact_phone: '' });
+      setLoading(false);
       onOpenChange(false);
+      // No recargar toda la página si podemos evitarlo, pero por ahora mantendremos el flujo
       window.location.reload();
     }
   }

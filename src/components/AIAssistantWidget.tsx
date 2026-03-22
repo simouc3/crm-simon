@@ -186,6 +186,12 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
       }
 
       setResponse(uiRespons);
+      
+      // 3. Analizar Riesgo con IA
+      import("../lib/ai/AIPredictor").then(({ AIPredictor }) => {
+        AIPredictor.analyzeActivityRisk(deal.id, text);
+      });
+
       if (onNewActivity) onNewActivity();
 
     } catch (err: any) {

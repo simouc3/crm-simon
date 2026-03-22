@@ -161,18 +161,25 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
     }
 
     let error;
+    let inserted;
     if (clientToEdit) {
       const { error: updateError } = await supabase.from('companies').update(dataToSave).eq('id', clientToEdit.id)
       error = updateError;
     } else {
-      const { error: insertError } = await supabase.from('companies').insert([dataToSave])
+      const { data, error: insertError } = await supabase.from('companies').insert([dataToSave]).select().single()
       error = insertError;
+      inserted = data;
     }
 
     setLoading(false)
     if (error) {
       alert("Error guardando cliente: " + error.message)
     } else {
+      if (inserted) {
+        import("../lib/ai/AIPredictor").then(({ AIPredictor }) => {
+          AIPredictor.scoreCompany(inserted as any);
+        });
+      }
       setOpen(false)
       if (onClientCreated) onClientCreated()
       setFormData({ 

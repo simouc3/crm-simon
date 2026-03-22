@@ -295,11 +295,31 @@ Equipo Comercial`)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] sm:max-w-[550px] max-h-[90vh] overflow-y-auto rounded-[32px] p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-xl">{deal.title}</DialogTitle>
+          <div className="flex items-center gap-2">
+            <DialogTitle className="text-xl">{deal.title}</DialogTitle>
+            {deal.companies?.lead_score && (
+              <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-1">
+                🔥 {deal.companies.lead_score}
+              </div>
+            )}
+          </div>
           <DialogDescription>
             {deal.companies?.razon_social} · Ficha del negocio
           </DialogDescription>
         </DialogHeader>
+
+        {/* Alerta de Riesgo IA */}
+        {deal.is_risk && (
+          <div className="bg-rose-500 text-white rounded-2xl p-4 border border-rose-600 shadow-lg shadow-rose-500/20 animate-in slide-in-from-top-2 duration-500">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertCircle className="h-5 w-5 animate-bounce" />
+              <span className="font-black text-xs uppercase tracking-widest">ALERTA DE RIESGO DETECTADA</span>
+            </div>
+            <p className="text-[11px] font-bold opacity-90 leading-relaxed">
+              Gemini detectó señales de posible pérdida del negocio: "{deal.risk_reason}"
+            </p>
+          </div>
+        )}
 
         {/* Stage Selector */}
         <div className="bg-muted/40 rounded-lg p-3 border">
