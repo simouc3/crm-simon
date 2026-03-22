@@ -109,11 +109,7 @@ export default function AppLayout() {
         <div className="p-10 pb-8">
           <div className="flex flex-col gap-5 group cursor-pointer transition-all" onClick={() => navigate('/')}>
             <div className="w-16 h-16 rounded-[22px] bg-white dark:bg-[#2C2C2E] shadow-xl shadow-black/5 flex items-center justify-center overflow-hidden shrink-0 border border-black/[0.03] dark:border-white/[0.05] transition-all group-hover:scale-105 duration-500">
-              {branding.logo ? (
-                <img src={branding.logo} alt="Logo" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-primary font-black text-2xl tracking-tighter uppercase">{branding.name.charAt(0)}</span>
-              )}
+              <img src="/logo.svg" alt="Logo" className="w-full h-full object-cover p-2" />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-primary uppercase tracking-[0.25em] opacity-60 leading-none mb-2">Plataforma B2B</span>
@@ -211,11 +207,7 @@ export default function AppLayout() {
         <header className="h-[80px] border-b border-border/30 dark:border-transparent bg-white/60 dark:bg-[#1C1C1E]/80 backdrop-blur-3xl flex items-center px-8 justify-between md:hidden sticky top-0 z-30">
           <div className="flex items-center gap-4" onClick={() => navigate('/')}>
             <div className="w-12 h-12 rounded-[14px] bg-white dark:bg-[#2C2C2E] flex items-center justify-center shadow-lg overflow-hidden shrink-0 border border-black/[0.05] dark:border-white/[0.05]">
-               {branding.logo ? (
-                <img src={branding.logo} alt="Logo" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-primary font-black text-lg tracking-tighter uppercase">{branding.name.charAt(0)}</span>
-              )}
+               <img src="/logo.svg" alt="Logo" className="w-full h-full object-cover p-1.5" />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none mb-1">CRM</span>
