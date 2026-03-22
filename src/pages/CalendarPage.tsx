@@ -124,27 +124,44 @@ export default function CalendarPage() {
       {/* LEFT PORTION: CALENDAR GRID */}
       <div className={`flex-1 flex flex-col h-full overflow-y-auto w-full lg:w-3/5 lg:border-r border-border/40 pb-8 lg:pb-0 safe-bottom transition-all duration-500 ${mobileView === 'list' ? 'hidden lg:flex' : 'flex'}`}>
         
-        {/* DESKTOP STANDARD HEADER (Visible only on LG+) */}
-        <div className="hidden lg:flex flex-col md:flex-row md:items-center justify-between gap-4 pt-12 px-12 pb-8 max-w-5xl mx-auto w-full">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter text-foreground mb-2">Agenda Operativa</h1>
-            <p className="text-muted-foreground font-medium text-sm max-w-xl">
-              Control total de visitas, llamados y reuniones técnicas. Organiza tu flujo comercial.
-            </p>
+        {/* DESKTOP STANDARD HEADER (Exacto a la imagen de referencia) */}
+        <div className="hidden lg:block px-6 md:px-12 pt-12 pb-4 w-full max-w-5xl mx-auto">
+          <div className="bg-white dark:bg-[#1C1C1E] border border-border/40 rounded-[40px] p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-none flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground mb-1">Agenda</h1>
+              <p className="text-muted-foreground font-medium text-sm md:text-base opacity-70">
+                {events.length} gestiones · Operación B2B
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsAddOpen(true)}
+                className="bg-black dark:bg-white text-white dark:text-black px-8 h-14 rounded-full font-black text-sm hover:scale-105 transition-all shadow-lg shadow-black/10 flex items-center gap-2"
+              >
+                <Plus size={20} />
+                + Nueva Gestión
+              </button>
+            </div>
           </div>
         </div>
 
         {/* MOBILE & NAVIGATION HEADER */}
-        <div className="pt-8 lg:pt-0 px-6 md:px-12 pb-6 flex justify-between items-center shrink-0 w-full max-w-4xl mx-auto">
+        <div className="pt-8 lg:pt-4 px-6 md:px-12 pb-6 flex justify-between items-center shrink-0 w-full max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner lg:hidden">
                <CalendarIcon className="h-6 w-6" />
             </div>
-            <div>
-               <h3 className="text-2xl md:text-3xl font-black tracking-tighter capitalize text-foreground leading-none">
+            <div className="lg:hidden">
+               <h3 className="text-2xl font-black tracking-tighter capitalize text-foreground leading-none">
                  {currentDate.toLocaleString('es-CL', { month: 'long' })}
                </h3>
                <span className="text-[12px] font-bold text-muted-foreground uppercase opacity-80 tracking-widest">{currentDate.getFullYear()}</span>
+            </div>
+            {/* Navigation Desktop (Compacto debajo del header) */}
+            <div className="hidden lg:flex items-center gap-4">
+              <h3 className="text-2xl font-black tracking-tighter capitalize text-foreground">
+                 {currentDate.toLocaleString('es-CL', { month: 'long' })} {currentDate.getFullYear()}
+              </h3>
             </div>
           </div>
 
