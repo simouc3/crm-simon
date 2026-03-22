@@ -69,7 +69,12 @@ export function VoiceRecorderModal({ open, onOpenChange }: { open: boolean, onOp
 
       setResponseMsg(uiRes);
     } catch (err: any) {
-       setResponseMsg(`Error: ${err.message}`);
+       const errMsg = err.message || '';
+       if (errMsg.includes('API key expired') || errMsg.includes('API_KEY_INVALID')) {
+         setResponseMsg(`❌ Tu clave de Gemini AI expiró o es inválida.\n\nAbre cualquier negocio, ve a la tarjeta "Copiloto AI", presiona el candado 🔒 y actualiza tu API Key secreta.`);
+       } else {
+         setResponseMsg(`❌ Error IA: ${errMsg}`);
+       }
     } finally {
        setLoading(false);
     }

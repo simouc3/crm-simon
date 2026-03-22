@@ -82,7 +82,12 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
       }
 
     } catch (err: any) {
-      setResponse(`Error: ${err.message || 'No se pudo conectar con Google Gemini. Revisa tu API Key.'}`);
+       const errMsg = err.message || '';
+       if (errMsg.includes('API key expired') || errMsg.includes('API_KEY_INVALID')) {
+         setResponse(`❌ Tu clave de Gemini AI expiró o es inválida.\n\nPresiona el icono de candado 🔒 en la esquina de esta tarjeta para actualizar tu API Key secreta.`);
+       } else {
+         setResponse(`❌ Error IA: ${errMsg}`);
+       }
     } finally {
       setLoadingType(null);
     }
