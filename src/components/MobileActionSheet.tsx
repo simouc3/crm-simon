@@ -14,7 +14,6 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Prevenir scroll cuando el sheet está abierto
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -26,10 +25,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const handleCameraClick = () => {
-    // Abre la cámara nativa del celular
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -38,8 +34,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // TODO: Logica de subida a supabase para la foto geolocalizada a Visita Técnica
-      alert(`Foto "${file.name}" capturada. Falta enlazar a lógica de subida.`);
+      alert(`Foto capturada. Subida en desarrollo.`);
       onClose();
     }
   };
@@ -47,81 +42,47 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
   return (
     <>
       <div 
-        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity" 
+        className={`fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-all duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
-      <div 
-        className="fixed bottom-0 left-0 right-0 z-[60] bg-white dark:bg-[#1C1C1E] transition-transform duration-300 ease-out translate-y-0"
-        style={{
-          borderTopLeftRadius: '24px',
-          borderTopRightRadius: '24px',
-          paddingBottom: 'env(safe-area-inset-bottom, 32px)'
-        }}
-      >
-        {/* Grab Handle */}
-        <div className="flex justify-center pt-3 pb-2 w-full" onClick={onClose}>
-          <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
-        </div>
+      
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+        {/* Left Button - Nuevo Cliente */}
+        <button 
+          onClick={() => { setShowQuickClient(true); onClose(); }}
+          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-100px] translate-y-[-100px] scale-100 pointer-events-auto shadow-2xl' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
+        >
+          <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-blue-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
+            <UserPlus className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black tracking-tight text-white bg-black/60 px-2 py-1 rounded-full backdrop-blur-md">Cliente</span>
+        </button>
 
-        <div className="px-4 py-4 space-y-2">
-          
-          <button 
-            onClick={() => { setShowQuickClient(true); onClose(); }}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all text-left"
-          >
-            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center shrink-0">
-              <UserPlus className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="font-bold text-[17px] text-foreground tracking-tight">Nuevo Cliente</div>
-              <div className="text-[13px] text-muted-foreground font-medium">Añadir contacto rápido en terreno</div>
-            </div>
-          </button>
+        {/* Center Button - Mic / IA */}
+        <button 
+          onClick={() => { setShowVoiceRecorder(true); onClose(); }}
+          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-75 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-28px] translate-y-[-140px] scale-100 pointer-events-auto shadow-2xl' : 'opacity-0 translate-x-[-28px] translate-y-0 scale-50 pointer-events-none'}`}
+        >
+           <div className="w-16 h-16 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-purple-600 shadow-xl hover:scale-110 active:scale-95 transition-transform">
+            <Mic className="h-7 w-7" />
+          </div>
+          <span className="text-[10px] font-black tracking-tight text-white bg-black/60 px-2 py-1 rounded-full backdrop-blur-md">Audio IA</span>
+        </button>
 
-          <button 
-            onClick={handleCameraClick}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all text-left"
-          >
-            <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center shrink-0">
-              <Camera className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="font-bold text-[17px] text-foreground tracking-tight">Subir Visita Técnica</div>
-              <div className="text-[13px] text-muted-foreground font-medium">Tomar foto o elegir de la galería</div>
-            </div>
-            <input 
-              type="file" 
-              accept="image/*" 
-              capture="environment" 
-              className="hidden" 
-              ref={fileInputRef} 
-              onChange={handleFileChange}
-            />
-          </button>
-
-          <button 
-            onClick={() => { setShowVoiceRecorder(true); onClose(); }}
-            className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 active:scale-[0.98] transition-all text-left"
-          >
-            <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center shrink-0">
-              <Mic className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="font-bold text-[17px] text-foreground tracking-tight">Nota de Voz con IA</div>
-              <div className="text-[13px] text-muted-foreground font-medium">Grabar audio y detectar tareas</div>
-            </div>
-          </button>
-          
-        </div>
-
-        <div className="px-4 pb-6 pt-2">
-          <button 
-            onClick={onClose}
-            className="w-full h-14 bg-slate-100 dark:bg-white/10 text-foreground font-bold text-[17px] rounded-2xl hover:bg-slate-200 dark:hover:bg-white/20 transition-all"
-          >
-            Cancelar
-          </button>
-        </div>
+        {/* Right Button - Camera */}
+        <button 
+          onClick={handleCameraClick}
+          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[44px] translate-y-[-100px] scale-100 pointer-events-auto shadow-2xl' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
+        >
+          <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-emerald-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
+            <Camera className="h-6 w-6" />
+          </div>
+          <span className="text-[10px] font-black tracking-tight text-white bg-black/60 px-2 py-1 rounded-full backdrop-blur-md">Cámara</span>
+          <input 
+            type="file" accept="image/*" capture="environment" 
+            className="hidden" ref={fileInputRef} onChange={handleFileChange}
+          />
+        </button>
       </div>
 
       <QuickClientFormDialog open={showQuickClient} onOpenChange={setShowQuickClient} />
