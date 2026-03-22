@@ -216,10 +216,10 @@ export default function ProfilesPage() {
                   </Badge>
                </div>
 
-               {/* Avatar Container — Centered Apple Style */}
+               {/* Avatar Container — Centered Apple Squircle Style */}
                <div className="relative mb-6">
-                  <div className="h-28 w-28 rounded-full bg-slate-50 dark:bg-slate-800 p-1.5 shadow-inner overflow-hidden ring-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
-                    <div className="w-full h-full rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-foreground overflow-hidden shadow-sm">
+                  <div className="h-28 w-28 rounded-[30px] bg-slate-50 dark:bg-slate-800 p-1.5 shadow-inner overflow-hidden ring-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
+                    <div className="w-full h-full rounded-[24px] bg-white dark:bg-slate-700 flex items-center justify-center text-foreground overflow-hidden shadow-sm">
                       {profile.avatar_url ? (
                         <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -230,7 +230,7 @@ export default function ProfilesPage() {
                     </div>
                   </div>
                   {profile.role === 'ADMIN' && (
-                    <div className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full bg-foreground text-background flex items-center justify-center shadow-xl border-4 border-white dark:border-[#1C1C1E] animate-in zoom-in-50 duration-500">
+                    <div className="absolute -bottom-1 -right-1 h-9 w-9 rounded-xl bg-foreground text-background flex items-center justify-center shadow-xl border-4 border-white dark:border-[#1C1C1E] animate-in zoom-in-50 duration-500">
                       <Star size={16} fill="currentColor" />
                     </div>
                   )}
@@ -269,8 +269,8 @@ export default function ProfilesPage() {
               {/* Header: Centered Avatar & Info */}
               <div className="bg-[#F2F2F7] dark:bg-black pt-12 pb-8 px-6 flex flex-col items-center text-center">
                 <div className="relative group mb-4">
-                  <div className="h-28 w-28 rounded-full bg-white dark:bg-slate-800 p-1 shadow-xl overflow-hidden ring-4 ring-white dark:ring-slate-900">
-                    <div className="w-full h-full rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-foreground overflow-hidden shadow-inner uppercase font-black text-3xl">
+                  <div className="h-32 w-32 rounded-[32px] bg-white dark:bg-slate-800 p-1.5 shadow-xl overflow-hidden ring-4 ring-white dark:ring-slate-900 transition-transform group-hover:scale-105 duration-500">
+                    <div className="w-full h-full rounded-[26px] bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-foreground overflow-hidden shadow-inner uppercase font-black text-3xl">
                       {selectedProfile.avatar_url ? (
                         <img src={selectedProfile.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -279,8 +279,8 @@ export default function ProfilesPage() {
                     </div>
                   </div>
                   {(isAdmin || authUser?.id === selectedProfile.id) && (
-                    <label className="absolute bottom-0 right-0 h-9 w-9 rounded-full bg-white dark:bg-slate-800 text-foreground flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-4 border-[#F2F2F7] dark:border-black">
-                      <Camera size={14} />
+                    <label className="absolute bottom-0 right-0 h-10 w-10 rounded-xl bg-white dark:bg-slate-800 text-foreground flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-4 border-[#F2F2F7] dark:border-black">
+                      <Camera size={16} />
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => handleAvatarUpload(e, selectedProfile.id)} disabled={isUpdating} />
                     </label>
                   )}

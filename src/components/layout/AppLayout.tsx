@@ -107,13 +107,9 @@ export default function AppLayout() {
       <aside className="w-[220px] bg-white/70 dark:bg-[#1C1C1E]/90 backdrop-blur-2xl border-r border-border/30 dark:border-transparent hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-none">
         
         <div className="p-10 pb-8">
-          <div className="flex flex-col gap-5 group cursor-pointer transition-all">
-            <div className="w-14 h-14 rounded-[20px] bg-primary shadow-2xl shadow-primary/30 dark:shadow-none flex items-center justify-center overflow-hidden shrink-0 border border-white/20 dark:border-transparent transition-all group-hover:scale-105 duration-500">
-              {branding.logo ? (
-                <img src={branding.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
-              ) : (
-                <span className="text-white font-black text-2xl tracking-tighter">{branding.name.charAt(0)}</span>
-              )}
+          <div className="flex flex-col gap-5 group cursor-pointer transition-all" onClick={() => navigate('/')}>
+            <div className="w-16 h-16 rounded-[22px] bg-white dark:bg-[#2C2C2E] shadow-xl shadow-black/5 flex items-center justify-center overflow-hidden shrink-0 border border-black/[0.03] dark:border-white/[0.05] transition-all group-hover:scale-105 duration-500">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-primary uppercase tracking-[0.25em] opacity-60 leading-none mb-2">Plataforma B2B</span>
@@ -149,12 +145,12 @@ export default function AppLayout() {
         {/* User Panel — Bottom */}
         <div className="p-4 mt-auto border-t border-border/30 dark:border-white/[0.06]">
           
-          {/* Avatar + Info — CLIC PARA MI PERFIL */}
+          {/* Avatar + Info — CLIC PARA MI PERFIL — APPLE STYLE SNIPPET */}
           <div 
-            className="flex items-center gap-3 px-2 py-3 mb-3 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-2xl cursor-pointer transition-all active:scale-95 group"
+            className="flex items-center gap-3 px-3 py-4 bg-white/50 dark:bg-[#2C2C2E]/50 rounded-[22px] border border-black/[0.03] dark:border-white/[0.05] cursor-pointer transition-all active:scale-95 group mb-4 shadow-sm"
             onClick={() => navigate('/users?me=true')}
           >
-            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-border/30 dark:border-transparent flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0 shadow-sm transition-transform group-hover:scale-105">
+            <div className="w-11 h-11 rounded-[14px] bg-slate-100 dark:bg-[#3A3A3C] flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0 shadow-sm transition-transform group-hover:scale-110 duration-500">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -162,10 +158,10 @@ export default function AppLayout() {
               )}
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-[13px] font-black text-foreground truncate leading-tight">
+              <span className="text-[14px] font-black text-foreground truncate leading-none mb-1">
                 {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
               </span>
-              <span className="text-[10px] text-primary font-black uppercase tracking-[0.12em] opacity-80">
+              <span className="text-[9px] text-[#007AFF] dark:text-[#0A84FF] font-black uppercase tracking-[0.08em]">
                 {userRole === 'ADMIN' ? 'Admin Central' : 'Equipo Comercial'}
               </span>
             </div>
@@ -209,13 +205,9 @@ export default function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-black">
         {/* Mobile Header */}
         <header className="h-[80px] border-b border-border/30 dark:border-transparent bg-white/60 dark:bg-[#1C1C1E]/80 backdrop-blur-3xl flex items-center px-8 justify-between md:hidden sticky top-0 z-30">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-[14px] bg-foreground flex items-center justify-center shadow-xl shadow-foreground/20 dark:shadow-none overflow-hidden shrink-0 border border-border/20 dark:border-transparent">
-               {branding.logo ? (
-                <img src={branding.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
-              ) : (
-                <span className="text-background font-black text-xl tracking-tighter">{branding.name.charAt(0)}</span>
-              )}
+          <div className="flex items-center gap-4" onClick={() => navigate('/')}>
+            <div className="w-12 h-12 rounded-[14px] bg-white dark:bg-[#2C2C2E] flex items-center justify-center shadow-lg overflow-hidden shrink-0 border border-black/[0.05] dark:border-white/[0.05]">
+               <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none mb-1">CRM</span>
