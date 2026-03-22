@@ -166,17 +166,17 @@ export default function CalendarPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Toggle Vista Móvil */}
+            {/* Toggle Vista Móvil (Visible solo si estamos en modo Grid) */}
             <div className="flex p-1 bg-slate-200/50 dark:bg-white/5 rounded-2xl lg:hidden">
               <button 
                 onClick={() => setMobileView('grid')}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'grid' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground'}`}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'grid' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground opacity-50'}`}
               >
                 Mes
               </button>
               <button 
-                onClick={() => setMobileView('list')}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'list' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground'}`}
+                onClick={() => { setMobileView('list'); }}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'list' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground opacity-50'}`}
               >
                 Día
               </button>
@@ -206,7 +206,7 @@ export default function CalendarPage() {
                 return (
                   <button 
                      key={i} 
-                     onClick={() => setSelectedDate(day.date)} 
+                     onClick={() => { setSelectedDate(day.date); setMobileView('list'); }} 
                      className="relative flex flex-col items-center justify-center w-full aspect-square group"
                   >
                      <div className={`w-full max-w-[3.5rem] aspect-square flex items-center justify-center rounded-[1.2rem] text-[16px] md:text-[18px] transition-all duration-300 font-bold
@@ -232,10 +232,26 @@ export default function CalendarPage() {
       </div>
 
       {/* RIGHT PORTION: PANEL DE TAREAS BIMODAL (Side Panel on Desktop, Bottom Panel on Mobile) */}
-      <div className="w-full lg:w-2/5 xl:w-[450px] shrink-0 bg-white dark:bg-[#1C1C1E] rounded-t-[2.5rem] lg:rounded-none lg:h-full shadow-[0_-20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_-20px_50px_rgba(0,0,0,0.4)] transition-all z-10 flex flex-col lg:min-h-0 min-h-[60vh]">
+      <div className={`w-full lg:w-2/5 xl:w-[450px] shrink-0 bg-white dark:bg-[#1C1C1E] rounded-t-[2.5rem] lg:rounded-none lg:h-full shadow-[0_-20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_-20px_50px_rgba(0,0,0,0.4)] transition-all z-10 flex flex-col min-h-[60vh] lg:min-h-0 ${mobileView === 'grid' ? 'hidden lg:flex' : 'flex'}`}>
          
          <div className="p-8 pb-4 shrink-0 bg-gradient-to-b from-slate-50 to-white dark:from-[#242426] dark:to-[#1C1C1E] border-b border-border/40 lg:rounded-tl-[2.5rem] sticky top-0 z-20">
-            <div className="w-12 h-1.5 bg-border/50 rounded-full mx-auto mb-6 lg:hidden" />
+            {/* Toggle Vista Móvil (Visible solo si estamos en modo Lista/Día) */}
+            <div className="flex justify-center mb-6 lg:hidden">
+              <div className="flex p-1 bg-slate-200/50 dark:bg-white/5 rounded-2xl w-fit">
+                <button 
+                  onClick={() => setMobileView('grid')}
+                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'grid' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground opacity-50'}`}
+                >
+                  Mes
+                </button>
+                <button 
+                  onClick={() => setMobileView('list')}
+                  className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'list' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground opacity-50'}`}
+                >
+                  Día
+                </button>
+              </div>
+            </div>
             
             <div className="flex justify-between items-start">
                <div>
