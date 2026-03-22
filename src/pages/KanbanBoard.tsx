@@ -121,7 +121,7 @@ export default function KanbanBoard() {
       {/* Top: Company + Grip */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-[#2C2C2E] flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-slate-100/50 dark:bg-white/5 flex items-center justify-center shrink-0">
             <Building2 className="h-4 w-4 text-muted-foreground/60" />
           </div>
           <div className="min-w-0 flex-1">

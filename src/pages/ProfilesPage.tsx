@@ -196,7 +196,7 @@ export default function ProfilesPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-64 rounded-[40px] bg-white dark:bg-slate-900 animate-pulse border border-border/10"></div>
+            <div key={i} className="h-64 rounded-[40px] bg-white dark:bg-black/40 animate-pulse border border-border/10"></div>
           ))}
         </div>
       ) : (
@@ -218,8 +218,8 @@ export default function ProfilesPage() {
 
                {/* Avatar Container — Centered Apple Circle Style */}
                <div className="relative mb-6">
-                  <div className="h-28 w-28 rounded-full bg-slate-50 dark:bg-slate-800 p-1.5 shadow-inner overflow-hidden ring-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
-                    <div className="w-full h-full rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-foreground overflow-hidden shadow-sm">
+                  <div className="h-28 w-28 rounded-full bg-slate-50 dark:bg-black/50 p-1.5 shadow-inner overflow-hidden ring-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
+                    <div className="w-full h-full rounded-full bg-white dark:bg-black/40 flex items-center justify-center text-foreground overflow-hidden shadow-sm">
                       {profile.avatar_url ? (
                         <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -269,8 +269,8 @@ export default function ProfilesPage() {
               {/* Header: Centered Avatar & Info */}
               <div className="bg-[#F2F2F7] dark:bg-black pt-12 pb-8 px-6 flex flex-col items-center text-center">
                 <div className="relative group mb-4">
-                  <div className="h-32 w-32 rounded-full bg-white dark:bg-slate-800 p-1.5 shadow-xl overflow-hidden ring-4 ring-white dark:ring-slate-900 transition-transform group-hover:scale-105 duration-500">
-                    <div className="w-full h-full rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-foreground overflow-hidden shadow-inner uppercase font-black text-3xl">
+                  <div className="h-32 w-32 rounded-full bg-white dark:bg-[#1C1C1E] p-1.5 shadow-xl overflow-hidden ring-4 ring-white dark:ring-black transition-transform group-hover:scale-105 duration-500">
+                    <div className="w-full h-full rounded-full bg-slate-100 dark:bg-[#2C2C2E] flex items-center justify-center text-foreground overflow-hidden shadow-inner uppercase font-black text-3xl">
                       {selectedProfile.avatar_url ? (
                         <img src={selectedProfile.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -279,7 +279,7 @@ export default function ProfilesPage() {
                     </div>
                   </div>
                   {(isAdmin || authUser?.id === selectedProfile.id) && (
-                    <label className="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-white dark:bg-slate-800 text-foreground flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-4 border-[#F2F2F7] dark:border-black">
+                    <label className="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-white dark:bg-[#1C1C1E] text-foreground flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-4 border-[#F2F2F7] dark:border-black">
                       <Camera size={16} />
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => handleAvatarUpload(e, selectedProfile.id)} disabled={isUpdating} />
                     </label>

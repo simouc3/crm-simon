@@ -127,22 +127,22 @@ export function ImportClientsDialog({ onImported }: Props) {
         rawHeaders.forEach((rawH, i) => {
           const standardized = rawH.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z_]/g, '')
           const field = HEADER_MAP[standardized] || standardized
-          obj[field] = row[i] || ""
+          obj[field] = row[i] || "0"
         })
 
-        const valid = !!(obj.razon_social?.trim())
+        const valid = !!(obj.razon_social?.trim() && obj.razon_social !== "0")
         return {
-          razon_social: obj.razon_social || "",
-          rut: obj.rut || undefined,
-          contact_name: obj.contact_name || undefined,
-          contact_phone: obj.contact_phone || undefined,
-          contact_email: obj.contact_email || undefined,
-          cargo: obj.cargo || undefined,
-          segmento: obj.segmento || undefined,
-          comuna: obj.comuna || undefined,
-          direccion: obj.direccion || undefined,
-          m2_estimados: obj.m2_estimados || undefined,
-          condiciones_pago: obj.condiciones_pago || undefined,
+          razon_social: (obj.razon_social && obj.razon_social !== "0") ? obj.razon_social : "EMPRESA SIN NOMBRE",
+          rut: (obj.rut && obj.rut !== "0") ? obj.rut : "0",
+          contact_name: (obj.contact_name && obj.contact_name !== "0") ? obj.contact_name : "0",
+          contact_phone: (obj.contact_phone && obj.contact_phone !== "0") ? obj.contact_phone : "0",
+          contact_email: (obj.contact_email && obj.contact_email !== "0") ? obj.contact_email : "0",
+          cargo: (obj.cargo && obj.cargo !== "0") ? obj.cargo : "0",
+          segmento: (obj.segmento && obj.segmento !== "0") ? obj.segmento : "INDUSTRIAL",
+          comuna: (obj.comuna && obj.comuna !== "0") ? obj.comuna : "0",
+          direccion: (obj.direccion && obj.direccion !== "0") ? obj.direccion : "0",
+          m2_estimados: (obj.m2_estimados && obj.m2_estimados !== "0") ? obj.m2_estimados : "0",
+          condiciones_pago: (obj.condiciones_pago && obj.condiciones_pago !== "0") ? obj.condiciones_pago : "0",
           _valid: valid,
           _error: !valid ? "Falta Razón Social" : undefined
         }

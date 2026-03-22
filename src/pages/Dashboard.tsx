@@ -79,7 +79,7 @@ function BarChart({ data, color = '#10b981', prefix = '$' }: { data: { label: st
             <span className="text-[11px] font-black text-muted-foreground uppercase tracking-tight truncate max-w-[60%] group-hover:text-primary transition-colors">{d.label}</span>
             <span className="text-xs font-black tabular-nums dark:text-slate-200">{prefix}{d.value.toLocaleString('es-CL')}</span>
           </div>
-          <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden shadow-inner border border-border/5">
+          <div className="h-3 w-full bg-slate-100 dark:bg-white/5 rounded-2xl overflow-hidden shadow-inner border border-border/5">
             <div
               className="h-full rounded-2xl transition-all duration-1000 ease-out shadow-lg"
               style={{ width: `${(d.value / max) * 100}%`, background: `linear-gradient(90deg, ${color}dd, ${color})` }}
@@ -96,11 +96,11 @@ function KpiCard({ label, value, sub, icon: Icon, trend, gradientClass }: {
   label: string; value: string; sub: string; icon: any; trend?: { val: string; up: boolean }; gradientClass?: string
 }) {
   return (
-    <div className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 ${gradientClass || 'bg-white dark:bg-slate-900'}`}>
+    <div className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 ${gradientClass || 'bg-white dark:bg-black'}`}>
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-colors" />
       
       <div className="flex items-center justify-between mb-2 relative z-10">
-        <div className={`p-3 rounded-3xl border shadow-sm transition-all duration-300 ${gradientClass ? 'bg-white/20 border-white/20' : 'bg-slate-50 dark:bg-slate-800/80 border-border/20 group-hover:bg-primary/10 group-hover:border-primary/20'}`}>
+        <div className={`p-3 rounded-3xl border shadow-sm transition-all duration-300 ${gradientClass ? 'bg-white/20 border-white/20' : 'bg-slate-50 dark:bg-white/5 border-border/20 group-hover:bg-primary/10 group-hover:border-primary/20'}`}>
           <Icon className={`h-6 w-6 ${gradientClass ? 'text-white' : 'text-primary'}`} strokeWidth={2.5} />
         </div>
         {trend && (
@@ -469,7 +469,7 @@ export default function Dashboard() {
                 value={`${Math.round(ltv / cac || 0)}x`}
                 sub="Salud del modelo de negocio"
                 icon={TrendingUp}
-                gradientClass="bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 text-white"
+                gradientClass="bg-black dark:bg-zinc-100 dark:text-zinc-900 text-white"
               />
             </div>
           </section>
