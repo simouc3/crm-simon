@@ -116,11 +116,21 @@ Nota dictada: "${text}"`;
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Sesión no iniciada");
 
+      // 0. Obtener el company_id real del negocio para vincular en la Agenda
+      const { data: dealData } = await supabase
+        .from('deals')
+        .select('company_id')
+        .eq('id', selectedDealId)
+        .single();
+      
+      const linkedCompanyId = dealData?.company_id;
+
       // 1. Guardar Nota Resumen
       const finalNote = `🎙️ Transcripción:\n${transcript}\n\n✨ Puntos Clave Generados por IA:\n${summaryText}`;
       
       await supabase.from('activities').insert([{
          deal_id: selectedDealId,
+         company_id: linkedCompanyId,
          user_id: user.id,
          title: `Nota de Terreno AI`,
          activity_type: 'REUNION', // Tratar la nota como una gestión para que sea visible
@@ -132,12 +142,13 @@ Nota dictada: "${text}"`;
       // 2. Tareas
       for (const t of detectedTasks) {
          let d = new Date();
-         d.setDate(d.getDate() + 1); // Default to tomorrow, parsing natural language dates is tricky without real NLP, so we rely on context or default +1 for MVP
+         d.setDate(d.getDate() + 1); // Default to tomorrow
          if (t.fecha_limite && t.fecha_limite.toLowerCase().includes('hoy')) d = new Date();
          if (t.fecha_limite && t.fecha_limite.toLowerCase().includes('semana')) d.setDate(d.getDate() + 7);
 
          await supabase.from('activities').insert([{
            deal_id: selectedDealId,
+           company_id: linkedCompanyId,
            user_id: user.id,
            title: `[${t.urgencia}] ${t.accion}`,
            activity_type: 'LLAMADA', // Asignar como llamada/gestión genérica

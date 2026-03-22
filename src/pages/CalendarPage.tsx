@@ -110,6 +110,8 @@ export default function CalendarPage() {
     }
   }
 
+  const [mobileView, setMobileView] = useState<'grid' | 'list'>('grid')
+
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
 
@@ -119,25 +121,54 @@ export default function CalendarPage() {
   return (
     <div className="h-full flex flex-col lg:flex-row bg-[#F5F5F7] dark:bg-black font-sans overflow-hidden">
       
-      {/* LEFT PORTION: CALENDAR GRID (Expands on Desktop, Top on Mobile) */}
-      <div className="flex-1 flex flex-col h-full overflow-y-auto w-full lg:w-3/5 lg:border-r border-border/40 pb-8 lg:pb-0 safe-bottom">
+      {/* LEFT PORTION: CALENDAR GRID */}
+      <div className={`flex-1 flex flex-col h-full overflow-y-auto w-full lg:w-3/5 lg:border-r border-border/40 pb-8 lg:pb-0 safe-bottom transition-all duration-500 ${mobileView === 'list' ? 'hidden lg:flex' : 'flex'}`}>
         
-        {/* HEADER: Minimalista, usa colores nativos del tema */}
-        <div className="pt-8 md:pt-14 px-6 md:px-12 pb-6 flex justify-between items-center shrink-0 w-full max-w-4xl mx-auto">
+        {/* DESKTOP STANDARD HEADER (Visible only on LG+) */}
+        <div className="hidden lg:flex flex-col md:flex-row md:items-center justify-between gap-4 pt-12 px-12 pb-8 max-w-5xl mx-auto w-full">
+          <div>
+            <h1 className="text-4xl font-black tracking-tighter text-foreground mb-2">Agenda Operativa</h1>
+            <p className="text-muted-foreground font-medium text-sm max-w-xl">
+              Control total de visitas, llamados y reuniones técnicas. Organiza tu flujo comercial.
+            </p>
+          </div>
+        </div>
+
+        {/* MOBILE & NAVIGATION HEADER */}
+        <div className="pt-8 lg:pt-0 px-6 md:px-12 pb-6 flex justify-between items-center shrink-0 w-full max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner lg:hidden">
                <CalendarIcon className="h-6 w-6" />
             </div>
             <div>
-               <h1 className="text-3xl md:text-4xl font-black tracking-tighter capitalize text-foreground leading-none">
+               <h3 className="text-2xl md:text-3xl font-black tracking-tighter capitalize text-foreground leading-none">
                  {currentDate.toLocaleString('es-CL', { month: 'long' })}
-               </h1>
-               <span className="text-[13px] font-bold text-muted-foreground uppercase opacity-80 tracking-widest">{currentDate.getFullYear()}</span>
+               </h3>
+               <span className="text-[12px] font-bold text-muted-foreground uppercase opacity-80 tracking-widest">{currentDate.getFullYear()}</span>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={prevMonth} className="w-11 h-11 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 flex items-center justify-center shadow-sm hover:scale-105 transition-transform text-foreground"><ChevronLeft size={20}/></button>
-            <button onClick={nextMonth} className="w-11 h-11 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 flex items-center justify-center shadow-sm hover:scale-105 transition-transform text-foreground"><ChevronRight size={20}/></button>
+
+          <div className="flex items-center gap-3">
+            {/* Toggle Vista Móvil */}
+            <div className="flex p-1 bg-slate-200/50 dark:bg-white/5 rounded-2xl lg:hidden">
+              <button 
+                onClick={() => setMobileView('grid')}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'grid' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground'}`}
+              >
+                Mes
+              </button>
+              <button 
+                onClick={() => setMobileView('list')}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${mobileView === 'list' ? 'bg-white dark:bg-[#2C2C2E] shadow-sm text-foreground' : 'text-muted-foreground'}`}
+              >
+                Día
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={prevMonth} className="w-11 h-11 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 flex items-center justify-center shadow-sm hover:scale-105 transition-transform text-foreground"><ChevronLeft size={20}/></button>
+              <button onClick={nextMonth} className="w-11 h-11 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 flex items-center justify-center shadow-sm hover:scale-105 transition-transform text-foreground"><ChevronRight size={20}/></button>
+            </div>
           </div>
         </div>
 

@@ -16,12 +16,13 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     
+    const tempId = Math.random().toString(36).substring(7).toUpperCase();
     const dataToSave = {
       razon_social: formData.razon_social,
       contact_name: formData.contact_name,
       contact_phone: formData.contact_phone,
-      contact_email: "pendiente@terreno.com",
-      rut: "11111111-1",
+      contact_email: `pendiente_${tempId}@terreno.com`,
+      rut: `TEMP-${tempId}`,
       cargo: "DUENO",
       segmento: "OTRO",
       comuna: "OTRO",
