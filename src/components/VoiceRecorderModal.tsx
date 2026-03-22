@@ -78,7 +78,7 @@ export function VoiceRecorderModal({ open, onOpenChange }: { open: boolean, onOp
   const handleStart = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Tu navegador Safari/Chrome actual no habilitó la API de voz nativa.");
+      setResponseMsg("⚠️ Ojo: Tu dispositivo (ej. iPhone antiguo o Safari cerrado) no permite aún capturar audio directo por web. Inténtalo usando Chrome o revisa los permisos de tu celular.");
       return;
     }
     const recognition = new SpeechRecognition();
@@ -88,17 +88,20 @@ export function VoiceRecorderModal({ open, onOpenChange }: { open: boolean, onOp
 
     recognition.onstart = () => {
       setIsRecording(true);
-      setResponseMsg("🎤 Grabando... Di tu nota.");
+      setResponseMsg("🎤 Grabando... Te escucho claro.");
     };
 
     recognition.onresult = async (event: any) => {
       const text = event.results[0][0].transcript;
       setIsRecording(false);
-      setResponseMsg(`Analizando IA: "${text}"...`);
+      setResponseMsg(`🧠 Procesando tu voz con Inteligencia Artificial...\n\n"${text}"`);
       await processVoiceTranscript(text);
     };
 
-    recognition.onerror = () => { setIsRecording(false); setResponseMsg("Error capturando voz.") };
+    recognition.onerror = (e: any) => { 
+      setIsRecording(false); 
+      setResponseMsg(`❌ Audio interrumpido (${e.error}). Toca para reintentar.`);
+    };
     recognition.onend = () => setIsRecording(false);
     recognition.start();
   }

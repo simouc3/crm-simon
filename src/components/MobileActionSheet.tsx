@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { UserPlus, Camera, Mic } from "lucide-react";
+import { supabase } from "../lib/supabase/client";
 import { QuickClientFormDialog } from "./QuickClientFormDialog";
 import { VoiceRecorderModal } from "./VoiceRecorderModal";
 
@@ -31,11 +32,54 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const getLatestDeal = async () => {
+    const { data } = await supabase.from('deals').select('id, title, companies(razon_social)').order('updated_at', { ascending: false }).limit(1).single();
+    return data;
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      alert(`Foto capturada. Subida en desarrollo.`);
+    if (!file) return;
+
+    try {
+      // 1. Alert simple nativo para PWA UX rápida
+      alert("📸 Subiendo foto...");
+      
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // 2. Subir al bucket 'evidencias' (debe estar creado y público en Supabase)
+      const { error: uploadError } = await supabase.storage.from('evidencias').upload(filePath, file);
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data: urlData } = supabase.storage.from('evidencias').getPublicUrl(filePath);
+      const publicUrl = urlData.publicUrl;
+
+      // 3. Obtener contexto
+      const { data: { user } } = await supabase.auth.getUser();
+      const latestDeal = await getLatestDeal();
+      
+      if (user && latestDeal) {
+        // 4. Crear actividad tipo visita y enlazar la URL en MD
+        await supabase.from('activities').insert([{
+           deal_id: latestDeal.id,
+           user_id: user.id,
+           title: 'Visita Técnica (Foto)',
+           type: 'Visita',
+           status: 'Completada',
+           notes: `Captura en Terreno:\n\n<img src="${publicUrl}" alt="Visita Terreno" style="max-width:100%; border-radius:12px; margin-top:10px;" />`
+        }]);
+      }
+
+      alert("✅ ¡Foto guardada y enlazada al último negocio modificado!");
       onClose();
+
+    } catch (err: any) {
+      alert("❌ Error: " + err.message + "\n\n(Revisar si el Bucket 'evidencias' está creado).");
     }
   };
 
