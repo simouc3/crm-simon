@@ -123,9 +123,10 @@ Nota dictada: "${text}"`;
          deal_id: selectedDealId,
          user_id: user.id,
          title: `Nota de Terreno AI`,
-         type: 'Nota Interna',
-         status: 'Completada',
-         notes: finalNote
+         activity_type: 'REUNION', // Tratar la nota como una gestión para que sea visible
+         completed: true, // Completada automáticamente
+         notes: finalNote,
+         scheduled_at: new Date().toISOString()
       }]);
 
       // 2. Tareas
@@ -139,10 +140,10 @@ Nota dictada: "${text}"`;
            deal_id: selectedDealId,
            user_id: user.id,
            title: `[${t.urgencia}] ${t.accion}`,
-           type: 'Por Hacer',
-           status: 'Pendiente',
+           activity_type: 'LLAMADA', // Asignar como llamada/gestión genérica
+           completed: false,
            notes: `Agendado por IA. Sugerencia original: ${t.fecha_limite}`,
-           start_date: d.toISOString()
+           scheduled_at: d.toISOString()
          }]);
       }
 
