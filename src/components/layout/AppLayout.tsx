@@ -1,4 +1,4 @@
-import { Outlet, NavLink } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { LayoutDashboard, Users, Columns3, LogOut, Settings as SettingsIcon, CalendarDays, Moon, Sun, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { MobileActionSheet } from '../MobileActionSheet'
 
 export default function AppLayout() {
   const { signOut, user } = useAuth()
+  const navigate = useNavigate()
   const [showSettings, setShowSettings] = useState(false)
   const [showMobileActionSheet, setShowMobileActionSheet] = useState(false)
   const [branding, setBranding] = useState({ name: 'CRM SIMON', logo: '' })
@@ -148,9 +149,12 @@ export default function AppLayout() {
         {/* User Panel — Bottom */}
         <div className="p-4 mt-auto border-t border-border/30 dark:border-white/[0.06]">
           
-          {/* Avatar + Info */}
-          <div className="flex items-center gap-3 px-2 py-3 mb-3">
-            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-border/30 dark:border-transparent flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0">
+          {/* Avatar + Info — CLIC PARA MI PERFIL */}
+          <div 
+            className="flex items-center gap-3 px-2 py-3 mb-3 hover:bg-slate-100/50 dark:hover:bg-white/5 rounded-2xl cursor-pointer transition-all active:scale-95 group"
+            onClick={() => navigate('/users?me=true')}
+          >
+            <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-border/30 dark:border-transparent flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0 shadow-sm transition-transform group-hover:scale-105">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -162,7 +166,7 @@ export default function AppLayout() {
                 {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuario'}
               </span>
               <span className="text-[10px] text-primary font-black uppercase tracking-[0.12em] opacity-80">
-                {userRole === 'SALES_OPS' || userRole === 'VENDEDOR' ? 'Comercial' : 'Admin'}
+                {userRole === 'ADMIN' ? 'Admin Central' : 'Equipo Comercial'}
               </span>
             </div>
           </div>
@@ -218,7 +222,7 @@ export default function AppLayout() {
               <div className="font-black text-foreground text-[18px] tracking-tighter leading-none">{branding.name}</div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="icon" 
@@ -227,6 +231,18 @@ export default function AppLayout() {
             >
               {isDarkMode ? <Sun className="h-[20px] w-[20px]" /> : <Moon className="h-[20px] w-[20px]" />}
             </Button>
+            <div 
+              className="w-11 h-11 rounded-[14px] bg-slate-100 dark:bg-[#2C2C2E] border border-border/20 dark:border-transparent overflow-hidden shadow-lg active:scale-90 transition-transform"
+              onClick={() => navigate('/users?me=true')}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-foreground font-black text-xs uppercase">
+                   {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

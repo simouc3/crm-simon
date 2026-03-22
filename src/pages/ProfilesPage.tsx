@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
-import { User, Shield, Search, Camera, ChevronRight, Star } from 'lucide-react'
+import { Shield, Search, Camera, ChevronRight, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -10,6 +11,7 @@ import { CreateUserDialog } from '../components/CreateUserDialog'
 export default function ProfilesPage() {
   const [profiles, setProfiles] = useState<any[]>([])
   const { user: authUser } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isAdmin, setIsAdmin] = useState(false)
   const [isAddingUser, setIsAddingUser] = useState(false)
   
@@ -23,6 +25,21 @@ export default function ProfilesPage() {
     fetchProfiles()
     checkAdminStatus()
   }, [])
+
+  // Auto-open current user profile if ?me=true
+  useEffect(() => {
+    if (!loading && searchParams.get('me') === 'true' && authUser && profiles.length > 0) {
+      const myProfile = profiles.find(p => p.id === authUser.id)
+      if (myProfile) {
+        setSelectedProfile(myProfile)
+        setIsDetailOpen(true)
+        // Clean up URL
+        const newParams = new URLSearchParams(searchParams)
+        newParams.delete('me')
+        setSearchParams(newParams, { replace: true })
+      }
+    }
+  }, [loading, searchParams, authUser, profiles])
 
   const checkAdminStatus = async () => {
     if (!authUser) return
@@ -188,51 +205,57 @@ export default function ProfilesPage() {
             <div 
               key={profile.id} 
               onClick={() => { setSelectedProfile(profile); setIsDetailOpen(true); }}
-              className="group relative bg-white dark:bg-slate-900 rounded-[40px] border border-border/40 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] hover:-translate-y-2 active:scale-95 transition-all duration-500 overflow-hidden cursor-pointer"
+              className="group relative bg-white dark:bg-[#1C1C1E] rounded-[3rem] border border-black/[0.02] dark:border-white/[0.02] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] dark:shadow-none hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.97] transition-all duration-500 cursor-pointer flex flex-col items-center text-center"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-foreground/5 rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-foreground/10 transition-colors" />
-              
-              <div className="flex items-start justify-between mb-8">
-                <div className="relative">
-                  <div className="h-24 w-24 rounded-[30px] bg-slate-50 dark:bg-slate-800 border border-border/40 flex items-center justify-center text-foreground overflow-hidden shadow-inner">
-                    {profile.avatar_url ? (
-                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={40} strokeWidth={1.5} />
-                    )}
-                  </div>
-                  <div className={`absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl border-[4px] border-white dark:border-slate-900 flex items-center justify-center shadow-lg ${
-                    profile.role === 'ADMIN' ? 'bg-foreground text-background' : 'bg-slate-200 dark:bg-slate-700 text-foreground'
-                  }`}>
-                    {profile.role === 'ADMIN' ? <Star size={18} fill="currentColor" /> : <Shield size={18} />}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Badge className={`text-[9px] font-black tracking-widest uppercase h-7 px-4 rounded-xl border-none ${
+               {/* Role Badge Floating */}
+               <div className="absolute top-6 right-6">
+                 <Badge className={`text-[9px] font-black tracking-widest uppercase h-7 px-4 rounded-full border-none shadow-sm ${
                     profile.role === 'ADMIN' ? 'bg-foreground text-background shadow-lg shadow-black/10' : 'bg-slate-100 dark:bg-white/5 text-muted-foreground'
                   }`}>
                     {profile.role === 'ADMIN' ? 'ADMIN' : 'VENTAS'}
                   </Badge>
-                </div>
-              </div>
+               </div>
 
-              <div className="space-y-1 mb-8">
-                <h3 className="font-black text-[22px] tracking-tighter text-foreground leading-none">{profile.full_name || 'Sin Nombre'}</h3>
-                <p className="text-[12px] font-black text-muted-foreground uppercase tracking-widest opacity-40 truncate">{profile.email || 'Sin Perfil'}</p>
-              </div>
-
-              <div className="flex items-center justify-between pt-6 border-t border-border/40">
-                 <div className="flex flex-col">
-                    <span className="text-[9px] font-black text-muted-foreground uppercase opacity-40 tracking-widest mb-0.5">Estado</span>
-                    <div className="flex items-center gap-1.5">
-                       <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                       <span className="text-[10px] font-black text-foreground uppercase">Conectado</span>
+               {/* Avatar Container — Centered Apple Style */}
+               <div className="relative mb-6">
+                  <div className="h-28 w-28 rounded-full bg-slate-50 dark:bg-slate-800 p-1.5 shadow-inner overflow-hidden ring-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
+                    <div className="w-full h-full rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-foreground overflow-hidden shadow-sm">
+                      {profile.avatar_url ? (
+                        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-3xl font-black text-foreground opacity-20 uppercase">
+                          {profile.full_name?.charAt(0) || 'U'}
+                        </span>
+                      )}
                     </div>
-                 </div>
-                 <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-slate-50 dark:bg-white/5 text-foreground group-hover:scale-110 transition-transform">
-                    <ChevronRight size={18} />
-                 </Button>
-              </div>
+                  </div>
+                  {profile.role === 'ADMIN' && (
+                    <div className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full bg-foreground text-background flex items-center justify-center shadow-xl border-4 border-white dark:border-[#1C1C1E] animate-in zoom-in-50 duration-500">
+                      <Star size={16} fill="currentColor" />
+                    </div>
+                  )}
+               </div>
+
+               {/* Data Section */}
+               <div className="space-y-1">
+                 <h3 className="text-[19px] font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                   {profile.full_name || 'Sin Nombre'}
+                 </h3>
+                 <p className="text-[13px] font-medium text-muted-foreground opacity-60">
+                   {profile.email || 'Acceso pendiente'}
+                 </p>
+               </div>
+
+               {/* Bottom Status Indicator */}
+               <div className="mt-8 pt-6 border-t border-border/10 w-full flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Activo ahora</span>
+                  </div>
+                  <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-muted-foreground group-hover:bg-foreground group-hover:text-background transition-all duration-300">
+                    <ChevronRight size={16} />
+                  </div>
+               </div>
             </div>
           ))}
         </div>
