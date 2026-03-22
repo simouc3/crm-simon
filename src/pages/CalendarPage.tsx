@@ -117,111 +117,144 @@ export default function CalendarPage() {
   const selectedDayEvents = events.filter(e => e.scheduled_at && e.scheduled_at.startsWith(selectedDateStr || ''))
 
   return (
-    <div className="h-full flex flex-col bg-[#0B0C10] text-[#FFFFFF] font-sans overflow-hidden">
-      {/* HEADER: Oscuro y minimalista */}
-      <div className="pt-10 md:pt-14 px-8 pb-4 flex justify-between items-center shrink-0 max-w-lg mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <CalendarIcon className="h-6 w-6 text-cyan-400" />
-          <h1 className="text-3xl font-black tracking-widest uppercase">
-             {currentDate.toLocaleString('es-CL', { month: 'long' })}
-             <span className="text-cyan-400 font-light ml-2">{currentDate.getFullYear()}</span>
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={prevMonth} className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"><ChevronLeft size={20}/></button>
-          <button onClick={nextMonth} className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors"><ChevronRight size={20}/></button>
-        </div>
-      </div>
-
-      {/* GRID CALENDARIO */}
-      <div className="px-6 shrink-0 max-w-lg mx-auto w-full mb-6">
-         <div className="grid grid-cols-7 mb-4">
-           {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, i) => (
-              <div key={i} className="text-center text-[10px] font-bold text-white/40 tracking-widest">{d}</div>
-           ))}
-         </div>
-         <div className="grid grid-cols-7 gap-y-3 gap-x-2">
-           {days.map((day, i) => {
-              const isSelected = selectedDateStr === day.date.toISOString().split('T')[0];
-              const hasEvents = events.some(e => e.scheduled_at && e.scheduled_at.startsWith(day.date.toISOString().split('T')[0]));
-              const isToday = day.date.toDateString() === new Date().toDateString();
-              
-              return (
-                <button 
-                   key={i} 
-                   onClick={() => setSelectedDate(day.date)} 
-                   className="relative flex flex-col items-center justify-center w-full aspect-square group"
-                >
-                   <div className={`w-10 h-10 flex items-center justify-center rounded-full text-[15px] transition-all duration-300 font-semibold
-                     ${isSelected 
-                        ? 'bg-cyan-400 text-black scale-110 shadow-[0_0_20px_rgba(34,211,238,0.4)]' 
-                        : isToday 
-                          ? 'border border-cyan-400/50 text-cyan-400'
-                          : day.isCurrentMonth 
-                             ? 'text-white hover:bg-white/10' 
-                             : 'text-white/20'
-                     }`}
-                   >
-                      {day.date.getDate()}
-                   </div>
-                   {hasEvents && !isSelected && (
-                     <div className="absolute bottom-[-2px] w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                   )}
-                </button>
-              )
-           })}
-         </div>
-      </div>
-
-      {/* PANEL DE TAREAS Bimodal (Color Vibrante Rose) */}
-      <div className="flex-1 bg-[#E11D48] rounded-t-[40px] px-8 pt-10 pb-28 md:pb-10 overflow-y-auto relative shadow-[0_-20px_50px_rgba(225,29,72,0.2)] max-w-lg mx-auto w-full transition-all duration-500 will-change-transform">
-         
-         <div className="flex justify-between items-start mb-10">
-            <div>
-              <h2 className="text-[28px] font-black uppercase tracking-widest text-white leading-none mb-1">
-                 {selectedDate.toLocaleDateString('es-CL', { weekday: 'long' })}
-              </h2>
-              <span className="text-sm font-medium tracking-widest text-white/70 uppercase">
-                 {selectedDate.getDate()} {selectedDate.toLocaleDateString('es-CL', { month: 'long' })}
-              </span>
+    <div className="h-full flex flex-col lg:flex-row bg-[#F5F5F7] dark:bg-black font-sans overflow-hidden">
+      
+      {/* LEFT PORTION: CALENDAR GRID (Expands on Desktop, Top on Mobile) */}
+      <div className="flex-1 flex flex-col h-full overflow-y-auto w-full lg:w-3/5 lg:border-r border-border/40 pb-8 lg:pb-0 safe-bottom">
+        
+        {/* HEADER: Minimalista, usa colores nativos del tema */}
+        <div className="pt-8 md:pt-14 px-6 md:px-12 pb-6 flex justify-between items-center shrink-0 w-full max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner">
+               <CalendarIcon className="h-6 w-6" />
             </div>
-            <button onClick={() => setIsAddOpen(true)} className="w-14 h-14 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md flex items-center justify-center transition-all shadow-xl shadow-black/10 active:scale-95 text-white shrink-0">
-              <Plus size={28} />
-            </button>
+            <div>
+               <h1 className="text-3xl md:text-4xl font-black tracking-tighter capitalize text-foreground leading-none">
+                 {currentDate.toLocaleString('es-CL', { month: 'long' })}
+               </h1>
+               <span className="text-[13px] font-bold text-muted-foreground uppercase opacity-80 tracking-widest">{currentDate.getFullYear()}</span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={prevMonth} className="w-11 h-11 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 flex items-center justify-center shadow-sm hover:scale-105 transition-transform text-foreground"><ChevronLeft size={20}/></button>
+            <button onClick={nextMonth} className="w-11 h-11 rounded-2xl bg-white dark:bg-[#1C1C1E] border border-black/5 dark:border-white/5 flex items-center justify-center shadow-sm hover:scale-105 transition-transform text-foreground"><ChevronRight size={20}/></button>
+          </div>
+        </div>
+
+        {/* GRID CALENDARIO */}
+        <div className="px-6 md:px-12 shrink-0 w-full max-w-4xl mx-auto mt-4 pb-4">
+           <div className="grid grid-cols-7 mb-4">
+             {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((d, i) => (
+                <div key={i} className="text-center text-[11px] font-black text-muted-foreground tracking-widest uppercase opacity-60 mb-2">{d}</div>
+             ))}
+           </div>
+           
+           <div className="grid grid-cols-7 gap-y-3 gap-x-2 md:gap-x-4 md:gap-y-4">
+             {days.map((day, i) => {
+                const isSelected = selectedDateStr === day.date.toISOString().split('T')[0];
+                const hasEvents = events.some(e => e.scheduled_at && e.scheduled_at.startsWith(day.date.toISOString().split('T')[0]));
+                const isToday = day.date.toDateString() === new Date().toDateString();
+                
+                return (
+                  <button 
+                     key={i} 
+                     onClick={() => setSelectedDate(day.date)} 
+                     className="relative flex flex-col items-center justify-center w-full aspect-square group"
+                  >
+                     <div className={`w-full max-w-[3.5rem] aspect-square flex items-center justify-center rounded-[1.2rem] text-[16px] md:text-[18px] transition-all duration-300 font-bold
+                       ${isSelected 
+                          ? 'bg-foreground text-background scale-105 shadow-xl shadow-black/20 dark:shadow-none font-black' 
+                          : isToday 
+                            ? 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:scale-105'
+                            : day.isCurrentMonth 
+                               ? 'text-foreground bg-white/50 dark:bg-[#1C1C1E]/50 border border-black/5 dark:border-white/5 hover:bg-white dark:hover:bg-[#2C2C2E] shadow-sm hover:scale-105' 
+                               : 'text-muted-foreground/30 border border-transparent'
+                       }`}
+                     >
+                        {day.date.getDate()}
+                     </div>
+                     {hasEvents && !isSelected && (
+                       <div className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
+                     )}
+                  </button>
+                )
+             })}
+           </div>
+        </div>
+      </div>
+
+      {/* RIGHT PORTION: PANEL DE TAREAS BIMODAL (Side Panel on Desktop, Bottom Panel on Mobile) */}
+      <div className="w-full lg:w-2/5 xl:w-[450px] shrink-0 bg-white dark:bg-[#1C1C1E] rounded-t-[2.5rem] lg:rounded-none lg:h-full shadow-[0_-20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_-20px_50px_rgba(0,0,0,0.4)] transition-all z-10 flex flex-col lg:min-h-0 min-h-[60vh]">
+         
+         <div className="p-8 pb-4 shrink-0 bg-gradient-to-b from-slate-50 to-white dark:from-[#242426] dark:to-[#1C1C1E] border-b border-border/40 lg:rounded-tl-[2.5rem] sticky top-0 z-20">
+            <div className="w-12 h-1.5 bg-border/50 rounded-full mx-auto mb-6 lg:hidden" />
+            
+            <div className="flex justify-between items-start">
+               <div>
+                 <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full mb-3">Agenda del Día</span>
+                 <h2 className="text-3xl font-black capitalize tracking-tight text-foreground leading-none mb-1">
+                    {selectedDate.toLocaleDateString('es-CL', { weekday: 'long' })}
+                 </h2>
+                 <span className="text-sm font-bold text-muted-foreground uppercase opacity-80">
+                    {selectedDate.getDate()} {selectedDate.toLocaleDateString('es-CL', { month: 'long' })}
+                 </span>
+               </div>
+               <button onClick={() => setIsAddOpen(true)} className="w-12 h-12 rounded-[1.2rem] bg-foreground text-background shadow-lg shadow-black/20 dark:shadow-none hover:scale-105 flex items-center justify-center transition-all shrink-0">
+                 <Plus size={24} />
+               </button>
+            </div>
          </div>
 
-         <div className="space-y-4">
-           <h3 className="text-[10px] font-black text-white/50 tracking-[0.2em] mb-4 uppercase">Agenda Programada</h3>
-           
+         <div className="flex-1 overflow-y-auto p-6 space-y-4 pb-32 lg:pb-8">
            {selectedDayEvents.length > 0 ? (
              selectedDayEvents.map(event => (
                <div 
                  key={event.id} 
                  onClick={() => { setSelectedEvent(event); setIsDetailOpen(true); }} 
-                 className={`p-6 rounded-[32px] bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 transition-all cursor-pointer shadow-lg active:scale-[0.98] ${event.completed ? 'opacity-60' : ''}`}
+                 className={`group relative p-5 rounded-[1.5rem] bg-slate-50 dark:bg-[#2C2C2E] hover:bg-white dark:hover:bg-[#3A3A3C] border border-border/60 hover:border-border transition-all cursor-pointer shadow-sm hover:shadow-xl active:scale-[0.98]
+                    ${event.completed ? 'opacity-60 scale-[0.98] bg-slate-100/50 dark:bg-[#1C1C1E]/50 border-dashed' : ''}
+                 `}
                >
-                  <div className="flex gap-4">
-                     <div className={`w-1.5 h-auto min-h-[40px] rounded-full shrink-0 ${event.completed ? 'bg-white/30' : 'bg-[#22D3EE] shadow-[0_0_15px_rgba(34,211,238,0.5)]'}`} />
+                  {/* Etiqueta Visual a la izquierda */}
+                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full
+                     ${event.completed ? 'bg-muted/30' : 
+                       event.activity_type === 'VISITA' ? 'bg-emerald-500' :
+                       event.activity_type === 'CORREO' ? 'bg-sky-500' :
+                       'bg-primary'
+                     }`} 
+                  />
+
+                  <div className="flex gap-4 pl-3">
                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                           <span className="text-[9px] font-black text-white/60 uppercase tracking-widest">{event.activity_type}</span>
+                        <div className="flex items-center gap-2 mb-2">
+                           <div className={`p-1.5 rounded-lg flex items-center justify-center bg-background border border-border/40 shadow-sm shrink-0
+                             ${event.completed ? 'text-muted-foreground' : 'text-foreground'}
+                           `}>
+                              {event.activity_type === 'LLAMADA' ? <Phone size={12} /> : 
+                               event.activity_type === 'VISITA' ? <MapPin size={12} /> : 
+                               event.activity_type === 'CORREO' ? <Mail size={12} /> : 
+                               <MessageSquare size={12} />}
+                           </div>
+                           <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{event.activity_type}</span>
                            {event.completed && (
-                             <span className="bg-white/20 text-white rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
-                               <CheckCircle2 size={10} /> Lista
+                             <span className="ml-auto bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20 flex items-center gap-1">
+                               <CheckCircle2 size={10} /> Completada
                              </span>
                            )}
                         </div>
-                        <h4 className={`text-white font-black text-lg leading-tight mb-2 truncate ${event.completed ? 'line-through' : ''}`}>
+
+                        <h4 className={`text-foreground font-black text-[16px] leading-snug mb-1 truncate ${event.completed ? 'line-through text-muted-foreground' : ''}`}>
                           {event.title || 'Agendamiento Genérico'}
                         </h4>
-                        <p className="text-white/80 text-[13px] font-medium leading-snug line-clamp-2 mt-1">
-                           {event.notes || 'No hay notas registradas para esta tarea.'}
+                        
+                        <p className={`text-[12px] font-medium leading-relaxed line-clamp-2 ${event.completed ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}>
+                           {event.notes || 'No hay notas descriptivas para esta tarea.'}
                         </p>
                         
                         {event.companies?.razon_social && (
-                           <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-2">
-                              <MapPin size={12} className="text-[#22D3EE]" />
-                              <span className="text-[11px] font-bold text-white/90 truncate">{event.companies.razon_social}</span>
+                           <div className="mt-3 pt-3 border-t border-border/50 flex items-center gap-2 text-primary font-bold">
+                              <MapPin size={12} className="opacity-70" />
+                              <span className="text-[11px] truncate">{event.companies.razon_social}</span>
                            </div>
                         )}
                      </div>
@@ -229,59 +262,68 @@ export default function CalendarPage() {
                </div>
              ))
            ) : (
-              <div className="text-center py-16 opacity-80 animate-in fade-in duration-700">
-                <div className="w-20 h-20 rounded-full border-2 border-white/20 flex items-center justify-center mx-auto mb-4 border-dashed">
-                  <CalendarIcon className="text-white/50 h-8 w-8" />
+              <div className="text-center py-16 px-6 opacity-80 animate-in fade-in fill-mode-both duration-700">
+                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border-2 border-dashed border-border flex items-center justify-center mx-auto mb-4">
+                  <CalendarIcon className="text-muted-foreground h-7 w-7 opacity-50" />
                 </div>
-                <p className="text-white font-black text-xl mb-1 tracking-tight">Día Despejado</p>
-                <p className="text-white/70 text-[13px] font-medium px-8">No hay tareas o clientes agendados. Disfruta tu día o presiona el botón (+) para planificar nuevas acciones.</p>
+                <p className="text-foreground font-black text-lg mb-1 tracking-tight">Día Despejado</p>
+                <p className="text-muted-foreground text-[12px] font-medium leading-relaxed">No hay tareas o clientes agendados. Disfruta tu día o presiona el botón (+) para planificar nuevas acciones.</p>
               </div>
            )}
          </div>
       </div>
 
-      {/* Add Dialog (Preservando theme claro/oscuro del SO para el formulario complex) */}
+      {/* Add Dialog (Form nativo optimizado) */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="sm:max-w-[400px] border-none bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[2.5rem] shadow-2xl safe-p-bottom">
+        <DialogContent className="sm:max-w-[420px] border border-border/40 bg-white dark:bg-[#1C1C1E] p-0 overflow-hidden rounded-[2.5rem] shadow-2xl safe-p-bottom">
            <div className="p-8">
-              <DialogHeader className="mb-6">
-                <DialogTitle className="text-2xl font-black tracking-tighter">Nueva Gestión</DialogTitle>
-                <p className="text-muted-foreground text-[11px] font-black uppercase tracking-[0.15em] opacity-60">
-                  {selectedDate?.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </p>
+              <DialogHeader className="mb-6 flex flex-row items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                   <CalendarIcon size={24} />
+                </div>
+                <div className="flex-1 text-left space-y-1">
+                  <DialogTitle className="text-2xl font-black tracking-tighter leading-none">Nueva Gestión</DialogTitle>
+                  <p className="text-muted-foreground text-[11px] font-black uppercase tracking-widest opacity-80">
+                    {selectedDate?.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </p>
+                </div>
               </DialogHeader>
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Modalidad</label>
+
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo de Actividad</label>
                   <div className="grid grid-cols-2 gap-2">
                     {[{ id: 'LLAMADA', icon: Phone, label: 'Llamada' }, { id: 'VISITA', icon: MapPin, label: 'Visita' }, { id: 'REUNION', icon: MessageSquare, label: 'Reunión' }, { id: 'CORREO', icon: Mail, label: 'Correo' }].map(t => (
-                      <button key={t.id} onClick={() => setActivityType(t.id)} className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all ${activityType === t.id ? 'bg-foreground border-foreground text-background' : 'bg-transparent border-border/40 text-muted-foreground'}`}>
-                        <t.icon size={16} className={activityType === t.id ? 'opacity-100' : 'opacity-40'} />
-                        <span className="text-[10px] font-black uppercase">{t.label}</span>
+                      <button key={t.id} onClick={() => setActivityType(t.id)} className={`flex items-center gap-2 p-3.5 rounded-2xl border transition-all shadow-sm ${activityType === t.id ? 'bg-primary border-primary text-primary-foreground font-black ring-4 ring-primary/20' : 'bg-background hover:bg-slate-50 dark:hover:bg-[#2C2C2E] border-border text-foreground font-bold'}`}>
+                        <t.icon size={16} className={activityType === t.id ? 'opacity-100' : 'opacity-60 text-muted-foreground mt-0.5'} />
+                        <span className="text-[11px] uppercase tracking-wider">{t.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Cliente</label>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Vincular a Empresa</label>
                   <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                    <SelectTrigger className="h-12 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-border/40 font-bold px-4">
-                      <SelectValue placeholder="Opcional: Vincular Cliente" />
+                    <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-[#2C2C2E] border border-border/60 hover:border-primary/50 font-bold px-4 text-sm shadow-inner transition-all">
+                      <SelectValue placeholder="Busca un cliente..." />
                     </SelectTrigger>
-                    <SelectContent>
-                      {companies.map(c => <SelectItem key={c.id} value={c.id} className="font-bold">{c.razon_social}</SelectItem>)}
+                    <SelectContent className="rounded-2xl border-border/40 max-h-[250px]">
+                      {companies.map(c => <SelectItem key={c.id} value={c.id} className="font-bold py-3 cursor-pointer">{c.razon_social}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Detalle (Opcional)</label>
-                  <textarea value={activityNote} onChange={(e) => setActivityNote(e.target.value)} placeholder="Objetivo de la gestión..." className="w-full h-24 p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-border/40 text-[13px] font-medium outline-none resize-none" />
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Instrucciones o Detalles</label>
+                  <textarea value={activityNote} onChange={(e) => setActivityNote(e.target.value)} placeholder="¿Cuál es el objetivo de esta gestión? 🤔" className="w-full h-28 p-5 rounded-[1.5rem] bg-slate-50 dark:bg-[#2C2C2E] border border-border/60 hover:border-primary/50 text-[13px] font-medium outline-none resize-none focus:ring-4 focus:ring-primary/10 transition-all shadow-inner" />
                 </div>
               </div>
-              <div className="flex gap-2 mt-8">
-                <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="flex-1 h-14 rounded-2xl font-bold">Cancelar</Button>
-                <Button onClick={handleSaveActivity} disabled={loading} className="flex-1 h-14 rounded-2xl font-black bg-foreground text-background">
-                  {loading ? '...' : 'Guardar'}
+
+              <div className="flex gap-3 mt-8">
+                <Button variant="outline" onClick={() => setIsAddOpen(false)} className="flex-1 h-14 rounded-[1.2rem] font-black uppercase text-[11px] tracking-widest border-border hover:bg-slate-100 dark:hover:bg-[#2C2C2E]">Cancelar</Button>
+                <Button onClick={handleSaveActivity} disabled={loading || !selectedCompany} className="flex-[1.5] h-14 rounded-[1.2rem] font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20">
+                  {loading ? 'Guardando...' : 'Confirmar'}
                 </Button>
               </div>
            </div>
@@ -290,40 +332,46 @@ export default function CalendarPage() {
 
       {/* Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-[400px] border-none bg-[#0B0C10] p-0 overflow-hidden rounded-[3rem] shadow-2xl safe-p-bottom">
+        <DialogContent className="sm:max-w-[420px] border border-border/40 bg-white dark:bg-[#1C1C1E] p-0 overflow-hidden rounded-[2.5rem] shadow-2xl safe-p-bottom">
           {selectedEvent && (
-            <div className="p-8 pb-12">
-               <div className="flex justify-between items-start mb-8">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${selectedEvent.completed ? 'bg-white/10 text-white/50' : 'bg-[#E11D48] text-white shadow-[0_0_20px_rgba(225,29,72,0.4)]'}`}>
-                     {selectedEvent.activity_type === 'LLAMADA' ? <Phone size={20} /> : selectedEvent.activity_type === 'VISITA' ? <MapPin size={20} /> : <MessageSquare size={20} />}
+            <div className="p-8">
+               <div className="flex justify-between items-start mb-6">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${selectedEvent.completed ? 'bg-slate-100 dark:bg-[#2C2C2E] text-muted-foreground' : 'bg-primary/10 text-primary border border-primary/20'}`}>
+                     {selectedEvent.activity_type === 'LLAMADA' ? <Phone size={24} /> : selectedEvent.activity_type === 'VISITA' ? <MapPin size={24} /> : selectedEvent.activity_type === 'CORREO' ? <Mail size={24} /> : <MessageSquare size={24} />}
                   </div>
-                  <button onClick={() => handleDeleteActivity(selectedEvent.id)} className="w-10 h-10 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-500 flex items-center justify-center transition-colors">
-                     <Trash2 size={18} />
+                  <button onClick={() => handleDeleteActivity(selectedEvent.id)} className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-900/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all">
+                     <Trash2 size={16} />
                   </button>
                </div>
                
-               <h2 className={`text-2xl font-black text-white leading-tight mb-2 ${selectedEvent.completed ? 'opacity-50 line-through' : ''}`}>
+               <h2 className={`text-[22px] font-black text-foreground leading-tight mb-2 tracking-tight ${selectedEvent.completed ? 'opacity-60 line-through' : ''}`}>
                  {selectedEvent.title || 'Resolución Pendiente'}
                </h2>
-               <div className="text-[11px] font-black text-[#22D3EE] uppercase tracking-widest mb-6">
-                 {selectedEvent.companies?.razon_social || 'Desconocido'}
+               
+               <div className="flex items-center gap-2 mb-8">
+                 <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                   {selectedEvent.companies?.razon_social || 'Cliente Interno'}
+                 </span>
                </div>
 
-               <div className="bg-white/5 rounded-3xl p-6 mb-8 border border-white/5">
-                 <p className="text-[13px] text-white/80 font-medium leading-relaxed whitespace-pre-wrap">
-                   {selectedEvent.notes || 'No hay notas descriptivas para este evento.'}
-                 </p>
+               <div className="space-y-3 mb-8">
+                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Notas de la Actividad</h4>
+                  <div className="bg-slate-50 dark:bg-[#2C2C2E] rounded-[1.5rem] p-6 border border-border/40 shadow-inner">
+                    <p className="text-[13px] text-foreground font-medium leading-relaxed whitespace-pre-wrap">
+                      {selectedEvent.notes || 'No se registraron notas adicionales para este evento.'}
+                    </p>
+                  </div>
                </div>
 
                <Button 
                  onClick={() => toggleComplete(selectedEvent.id, selectedEvent.completed)}
-                 className={`w-full h-16 rounded-[2rem] font-black flex items-center justify-center gap-3 transition-all text-sm uppercase tracking-widest ${
+                 className={`w-full h-14 rounded-[1.2rem] font-black flex items-center justify-center gap-3 transition-all text-[11px] uppercase tracking-widest ${
                    selectedEvent.completed 
-                     ? 'bg-white/10 text-white hover:bg-white/20' 
-                     : 'bg-[#22D3EE] text-[#0B0C10] hover:bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.3)] hover:scale-105 active:scale-95'
+                     ? 'bg-slate-100 text-slate-500 dark:bg-[#2C2C2E] dark:text-muted-foreground border border-border/50 hover:bg-slate-200 dark:hover:bg-[#3A3A3C]' 
+                     : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 active:scale-95'
                  }`}
                >
-                 {selectedEvent.completed ? 'Desmarcar' : <><CheckCircle2 size={20}/> Completar Tarea</>}
+                 {selectedEvent.completed ? 'Re-Activar Tarea' : <><CheckCircle2 size={18}/> Marcar como Realizada</>}
                </Button>
             </div>
           )}
