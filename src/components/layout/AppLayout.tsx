@@ -154,7 +154,7 @@ export default function AppLayout() {
             className="flex items-center gap-3 px-3 py-4 bg-white/50 dark:bg-[#2C2C2E]/50 rounded-[22px] border border-black/[0.03] dark:border-white/[0.05] cursor-pointer transition-all active:scale-95 group mb-4 shadow-sm"
             onClick={() => navigate('/users?me=true')}
           >
-            <div className="w-11 h-11 rounded-[14px] bg-slate-100 dark:bg-[#3A3A3C] flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0 shadow-sm transition-transform group-hover:scale-110 duration-500">
+            <div className="w-11 h-11 rounded-full bg-slate-100 dark:bg-[#3A3A3C] flex items-center justify-center text-foreground font-black text-sm overflow-hidden shrink-0 shadow-sm transition-transform group-hover:scale-110 duration-500">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -232,7 +232,7 @@ export default function AppLayout() {
               {isDarkMode ? <Sun className="h-[20px] w-[20px]" /> : <Moon className="h-[20px] w-[20px]" />}
             </Button>
             <div 
-              className="w-11 h-11 rounded-[14px] bg-slate-100 dark:bg-[#2C2C2E] border border-border/20 dark:border-transparent overflow-hidden shadow-lg active:scale-90 transition-transform"
+              className="w-11 h-11 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border border-border/20 dark:border-transparent overflow-hidden shadow-lg active:scale-90 transition-transform"
               onClick={() => navigate('/users?me=true')}
             >
               {avatarUrl ? (

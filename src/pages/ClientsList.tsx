@@ -97,7 +97,7 @@ export default function ClientsList() {
           placeholder="Buscar por nombre, RUT o contacto..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-14 pl-12 pr-6 rounded-full bg-white dark:bg-slate-900 border border-border/40 shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold text-sm tracking-tight"
+          className="w-full h-14 pl-12 pr-6 rounded-full bg-white dark:bg-[#1C1C1E] border border-border/40 dark:border-white/5 shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold text-sm tracking-tight"
         />
       </div>
       
@@ -109,12 +109,12 @@ export default function ClientsList() {
           <div className="text-center py-20 opacity-40 font-black text-sm">No se encontraron clientes</div>
         ) : (
           filteredClients.map((client) => (
-            <div key={client.id} className="bg-white dark:bg-slate-900 border border-border/40 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-300">
+            <div key={client.id} className="bg-white dark:bg-[#1C1C1E] border border-border/40 dark:border-white/5 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-300">
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
                
                <div className="flex justify-between items-start mb-4">
                  <div className="flex items-center gap-3">
-                   <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-border/20 shadow-inner">
+                   <div className="w-14 h-14 rounded-2xl bg-slate-100/50 dark:bg-white/5 flex items-center justify-center border border-border/20 shadow-inner">
                      <Building2 className="h-7 w-7 text-primary/60" />
                    </div>
                    <div>
@@ -200,9 +200,9 @@ export default function ClientsList() {
         )}
       </div>
 
-      <div className="hidden md:block bg-white dark:bg-slate-900 border border-border/40 rounded-[32px] overflow-hidden shadow-sm">
+      <div className="hidden md:block bg-white dark:bg-[#1C1C1E] border border-border/40 dark:border-white/5 rounded-[32px] overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-slate-50/50 dark:bg-slate-800/50">
+          <TableHeader className="bg-slate-50/50 dark:bg-white/[0.02]">
             <TableRow className="border-border/40">
               <TableHead className="font-black text-[10px] uppercase tracking-widest h-14">Empresa / RUT</TableHead>
               <TableHead className="font-black text-[10px] uppercase tracking-widest h-14">Contacto Directo</TableHead>
