@@ -293,7 +293,7 @@ Equipo Comercial`)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] sm:max-w-[550px] max-h-[90vh] overflow-y-auto rounded-[32px] p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-xl">{deal.title}</DialogTitle>
           <DialogDescription>
@@ -475,16 +475,16 @@ Equipo Comercial`)
                   href={mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 flex items-center gap-3 rounded-xl border border-border/30 bg-muted/20 px-4 py-4 hover:bg-muted/40 hover:border-primary/20 transition-all group shadow-sm"
+                  className="mt-4 flex items-center gap-2 rounded-xl border border-border/30 bg-muted/20 px-3 py-3 hover:bg-muted/40 hover:border-primary/20 transition-all group shadow-sm overflow-hidden"
                 >
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10">
-                    <MapPin className="h-5 w-5 text-primary opacity-60 transition-transform group-hover:scale-110" />
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10">
+                    <MapPin className="h-4 w-4 text-primary opacity-60 transition-transform group-hover:scale-110" />
                   </div>
                   <div className="flex-1 min-w-0 ml-1">
-                    <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Ubicación del Cliente</p>
-                    <p className="text-sm font-bold tracking-tight truncate mt-0.5">{q}</p>
+                    <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Ubicación del Cliente</p>
+                    <p className="text-[11px] font-bold tracking-tight truncate mt-0.5">{q}</p>
                   </div>
-                  <span className="text-[10px] text-primary font-black uppercase tracking-tighter shrink-0 group-hover:underline opacity-80 decoration-2">
+                  <span className="text-[9px] text-primary font-black uppercase tracking-tighter shrink-0 group-hover:underline opacity-80 decoration-2">
                     MAPA ↗
                   </span>
                 </a>
@@ -530,12 +530,12 @@ Equipo Comercial`)
                   <p className="text-xs text-muted-foreground mb-3">Aún no se ha registrado ningún correo enviado a este cliente.</p>
                 )}
 
-                <div className="flex gap-2 flex-wrap mt-2">
-                  <Button size="sm" variant="outline" className="text-[10px] font-bold uppercase tracking-tight h-8 px-4 rounded-md border-border/40 hover:bg-muted" onClick={registerCorreo}>
+                <div className="grid grid-cols-1 gap-2 mt-2">
+                  <Button size="sm" variant="outline" className="text-[10px] font-bold uppercase tracking-tight h-10 px-4 rounded-xl border-border/40 hover:bg-muted w-full justify-start sm:justify-center" onClick={registerCorreo}>
                     <Mail className="h-3 w-3 mr-2 opacity-60" /> Registrar Correo
                   </Button>
                   {ultimoCorreoAt && !correoRespondido && (
-                    <Button size="sm" className="text-[10px] font-bold uppercase tracking-tight h-8 px-4 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm" onClick={markRespondido}>
+                    <Button size="sm" className="text-[10px] font-bold uppercase tracking-tight h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm w-full justify-start sm:justify-center" onClick={markRespondido}>
                       <CheckCircle2 className="h-3 w-3 mr-2" /> Marcar Respondido
                     </Button>
                   )}

@@ -284,11 +284,11 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <Button 
                 onClick={handleSummarize} 
                 disabled={loadingType !== null}
-                className="flex-1 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:hover:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
+                className="w-full rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:hover:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
                >
                  {loadingType === 'summary' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Activity className="h-5 w-5" />}
                  <span className="font-black text-[11px] uppercase tracking-wider">Resumir Historial</span>
@@ -297,7 +297,7 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
                <Button 
                 onClick={handleEmailDraft} 
                 disabled={loadingType !== null || isRecording}
-                className="flex-1 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
+                className="w-full rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
                >
                  {loadingType === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
                  <span className="font-black text-[11px] uppercase tracking-wider">Redactar Seguimiento</span>
