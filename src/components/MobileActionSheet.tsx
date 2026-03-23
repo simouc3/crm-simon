@@ -33,8 +33,13 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
   };
 
   const getLatestDeal = async () => {
-    const { data } = await supabase.from('deals').select('id, title, companies(razon_social)').order('updated_at', { ascending: false }).limit(1).single();
-    return data;
+    const { data } = await supabase
+      .from('deals')
+      .select('id, title, companies(id, razon_social)')
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+    return data as any;
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,23 +68,41 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
       const { data: { user } } = await supabase.auth.getUser();
       const latestDeal = await getLatestDeal();
       
-      if (user && latestDeal) {
+      if (user) {
         // 4. Crear actividad tipo visita y enlazar la URL en MD
-        await supabase.from('activities').insert([{
-           deal_id: latestDeal.id,
-           user_id: user.id,
-           title: 'Visita Técnica (Foto)',
-           type: 'Visita',
-           status: 'Completada',
-           notes: `Captura en Terreno:\n\n<img src="${publicUrl}" alt="Visita Terreno" style="max-width:100%; border-radius:12px; margin-top:10px;" />`
-        }]);
+        // Si no hay deal, creamos una actividad general
+        const activityData = {
+          user_id: user.id,
+          title: 'Captura de Terreno (Foto)',
+          type: 'Visita',
+          status: 'Completada',
+          notes: `Imagen capturada:\n\n<img src="${publicUrl}" alt="Visita Terreno" style="max-width:100%; border-radius:12px; margin-top:10px;" />`,
+          scheduled_at: new Date().toISOString()
+        };
+
+        if (latestDeal) {
+          (activityData as any).deal_id = latestDeal.id;
+          (activityData as any).company_id = latestDeal.companies?.id || (Array.isArray(latestDeal.companies) ? latestDeal.companies[0]?.id : null);
+        }
+
+        const { error: activityError } = await supabase.from('activities').insert([activityData]);
+        
+        if (activityError) {
+          console.warn("Error vinculando actividad:", activityError);
+          alert("📸 Foto subida, pero hubo un error al crear la actividad: " + activityError.message);
+        } else {
+          const companyName = latestDeal?.companies?.razon_social || (Array.isArray(latestDeal?.companies) ? latestDeal?.companies[0]?.razon_social : null);
+          alert(latestDeal 
+            ? `✅ ¡Foto guardada en: ${companyName || 'Negocio'}!` 
+            : "✅ ¡Foto guardada como actividad general!");
+        }
       }
 
-      alert("✅ ¡Foto guardada y enlazada al último negocio modificado!");
       onClose();
 
     } catch (err: any) {
-      alert("❌ Error: " + err.message + "\n\n(Revisar si el Bucket 'evidencias' está creado).");
+      console.error("Critical upload error:", err);
+      alert("❌ Error: " + err.message + "\n\n(Asegúrate de tener conexión y que el bucket 'evidencias' exista en Supabase).");
     }
   };
 

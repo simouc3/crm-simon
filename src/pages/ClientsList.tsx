@@ -25,11 +25,14 @@ import { type Company } from "../types/database"
 import { ClientFormDialog } from "../components/ClientFormDialog"
 import { ImportClientsDialog } from "../components/ImportClientsDialog"
 import { supabase } from "../lib/supabase/client"
+import { ClientDetailsDialog } from "../components/ClientDetailsDialog"
 
 export default function ClientsList() {
   const [clients, setClients] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedClientForDetail, setSelectedClientForDetail] = useState<any>(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   const fetchCompanies = async () => {
     setLoading(true)
@@ -60,6 +63,11 @@ export default function ClientsList() {
   useEffect(() => {
     fetchCompanies()
   }, [])
+
+  const openClientDetail = (client: any) => {
+    setSelectedClientForDetail(client)
+    setIsDetailOpen(true)
+  }
 
   const filteredClients = clients.filter(c => 
     c.razon_social.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -109,7 +117,11 @@ export default function ClientsList() {
           <div className="text-center py-20 opacity-40 font-black text-sm">No se encontraron clientes</div>
         ) : (
           filteredClients.map((client) => (
-            <div key={client.id} className="bg-white dark:bg-[#1C1C1E] border border-border/40 dark:border-white/5 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-300">
+            <div 
+              key={client.id} 
+              onClick={() => openClientDetail(client)}
+              className="bg-white dark:bg-[#1C1C1E] border border-border/40 dark:border-white/5 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-300 cursor-pointer"
+            >
                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
                
                <div className="flex justify-between items-start mb-4">
@@ -223,9 +235,9 @@ export default function ClientsList() {
               </TableRow>
             ) : (
               filteredClients.map((client) => (
-                <TableRow key={client.id} className="border-border/40 hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                <TableRow key={client.id} className="border-border/40 hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => openClientDetail(client)}>
                   <TableCell className="py-5">
-                    <div className="font-black text-[15px] tracking-tight">{client.razon_social}</div>
+                    <div className="font-black text-[15px] tracking-tight hover:text-primary transition-colors">{client.razon_social}</div>
                     <div className="text-[10px] font-bold text-muted-foreground opacity-60 uppercase">{client.rut || '—'}</div>
                   </TableCell>
                   <TableCell>
@@ -292,6 +304,11 @@ export default function ClientsList() {
           </TableBody>
         </Table>
       </div>
+      <ClientDetailsDialog 
+        client={selectedClientForDetail} 
+        open={isDetailOpen} 
+        onOpenChange={setIsDetailOpen} 
+      />
     </div>
   )
 }
