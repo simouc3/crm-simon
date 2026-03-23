@@ -95,15 +95,18 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
 
   const handleSummarize = async () => {
     const activities = await fetchActivities();
-    let prompt = `Eres un Gerente Comercial experto en el mercado B2B chileno. Tu misión es leer el siguiente historial de este Negocio y devolver lo siguiente utilizando viñetas cortas: 
-1) Un resumen ejecutivo del estado actual. 
-2) El valor estimado del trato: $${deal.valor_neto || 0}. 
-3) Los dolores o necesidades principales del cliente detectados. 
-4) Tres acciones concretas que el vendedor debería tomar inmediatamente.
+    let prompt = `Actúa como un Director Comercial Estratégico experto en servicios industriales. Tu misión es analizar el historial de este Negocio y devolver un informe ejecutivo de alto nivel que incluya: 
+
+1) ANÁLISIS DE SITUACIÓN: Resumen corto de dónde estamos parados.
+2) GAP ANALYSIS: ¿Qué información o compromiso nos falta hoy para cerrar este trato? ($${deal.valor_neto || 0}).
+3) PULSO DEL CLIENTE: Dolores detectados y nivel de urgencia percibida. 
+4) HOJA DE RUTA: 3 acciones críticas para que el vendedor mueva el negocio al siguiente hito.
+
+Utiliza un lenguaje profesional, directo y orientado a resultados.
 
 Contexto del Negocio:
 Cliente: ${deal.companies?.razon_social || 'Desconocido'}
-Etapa actual: ${deal.stage}
+Etapa actual: ${deal.stage} / 6
 
 Historial Reciente de Actividades:
 `;
@@ -121,8 +124,13 @@ Historial Reciente de Actividades:
 
   const handleEmailDraft = async () => {
      const activities = await fetchActivities();
-     let prompt = `Eres un Gerente Comercial experto en el mercado corporativo B2B de Chile. Redacta un correo electrónico persuasivo, formal pero dinámico y moderno (al estilo de negocios chilenos) para dar seguimiento a este negocio. 
-El correo debe ser ideal para enviárselo a un Gerente de Operaciones o Administrador de Clínica, con el objetivo de empujar el cierre o concretar una reunión clave. No uses placeholders ni corchetes que deba rellenar el usuario, infiere o inventa elegantemente si falta un detalle para entregar el texto 100% completo, listo para enviar.
+     let prompt = `Actúa como un Consultor de Negocios Senior. Redacta un correo electrónico de seguimiento altamente persuasivo, impecablemente formal pero cercano (estilo corporativo moderno chileno). 
+El objetivo es empoderar al cliente para que tome la decisión de cierre o agende la reunión determinante. Evita sonar como un vendedor genérico; firma como un "Socio Estratégico" que busca solucionar sus problemas operativos.
+
+CRITERIOS:
+- No uses [placeholders]. Escribe el texto completo, listo para copiar y enviar.
+- Menciona beneficios específicos de limpieza técnica industrial/clínica según el contexto.
+- Propón un "Call to Action" claro pero no presionante.
 
 Contexto:
 Cliente: ${deal.companies?.razon_social || 'Prospecto'}
