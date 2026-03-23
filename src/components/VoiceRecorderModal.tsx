@@ -128,16 +128,18 @@ Nota dictada: "${text}"`;
       // 1. Guardar Nota Resumen
       const finalNote = `🎙️ Transcripción:\n${transcript}\n\n✨ Puntos Clave Generados por IA:\n${summaryText}`;
       
-      await supabase.from('activities').insert([{
+      const { error: mainNoteError } = await supabase.from('activities').insert([{
          deal_id: selectedDealId,
          company_id: linkedCompanyId,
          user_id: user.id,
          title: `Nota de Terreno AI`,
-         activity_type: 'REUNION', // Tratar la nota como una gestión para que sea visible
-         completed: true, // Completada automáticamente
+         activity_type: 'REUNION',
+         completed: true,
          notes: finalNote,
          scheduled_at: new Date().toISOString()
       }]);
+
+      if (mainNoteError) throw new Error(`Error en Nota Resumen: ${mainNoteError.message}`);
 
       // 2. Tareas
       for (const t of detectedTasks) {
@@ -146,24 +148,28 @@ Nota dictada: "${text}"`;
          if (t.fecha_limite && t.fecha_limite.toLowerCase().includes('hoy')) d = new Date();
          if (t.fecha_limite && t.fecha_limite.toLowerCase().includes('semana')) d.setDate(d.getDate() + 7);
 
-         await supabase.from('activities').insert([{
+         const { error: taskError } = await supabase.from('activities').insert([{
            deal_id: selectedDealId,
            company_id: linkedCompanyId,
            user_id: user.id,
            title: `[${t.urgencia}] ${t.accion}`,
-           activity_type: 'LLAMADA', // Asignar como llamada/gestión genérica
+           activity_type: 'LLAMADA',
            completed: false,
            notes: `Agendado por IA. Sugerencia original: ${t.fecha_limite}`,
            scheduled_at: d.toISOString()
          }]);
+
+         if (taskError) {
+           console.warn("Error insertando tarea secundaria:", taskError);
+         }
       }
 
       setIsSaving(false);
       onOpenChange(false);
-      // Optional: window.location.reload() or soft refresh
       alert("✅ Historial y Tareas auto-agendadas exitosamente en el negocio.");
     } catch (err: any) {
-      alert("Error guardando en la BD: " + err.message);
+      console.error("Save failure:", err);
+      alert("❌ Error crítico al guardar: " + err.message + "\n\n(Asegúrate de haber ejecutado el SQL de 'deal_id' en Supabase).");
       setIsSaving(false);
     }
   };
