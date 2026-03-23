@@ -51,16 +51,33 @@ export function VoiceRecorderModal({ open, onOpenChange }: { open: boolean, onOp
       const defaultKey = "AIzaSyAF4O7kEc1Vj2LuWbbgB6uvUEPy1TrwjD0";
       const apiKey = localStorage.getItem('gemini_api_key') || defaultKey;
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       
-      const prompt = `Eres un excelente asistente comercial B2B. Escucha/lee la siguiente nota dictada en terreno y devuelve una respuesta estrictamente en formato JSON plano (SIN MARKDOWN NI COMILLAS INVERTIDAS) con la siguiente estructura: 
+      const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const prompt = `Actúa como un Asistente Comercial Senior de una empresa de Limpieza Industrial (CRM Simon). 
+Tu tarea es procesar una nota de voz dictada por un vendedor tras una visita a un cliente. 
+
+CONTEXTO DE HOY: ${today}
+
+INSTRUCCIONES CRÍTICAS:
+1. TRANSCRIPCIÓN: Devuelve el texto limpio, corrigiendo gramática y términos técnicos de limpieza industrial.
+2. RESUMEN ESTRATÉGICO: Identifica los puntos clave, especialmente:
+   - Necesidades o "dolores" expresados por el cliente.
+   - Limitaciones de presupuesto o tiempo mencionadas.
+   - Estado del interés (frío, tibio, caliente).
+3. AGENDA (TAREAS): Extrae compromisos claros.
+   - Si el vendedor dice "lo llamo el lunes", crea una tarea para el lunes.
+   - Si dice "le mando la cotización en 3 días", calcula la fecha.
+   - Urgencia: ALTA (compra/reclamo), MEDIA (seguimiento), BAJA (informativo).
+
+IMPORTANTE: Responde ÚNICAMENTE con un objeto JSON plano, sin markdown, con esta estructura: 
 {
-  "transcripcion": "el texto literal corregido ortográficamente", 
-  "resumen": ["punto clave 1", "dolor principal 2", "punto 3"], 
-  "tareas": [{"accion": "titulo corto", "fecha_limite": "cuándo (ej: mañana, en 3 días)", "urgencia": "ALTA|MEDIA|BAJA"}]
+  "transcripcion": "Texto corregido", 
+  "resumen": ["Punto 1", "Punto 2"], 
+  "tareas": [{"accion": "Título de la tarea", "fecha_limite_iso": "YYYY-MM-DD", "urgencia": "ALTA|MEDIA|BAJA"}]
 }
 
-Nota dictada: "${text}"`;
+Nota dictada en terreno: "${text}"`;
 
       const res = await model.generateContent(prompt);
       const rawText = res.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
@@ -145,8 +162,10 @@ Nota dictada: "${text}"`;
       for (const t of detectedTasks) {
          let d = new Date();
          d.setDate(d.getDate() + 1); // Default to tomorrow
-         if (t.fecha_limite && t.fecha_limite.toLowerCase().includes('hoy')) d = new Date();
-         if (t.fecha_limite && t.fecha_limite.toLowerCase().includes('semana')) d.setDate(d.getDate() + 7);
+         
+         if (t.fecha_limite_iso) {
+           d = new Date(t.fecha_limite_iso + 'T12:00:00'); // Mediodía para evitar desfases
+         }
 
          const { error: taskError } = await supabase.from('activities').insert([{
            deal_id: selectedDealId,
@@ -155,7 +174,7 @@ Nota dictada: "${text}"`;
            title: `[${t.urgencia}] ${t.accion}`,
            activity_type: 'LLAMADA',
            completed: false,
-           notes: `Agendado por IA. Sugerencia original: ${t.fecha_limite}`,
+           notes: `Agendado por IA.`,
            scheduled_at: d.toISOString()
          }]);
 
