@@ -1,10 +1,22 @@
 import { useState } from "react"
 import { supabase } from "../lib/supabase/client"
-import { Building2, User, Phone, Loader2 } from "lucide-react"
+import { Building2, User, Phone, Loader2, Tag } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({ razon_social: '', contact_name: '', contact_phone: '' })
+  const [formData, setFormData] = useState({ 
+    razon_social: '', 
+    contact_name: '', 
+    contact_phone: '',
+    segmento: 'LOGISTICA' // Valor por defecto válido en el enum actual
+  })
 
   if (!open) return null;
 
@@ -24,7 +36,7 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
       contact_email: `pendiente_${tempId}@terreno.com`,
       rut: `TEMP-${tempId}`,
       cargo: "DUENO",
-      segmento: "OTRO",
+      segmento: formData.segmento,
       comuna: "OTRO",
       condiciones_pago: "CONTADO",
       m2_estimados: 0,
@@ -45,7 +57,12 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
         });
       }
       
-      setFormData({ razon_social: '', contact_name: '', contact_phone: '' });
+      setFormData({ 
+        razon_social: '', 
+        contact_name: '', 
+        contact_phone: '',
+        segmento: 'LOGISTICA'
+      });
       setLoading(false);
       onOpenChange(false);
       // No recargar toda la página si podemos evitarlo, pero por ahora mantendremos el flujo
@@ -72,6 +89,22 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
           <div className="relative">
             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <input type="tel" placeholder="Teléfono Celular *" value={formData.contact_phone} onChange={e => setFormData({...formData, contact_phone: e.target.value})} className="w-full h-14 pl-12 pr-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold placeholder:font-medium text-sm focus:ring-2 focus:ring-primary outline-none" />
+          </div>
+
+          <div className="relative">
+             <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+             <Select value={formData.segmento} onValueChange={(val) => setFormData({ ...formData, segmento: val })}>
+                <SelectTrigger className="w-full h-14 pl-12 pr-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold text-sm focus:ring-2 focus:ring-primary outline-none">
+                  <SelectValue placeholder="Selecciona Segmento" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  <SelectItem value="ACUICOLA_MARITIMO">Acuícola / Marítimo</SelectItem>
+                  <SelectItem value="SALUD_CLINICO">Salud / Clínico</SelectItem>
+                  <SelectItem value="CORPORATIVO">Corporativo / Oficinas</SelectItem>
+                  <SelectItem value="LOGISTICA">Logística / Transporte</SelectItem>
+                  <SelectItem value="INDUSTRIAL">Industrial / Otros</SelectItem>
+                </SelectContent>
+             </Select>
           </div>
         </div>
 
