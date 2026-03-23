@@ -1,10 +1,8 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog"
-import { Building2, User, Phone, Mail, MapPin, Ruler, CreditCard, Tag, Briefcase } from 'lucide-react'
+import { Building2, User, Phone, Mail, MapPin, Ruler, Tag, Briefcase } from 'lucide-react'
 
 interface ClientDetailsDialogProps {
   client: any
