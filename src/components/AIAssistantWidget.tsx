@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Key, Mail, Activity, Check, Lock, Loader2, Mic } from 'lucide-react';
+import { Sparkles, Key, Mail, Activity, Lock, Loader2, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '../lib/supabase/client';
@@ -10,9 +10,16 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
   const [hasKey, setHasKey] = useState(false);
   const [isConfiguring, setIsConfiguring] = useState(false);
   
+  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'assistant', content: string, type?: string }[]>(() => {
+    const saved = localStorage.getItem(`ai_deal_chat_${deal.id}`);
+    return saved ? JSON.parse(saved) : [];
+  });
   const [loadingType, setLoadingType] = useState<'summary'|'email'|'voice'|null>(null);
-  const [response, setResponse] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(`ai_deal_chat_${deal.id}`, JSON.stringify(chatHistory));
+  }, [chatHistory, deal.id]);
 
   // Cargar llave desde localStorage al montar
   useEffect(() => {
@@ -55,17 +62,16 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
     return data || [];
   };
 
-  const callGemini = async (prompt: string, type: 'summary' | 'email') => {
+  const callGemini = async (prompt: string, type: 'summary' | 'email', userPrompt?: string) => {
     setLoadingType(type);
-    setResponse('');
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       
       const result = await model.generateContent(prompt);
       const text = result.response.text();
       
-      setResponse(text);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: text, type }]);
       
       // Auto-guardar como actividad tipo IA
       const { data: { user } } = await supabase.auth.getUser();
@@ -74,9 +80,10 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
           deal_id: deal.id,
           user_id: user.id,
           title: type === 'summary' ? 'Resumen Ejecutivo AI (Gemini)' : 'Draft de Email Guardado (Gemini)',
-          type: type === 'summary' ? 'Nota Interna' : 'Email',
-          status: 'Completada',
-          notes: text
+          activity_type: type === 'summary' ? 'REUNION' : 'CORREO',
+          completed: true,
+          notes: text,
+          scheduled_at: new Date().toISOString()
         }]);
         if (onNewActivity) onNewActivity();
       }
@@ -84,9 +91,9 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
     } catch (err: any) {
        const errMsg = err.message || '';
        if (errMsg.includes('API key expired') || errMsg.includes('API_KEY_INVALID')) {
-         setResponse(`❌ Tu clave de Gemini AI expiró o es inválida.\n\nPresiona el icono de candado 🔒 en la esquina de esta tarjeta para actualizar tu API Key secreta.`);
+         setChatHistory(prev => [...prev, { role: 'assistant', content: `❌ Tu clave de Gemini AI expiró o es inválida.\n\nPresiona el icono de candado 🔒 en la esquina de esta tarjeta para actualizar tu API Key secreta.`, type: 'error' }]);
        } else {
-         setResponse(`❌ Error IA: ${errMsg}`);
+         setChatHistory(prev => [...prev, { role: 'assistant', content: `❌ Error IA: ${errMsg}`, type: 'error' }]);
        }
     } finally {
       setLoadingType(null);
@@ -119,7 +126,7 @@ Historial Reciente de Actividades:
       });
     }
     
-    callGemini(prompt, 'summary');
+    callGemini(prompt, 'summary', "Generar resumen estratégico");
   };
 
   const handleEmailDraft = async () => {
@@ -139,14 +146,15 @@ Etapa del Embudo (1-6): ${deal.stage}
 
 Última actividad registrada (para guiar el correo): ${activities.length > 0 ? activities[0].notes : 'Ninguna'}`;
      
-     callGemini(prompt, 'email');
+     callGemini(prompt, 'email', "Redactar borrador de correo");
   };
 
   const processVoiceTranscript = async (text: string) => {
     setLoadingType('voice');
+    setChatHistory(prev => [...prev, { role: 'user', content: `🎙️ Voz: ${text}`, type: 'voice' }]);
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       
       const prompt = `Alguien de ventas B2B recién dictó esta nota de terreno: "${text}".
 Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON puro sin formato markdown, con esta estructura:
@@ -181,19 +189,19 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
       if (parsed.tiene_tarea && parsed.titulo_tarea) {
          const d = new Date();
          d.setDate(d.getDate() + (parsed.dias_para_vencer || 1));
-         await supabase.from('activities').insert([{
-           deal_id: deal.id,
-           user_id: user.id,
-           title: parsed.titulo_tarea,
-           type: 'Por Hacer',
-           status: 'Pendiente',
-           notes: 'Generado automáticamente por Gemini desde nota de voz en terreno.',
-           start_date: d.toISOString()
-         }]);
+          await supabase.from('activities').insert([{
+            deal_id: deal.id,
+            user_id: user.id,
+            title: parsed.titulo_tarea,
+            activity_type: 'LLAMADA',
+            completed: false,
+            notes: 'Generado automáticamente por Gemini desde nota de voz en terreno.',
+            scheduled_at: d.toISOString()
+          }]);
          uiRespons += `\n\n✅ Se auto-agendó la tarea: "${parsed.titulo_tarea}" para los próximos días.`;
       }
 
-      setResponse(uiRespons);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: uiRespons, type: 'voice' }]);
       
       // 3. Analizar Riesgo con IA
       import("../lib/ai/AIPredictor").then(({ AIPredictor }) => {
@@ -203,7 +211,7 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
       if (onNewActivity) onNewActivity();
 
     } catch (err: any) {
-       setResponse(`Error procesando la nota con IA: ${err.message}`);
+       setChatHistory(prev => [...prev, { role: 'assistant', content: `Error procesando la nota con IA: ${err.message}`, type: 'error' }]);
     } finally {
        setLoadingType(null);
     }
@@ -224,13 +232,12 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
 
     recognition.onstart = () => {
       setIsRecording(true);
-      setResponse("🎙️ Grabando te escucho... (Habla claro y conciso)");
+      setChatHistory(prev => [...prev, { role: 'assistant', content: "🎙️ Grabando te escucho... (Habla claro y conciso)", type: 'voice' }]);
     };
 
     recognition.onresult = async (event: any) => {
       const text = event.results[0][0].transcript;
       setIsRecording(false);
-      setResponse(`Procesando nota de voz transcrita: "${text}"...`);
       await processVoiceTranscript(text);
     };
 
@@ -327,17 +334,37 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
                </Button>
             </div>
 
-            {response && (
-              <div className="animate-in slide-in-from-bottom-2 fade-in duration-500">
-                <div className="p-5 rounded-3xl bg-slate-50/80 dark:bg-slate-800/50 border border-border/40 prose prose-sm dark:prose-invert max-w-none text-[13px] leading-relaxed relative">
-                  <div className="absolute top-2 right-2 text-[9px] font-black uppercase tracking-widest text-indigo-500/50 bg-indigo-500/10 px-2 py-0.5 rounded-full">
-                    Respuesta Simulada
+            {chatHistory.length > 0 && (
+              <div className="space-y-4 animate-in slide-in-from-bottom-2 fade-in duration-500 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+                {chatHistory.map((msg, i) => (
+                  <div key={i} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`p-4 rounded-2xl text-[13px] leading-relaxed relative max-w-[90%] ${
+                      msg.role === 'user' 
+                        ? 'bg-slate-100 dark:bg-white/5 border border-border/20 text-muted-foreground italic' 
+                        : 'bg-primary/5 dark:bg-primary/10 border border-primary/20 text-foreground shadow-sm'
+                    }`}>
+                      {msg.role === 'assistant' && (
+                        <div className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-widest text-primary/50 bg-primary/10 px-1.5 py-0.5 rounded-full">
+                          {msg.type || 'Gemini'}
+                        </div>
+                      )}
+                      <div className="whitespace-pre-wrap font-medium">{msg.content}</div>
+                    </div>
                   </div>
-                  <div className="whitespace-pre-wrap font-medium pt-3">{response}</div>
-                </div>
-                <p className="text-[10px] text-muted-foreground text-center font-bold mt-3 opacity-50 flex items-center justify-center gap-1">
-                  <Check className="w-3 h-3" /> Este texto se ha guardado en el historial de actividades automáticamente.
-                </p>
+                ))}
+                
+                {chatHistory.some(m => m.role === 'assistant') && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                       if (confirm('¿Limpiar historial del copiloto?')) setChatHistory([]);
+                    }}
+                    className="w-full text-[9px] font-black uppercase tracking-widest text-muted-foreground/30 hover:text-rose-500 transition-colors"
+                  >
+                    Borrar historial
+                  </Button>
+                )}
               </div>
             )}
           </div>

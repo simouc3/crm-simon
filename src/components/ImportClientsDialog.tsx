@@ -35,59 +35,70 @@ const TEMPLATE_HEADERS = [
 ]
 
 const TEMPLATE_EXAMPLE = [
-  "Empresa Ejemplo S.A.", "12.345.678-9", "Juan Pérez", "+56912345678",
-  "juan@empresa.cl", "GERENTE_OP", "CORPORATIVO", "PUERTO_MONTT",
-  "Av. Los Carrera 1234", "2500", "30_DIAS"
+  "Servicios de Limpieza Elite Ltda", "77.123.456-k", "Carlos Valdivia", "+56987654321",
+  "c.valdivia@elitelimpieza.cl", "Jefe de Compras", "INDUSTRIAL", "SANTIAGO",
+  "Calle Industrial 500, Galpón 4", "1500", "30_DIAS"
 ]
 
 const HEADER_MAP: Record<string, string> = {
-  "razon_social": "razon_social", "razón_social": "razon_social", "empresa": "razon_social", "nombre_empresa": "razon_social",
-  "rut": "rut", "identificacion": "rut",
-  "contact_name": "contact_name", "nombre_contacto": "contact_name", "contacto": "contact_name",
-  "contact_phone": "contact_phone", "teléfono": "contact_phone", "telefono": "contact_phone", "celular": "contact_phone",
-  "contact_email": "contact_email", "email": "contact_email", "correo": "contact_email",
-  "cargo": "cargo", "puesto": "cargo",
-  "segmento": "segmento", "categoría": "segmento",
-  "comuna": "comuna", "ciudad": "comuna",
-  "direccion": "direccion", "dirección": "direccion",
-  "m2_estimados": "m2_estimados", "m2": "m2_estimados", "superficie": "m2_estimados",
-  "condiciones_pago": "condiciones_pago", "pago": "condiciones_pago", "forma_pago": "condiciones_pago"
+  "razonsocial": "razon_social", "razon_social": "razon_social", "empresa": "razon_social", "nombre_empresa": "razon_social", "cliente": "razon_social",
+  "rut": "rut", "identificacion": "rut", "id": "rut", "identificador": "rut", "rol": "rut",
+  "contactname": "contact_name", "nombrecontacto": "contact_name", "nombre_contacto": "contact_name", "contacto": "contact_name", "nombre": "contact_name",
+  "contactphone": "contact_phone", "telefono": "contact_phone", "telefonocontrol": "contact_phone", "celular": "contact_phone", "fono": "contact_phone",
+  "contactemail": "contact_email", "email": "contact_email", "correo": "contact_email", "mail": "contact_email",
+  "cargo": "cargo", "puesto": "cargo", "rol_contacto": "cargo",
+  "segmento": "segmento", "categoria": "segmento", "sector": "segmento", "tipo": "segmento",
+  "comuna": "comuna", "ciudad": "comuna", "localidad": "comuna",
+  "direccion": "direccion", "calle": "direccion", "ubicacion": "direccion",
+  "m2estimados": "m2_estimados", "m2": "m2_estimados", "superficie": "m2_estimados", "tamano": "m2_estimados",
+  "condicionespago": "condiciones_pago", "pago": "condiciones_pago", "forma_pago": "condiciones_pago", "plazo": "condiciones_pago"
 }
 
 function parseCSV(text: string): string[][] {
-  const lines = text.trim().split(/\r?\n/)
+  // Try to clean text from multiple newlines and carriage returns
+  const cleanText = text.trim();
+  if (!cleanText) return [];
+
+  // Detect separator: semicollon (Excel Latam) vs comma
+  const lines = cleanText.split(/\r?\n/);
+  const firstLine = lines[0];
+  const commas = (firstLine.match(/,/g) || []).length;
+  const semicolons = (firstLine.match(/;/g) || []).length;
+  const separator = semicolons > commas ? ';' : ',';
+
   return lines.map(line => {
-    const result: string[] = []
-    let current = ""
-    let inQuotes = false
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
     for (let i = 0; i < line.length; i++) {
-      const ch = line[i]
+      const ch = line[i];
       if (ch === '"') {
-        inQuotes = !inQuotes
-      } else if ((ch === ',' || ch === ';') && !inQuotes) {
-        result.push(current.trim())
-        current = ""
+        inQuotes = !inQuotes;
+      } else if (ch === separator && !inQuotes) {
+        result.push(current.trim());
+        current = "";
       } else {
-        current += ch
+        current += ch;
       }
     }
-    result.push(current.trim())
-    return result
-  })
+    result.push(current.trim());
+    return result;
+  });
 }
 
 function downloadTemplate() {
   const csvContent = [TEMPLATE_HEADERS, TEMPLATE_EXAMPLE]
-    .map(row => row.map(cell => `"${cell}"`).join(","))
-    .join("\n")
-  const bom = "\uFEFF" 
-  const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = "plantilla_clientes_CRM.csv"
-  a.click()
-  URL.revokeObjectURL(url)
+    .map(row => row.map(cell => `"${cell}"`).join(";")) // Use semicolon for better Excel Latam compat
+    .join("\n");
+  
+  const bom = "\uFEFF"; // UTF-8 BOM for Excel
+  const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "plantilla_clientes_CRM.csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 interface Props {
@@ -125,26 +136,31 @@ export function ImportClientsDialog({ onImported }: Props) {
       const mapped: ImportRow[] = dataRows.map(row => {
         const obj: any = {}
         rawHeaders.forEach((rawH, i) => {
-          const standardized = rawH.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z_]/g, '')
+          // Standardize header name
+          const standardized = rawH.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+            .replace(/\s+/g, '_')
+            .replace(/[^a-z_]/g, '')
+          
           const field = HEADER_MAP[standardized] || standardized
-          obj[field] = row[i] || "0"
+          obj[field] = row[i] || ""
         })
 
-        const valid = !!(obj.razon_social?.trim() && obj.razon_social !== "0")
+        const hasName = !!(obj.razon_social?.trim())
         return {
-          razon_social: (obj.razon_social && obj.razon_social !== "0") ? obj.razon_social : "EMPRESA SIN NOMBRE",
-          rut: (obj.rut && obj.rut !== "0") ? obj.rut : "0",
-          contact_name: (obj.contact_name && obj.contact_name !== "0") ? obj.contact_name : "0",
-          contact_phone: (obj.contact_phone && obj.contact_phone !== "0") ? obj.contact_phone : "0",
-          contact_email: (obj.contact_email && obj.contact_email !== "0") ? obj.contact_email : "0",
-          cargo: (obj.cargo && obj.cargo !== "0") ? obj.cargo : "0",
-          segmento: (obj.segmento && obj.segmento !== "0") ? obj.segmento : "INDUSTRIAL",
-          comuna: (obj.comuna && obj.comuna !== "0") ? obj.comuna : "0",
-          direccion: (obj.direccion && obj.direccion !== "0") ? obj.direccion : "0",
-          m2_estimados: (obj.m2_estimados && obj.m2_estimados !== "0") ? obj.m2_estimados : "0",
-          condiciones_pago: (obj.condiciones_pago && obj.condiciones_pago !== "0") ? obj.condiciones_pago : "0",
-          _valid: valid,
-          _error: !valid ? "Falta Razón Social" : undefined
+          razon_social: hasName ? obj.razon_social : "EMPRESA SIN NOMBRE",
+          rut: obj.rut || "S/I",
+          contact_name: obj.contact_name || "S/I",
+          contact_phone: obj.contact_phone || "S/I",
+          contact_email: obj.contact_email || "S/I",
+          cargo: obj.cargo || "S/I",
+          segmento: obj.segmento || "INDUSTRIAL",
+          comuna: obj.comuna || "S/I",
+          direccion: obj.direccion || "S/I",
+          m2_estimados: obj.m2_estimados || "0",
+          condiciones_pago: obj.condiciones_pago || "30_DIAS",
+          _valid: hasName,
+          _error: !hasName ? "Faltó Razón Social" : undefined
         }
       })
       setRows(mapped)

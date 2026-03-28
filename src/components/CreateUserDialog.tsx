@@ -28,8 +28,7 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    role: 'VENTAS',
-    segmento: 'INDUSTRIAL'
+    role: 'VENTAS'
   })
   const [invited, setInvited] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -46,7 +45,6 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
           full_name: formData.full_name, 
           email: formData.email, 
           role: formData.role,
-          segmento: formData.segmento,
           id: crypto.randomUUID() // Create a temporary UUID until they sign up
         }
       ])
@@ -122,21 +120,6 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Segmento de Negocio</label>
-                <Select value={formData.segmento} onValueChange={(val) => setFormData({ ...formData, segmento: val })}>
-                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-border/40 font-bold">
-                    <SelectValue placeholder="Selecciona un segmento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ACUICOLA_MARITIMO">Acuícola / Marítimo</SelectItem>
-                    <SelectItem value="SALUD_CLINICO">Salud / Clínico</SelectItem>
-                    <SelectItem value="CORPORATIVO">Corporativo / Oficinas</SelectItem>
-                    <SelectItem value="LOGISTICA">Logística / Transporte</SelectItem>
-                    <SelectItem value="INDUSTRIAL">Industrial / Otros</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             <Button 

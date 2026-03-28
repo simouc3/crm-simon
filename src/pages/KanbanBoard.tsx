@@ -24,6 +24,11 @@ export default function KanbanBoard() {
   const [selectedDeal, setSelectedDeal] = useState<any>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [activeStageId, setActiveStageId] = useState(1)
+  
+  const [viewMonth, setViewMonth] = useState(new Date().getMonth())
+  const [viewYear, setViewYear] = useState(new Date().getFullYear())
+
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
   const fetchDeals = async () => {
     const { data, error } = await supabase
@@ -34,6 +39,14 @@ export default function KanbanBoard() {
   }
 
   useEffect(() => { fetchDeals() }, [])
+
+  // Filter deals logic: Stages 1-5 are always visible. Stages 6-7 are filtered by month/year.
+  const filteredDeals = deals.filter(deal => {
+    if (deal.stage < 6) return true
+    const dateStr = deal.stage_changed_at || deal.created_at
+    const d = new Date(dateStr)
+    return d.getMonth() === viewMonth && d.getFullYear() === viewYear
+  })
 
   const onDragEnd = async (result: any) => {
     const { destination, source, draggableId } = result
@@ -94,13 +107,13 @@ export default function KanbanBoard() {
     setIsDetailsOpen(true)
   }
 
-  const totalPipeline = deals
+  const totalPipeline = filteredDeals
     .filter(d => d.stage >= 1 && d.stage <= 5)
     .reduce((sum, d) => sum + (d.valor_neto || 0), 0)
 
-  const totalDeals = deals.filter(d => d.stage >= 1 && d.stage <= 5).length
+  const totalDeals = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5).length
 
-  const activeStageDeals = deals.filter(d => d.stage === activeStageId)
+  const activeStageDeals = filteredDeals.filter(d => d.stage === activeStageId)
   const activeStageValue = activeStageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
   const activeStage = KANBAN_STAGES.find(s => s.id === activeStageId)
 
@@ -184,8 +197,19 @@ export default function KanbanBoard() {
               {totalDeals} oportunidades · {fmtCLP(totalPipeline)} en vuelo
             </p>
           </div>
-          <div className="mt-6 md:mt-0">
-            <DealFormDialog onDealCreated={fetchDeals} />
+          <div className="flex flex-col md:items-end gap-3 mt-6 md:mt-0">
+            <div className="flex items-center gap-2">
+              <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-border/20">
+                {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
+              </select>
+              <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-border/20">
+                {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+              <DealFormDialog onDealCreated={fetchDeals} />
+            </div>
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40 text-right pr-4">
+               Filtrando Histórico (Ganados/Perdidos)
+            </p>
           </div>
         </div>
       </div>
@@ -197,7 +221,7 @@ export default function KanbanBoard() {
         <div className="shrink-0 px-4 pt-4 pb-2">
           <div className="flex overflow-x-auto gap-2 no-scrollbar">
             {KANBAN_STAGES.map(stage => {
-              const count = deals.filter(d => d.stage === stage.id).length
+              const count = filteredDeals.filter(d => d.stage === stage.id).length
               const isActive = activeStageId === stage.id
               return (
                 <button
@@ -251,7 +275,7 @@ export default function KanbanBoard() {
         <div className="flex gap-5 items-start min-h-[600px] max-w-[1600px] mx-auto">
           <DragDropContext onDragEnd={onDragEnd}>
             {KANBAN_STAGES.map(stage => {
-              const stageDeals = deals.filter(d => d.stage === stage.id)
+              const stageDeals = filteredDeals.filter(d => d.stage === stage.id)
               const stageValue = stageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
               
               return (

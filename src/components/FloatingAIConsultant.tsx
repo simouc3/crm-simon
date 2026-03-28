@@ -6,14 +6,18 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export function FloatingAIConsultant() {
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
-    { role: 'assistant', content: '¡Hola! Soy tu Consultor Estratégico IA. Puedo ayudarte con tácticas de venta, análisis de tu funnel o redactar pitches ganadores basados en tus datos. ¿En qué puedo apoyarte hoy?' }
-  ])
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>(() => {
+    const saved = localStorage.getItem('floating_ai_history')
+    return saved ? JSON.parse(saved) : [
+      { role: 'assistant', content: '¡Hola! Soy tu Consultor Estratégico IA. Puedo ayudarte con tácticas de venta, análisis de tu funnel o redactar pitches ganadores basados en tus datos. ¿En qué puedo apoyarte hoy?' }
+    ]
+  })
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    localStorage.setItem('floating_ai_history', JSON.stringify(messages))
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
@@ -81,7 +85,7 @@ Asistente:`;
   }
 
   return (
-    <div className="fixed bottom-24 right-6 md:bottom-8 md:right-8 z-[100] flex flex-col items-end pointer-events-none">
+    <div className="fixed bottom-[100px] right-6 md:bottom-8 md:right-8 z-[9999] flex flex-col items-end pointer-events-none">
       {/* Ventana de Chat */}
       {isOpen && (
         <div className="w-[320px] sm:w-[380px] h-[500px] bg-white dark:bg-[#1C1C1E] border border-border/40 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden mb-4 animate-in slide-in-from-bottom-10 fade-in duration-300 pointer-events-auto">
@@ -92,7 +96,7 @@ Asistente:`;
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <h4 className="font-black text-xs uppercase tracking-widest">Consultor IA</h4>
+                <h4 className="font-black text-xs uppercase tracking-widest leading-none">Consultor IA</h4>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[9px] font-bold opacity-60 uppercase">Estratega Activo</span>
@@ -105,13 +109,13 @@ Asistente:`;
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth bg-slate-50/30 dark:bg-transparent">
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed ${
                   m.role === 'user' 
                     ? 'bg-primary text-primary-foreground font-medium rounded-tr-none shadow-lg shadow-primary/10' 
-                    : 'bg-slate-50 dark:bg-white/[0.05] text-foreground font-medium rounded-tl-none border border-border/20'
+                    : 'bg-white dark:bg-white/[0.05] text-foreground font-medium rounded-tl-none border border-border/20 shadow-sm'
                 }`}>
                   {m.content}
                 </div>
@@ -119,23 +123,23 @@ Asistente:`;
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-slate-50 dark:bg-white/[0.05] p-4 rounded-3xl rounded-tl-none border border-border/20 flex items-center gap-3">
+                <div className="bg-white dark:bg-white/[0.05] p-4 rounded-3xl rounded-tl-none border border-border/20 flex items-center gap-3 shadow-sm">
                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-xs font-bold text-muted-foreground animate-pulse">Analizando CRM...</span>
+                  <span className="text-xs font-bold text-muted-foreground animate-pulse leading-none">Analizando CRM...</span>
                 </div>
               </div>
             )}
           </div>
 
           {/* Input */}
-          <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-t border-border/20">
+          <div className="p-4 bg-white dark:bg-[#1C1C1E] border-t border-border/10">
             <div className="relative flex items-center">
               <input 
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Pregúntale a tu consultor..."
-                className="w-full h-12 pl-5 pr-12 rounded-2xl bg-white dark:bg-[#2C2C2E] border border-border/40 focus:ring-2 focus:ring-primary outline-none text-sm font-medium transition-all"
+                className="w-full h-12 pl-5 pr-12 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-[#3A3A3C] outline-none text-sm font-medium transition-all"
               />
               <button 
                 onClick={handleSendMessage}

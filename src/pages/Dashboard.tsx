@@ -428,7 +428,10 @@ export default function Dashboard() {
                 <div className="rounded-[40px] border border-border/40 bg-primary p-8 text-white shadow-xl relative overflow-hidden group">
                   <span className="text-[10px] font-black text-white/60 uppercase tracking-widest block mb-2">Estado General</span>
                   <div className="text-3xl font-black tracking-tighter leading-none mb-1">{winRate >= 50 ? 'Alta Tracción' : 'Operativo'}</div>
-                  <p className="text-[11px] font-bold text-white/80 italic">Optimización B2B</p>
+                  <p className="text-[11px] font-bold text-white/80 italic">Eficiencia de Cierre</p>
+                  <p className="mt-4 text-[10px] text-white/60 font-medium leading-relaxed">
+                    El Win Rate mide el porcentaje de oportunidades ganadas sobre el total de tratos cerrados. Un valor sobre el 40% es excelente en servicios B2B.
+                  </p>
                   <ArrowUpRight className="absolute bottom-4 right-4 text-white/40 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                 </div>
               </div>
@@ -471,6 +474,22 @@ export default function Dashboard() {
                 icon={TrendingUp}
                 gradientClass="bg-black dark:bg-zinc-100 dark:text-zinc-900 text-white"
               />
+            </div>
+
+            <div className="mt-8 bg-slate-50 dark:bg-white/5 border border-border/30 rounded-[32px] p-8">
+               <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-black shadow-sm flex items-center justify-center shrink-0">
+                     <Activity className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                     <h4 className="font-black text-[15px] uppercase tracking-tight">Guía de Métricas Estratégicas</h4>
+                     <p className="text-[13px] text-muted-foreground leading-relaxed">
+                        • **CAC (Cost of Acquisition):** Indica cuánto estás invirtiendo en marketing para conseguir un cliente. Si este valor sube demasiado, tu rentabilidad se ve afectada.<br/>
+                        • **LTV (Lifetime Value):** Es la proyección de cuánto dinero dejará un cliente durante toda su relación con la empresa. <br/>
+                        • **Ratio LTV:CAC:** Un ratio de **3x o superior** indica un modelo de negocio saludable y escalable.
+                     </p>
+                  </div>
+               </div>
             </div>
           </section>
 

@@ -172,9 +172,11 @@ Nota dictada en terreno: "${text}"`;
            company_id: linkedCompanyId,
            user_id: user.id,
            title: `[${t.urgencia}] ${t.accion}`,
-           activity_type: 'LLAMADA',
+           activity_type: t.accion.toLowerCase().includes('llamar') ? 'LLAMADA' : 
+                          t.accion.toLowerCase().includes('visita') ? 'VISITA' : 
+                          t.accion.toLowerCase().includes('reunión') ? 'REUNION' : 'LLAMADA',
            completed: false,
-           notes: `Agendado por IA.`,
+           notes: `Agendado por IA desde Nota de Terreno.`,
            scheduled_at: d.toISOString()
          }]);
 

@@ -304,9 +304,9 @@ export default function ProfilesPage() {
                       <span className="text-[15px] font-medium text-foreground">Nombre</span>
                       <input 
                         className="text-right bg-transparent outline-none text-muted-foreground focus:text-foreground font-medium text-[15px] transition-colors"
-                        value={selectedProfile.full_name || ''}
-                        disabled={!isAdmin}
-                        onChange={(e) => updateProfileData(selectedProfile.id, { full_name: e.target.value })}
+                        defaultValue={selectedProfile.full_name || ''}
+                        disabled={!isAdmin && authUser?.id !== selectedProfile.id}
+                        onBlur={(e) => updateProfileData(selectedProfile.id, { full_name: e.target.value })}
                         placeholder="Nombre completo"
                       />
                     </div>
@@ -314,9 +314,9 @@ export default function ProfilesPage() {
                       <span className="text-[15px] font-medium text-foreground">Correo</span>
                       <input 
                         className="text-right bg-transparent outline-none text-muted-foreground focus:text-foreground font-medium text-[15px] transition-colors"
-                        value={selectedProfile.email || ''}
+                        defaultValue={selectedProfile.email || ''}
                         disabled={!isAdmin}
-                        onChange={(e) => updateProfileData(selectedProfile.id, { email: e.target.value })}
+                        onBlur={(e) => updateProfileData(selectedProfile.id, { email: e.target.value })}
                         placeholder="ejemplo@correo.com"
                       />
                     </div>
@@ -350,35 +350,6 @@ export default function ProfilesPage() {
                   </div>
                 </div>
 
-                {/* Group 3: Business Segment */}
-                <div className="space-y-1">
-                  <span className="ml-4 text-[13px] font-medium text-muted-foreground uppercase tracking-tight opacity-60">Segmento de Trabajo</span>
-                  <div className="bg-white dark:bg-[#1C1C1E] rounded-[24px] overflow-hidden">
-                    <div className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white">
-                            <Star size={16} />
-                         </div>
-                         <span className="text-[15px] font-medium text-foreground">Segmento</span>
-                      </div>
-                      {isAdmin ? (
-                        <select 
-                          className="bg-transparent text-right outline-none text-emerald-500 font-bold text-[14px] cursor-pointer max-w-[150px]"
-                          value={selectedProfile.segmento || 'INDUSTRIAL'}
-                          onChange={(e) => updateProfileData(selectedProfile.id, { segmento: e.target.value })}
-                        >
-                          <option value="ACUICOLA_MARITIMO">Acuícola / Marítimo</option>
-                          <option value="SALUD_CLINICO">Salud / Clínico</option>
-                          <option value="CORPORATIVO">Corporativo / Oficinas</option>
-                          <option value="LOGISTICA">Logística / Transporte</option>
-                          <option value="INDUSTRIAL">Industrial / Otros</option>
-                        </select>
-                      ) : (
-                        <span className="text-[14px] font-bold text-muted-foreground">{selectedProfile.segmento || 'INDUSTRIAL'}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
                 {/* Group 4: Critical Actions */}
                 {isAdmin && (
