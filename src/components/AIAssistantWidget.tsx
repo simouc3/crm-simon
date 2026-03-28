@@ -50,7 +50,7 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
     setApiKey('');
     setHasKey(false);
     setIsConfiguring(true);
-    setResponse('');
+    setChatHistory([]);
   };
 
   const fetchActivities = async () => {
@@ -64,6 +64,9 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
 
   const callGemini = async (prompt: string, type: 'summary' | 'email', userPrompt?: string) => {
     setLoadingType(type);
+    if (userPrompt) {
+      setChatHistory(prev => [...prev, { role: 'user', content: userPrompt, type }]);
+    }
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
