@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Mic, Loader2, CheckCircle2, Building2 } from "lucide-react";
 import { supabase } from "../lib/supabase/client";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getGeminiKey, getAIModel } from "../lib/ai/config";
 
 export function VoiceRecorderModal({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
   const [recentDeals, setRecentDeals] = useState<any[]>([]);
@@ -48,10 +48,8 @@ export function VoiceRecorderModal({ open, onOpenChange }: { open: boolean, onOp
   const processVoiceTranscript = async (text: string) => {
     setStage('processing');
     try {
-      const defaultKey = "AIzaSyAF4O7kEc1Vj2LuWbbgB6uvUEPy1TrwjD0";
-      const apiKey = localStorage.getItem('gemini_api_key') || defaultKey;
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const apiKey = getGeminiKey();
+      const model = getAIModel(apiKey);
       
       const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       const prompt = `Actúa como un Asistente Comercial Senior de una empresa de Limpieza Industrial (CRM Simon). 

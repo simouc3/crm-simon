@@ -1,10 +1,10 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiKey, getAIModel } from './config';
 import { supabase } from '../supabase/client';
 import { type Company } from '../../types/database';
 
 export class AIPredictor {
   private static getApiKey() {
-    return localStorage.getItem('gemini_api_key') || "AIzaSyAF4O7kEc1Vj2LuWbbgB6uvUEPy1TrwjD0";
+    return getGeminiKey();
   }
 
   static async scoreCompany(company: Company): Promise<{ score: number; analysis: string } | null> {
@@ -12,8 +12,8 @@ export class AIPredictor {
     if (!apiKey) return null;
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const apiKey = this.getApiKey();
+      const model = getAIModel(apiKey);
 
       const prompt = `Actúa como un experto Consultor Comercial B2B. 
 Evalúa el potencial de este Lead para una empresa de servicios de limpieza industrial:
@@ -52,8 +52,8 @@ Devuelve una respuesta estrictamente en JSON con este formato:
     if (!apiKey) return null;
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const apiKey = this.getApiKey();
+      const model = getAIModel(apiKey);
 
       const prompt = `Analiza el tono y contenido de esta nota de reunión/contacto comercial:
 "${notes}"
