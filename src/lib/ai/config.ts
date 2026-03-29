@@ -21,5 +21,5 @@ export const getGeminiKey = (): string => {
  */
 export const getAIModel = (apiKey: string) => {
   const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: GEMINI_MODEL });
+  return genAI.getGenerativeModel({ model: GEMINI_MODEL }, { apiVersion: 'v1' });
 };
