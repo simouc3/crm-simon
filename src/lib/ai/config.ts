@@ -1,10 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// API Key de respaldo (puede ser revocada o limitada por Google si se abusa)
-export const DEFAULT_GEMINI_KEY = "AIzaSyAF4O7kEc1Vj2LuWbbgB6uvUEPy1TrwjD0";
+// API Key de respaldo (proporcionada por el usuario para asegurar funcionamiento)
+export const DEFAULT_GEMINI_KEY = "AIzaSyDlkjep9LYBmCbrcfOekAx85RypShBRS2M";
 
-// Modelo recomendado para máxima compatibilidad
-export const GEMINI_MODEL = "gemini-pro";
+// Modelo robusto y actualizado
+export const GEMINI_MODEL = "gemini-1.5-flash-latest";
 
 /**
  * Obtiene la API Key actual, priorizando localStorage (usuario) 
