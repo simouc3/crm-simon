@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { Sparkles, Send, X, Bot, Loader2 } from 'lucide-react'
+import { Send, X, Bot, Loader2, Lock, Key, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { getGeminiKey, getAIModel } from '../lib/ai/config'
 
 export function FloatingAIConsultant() {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,6 +14,8 @@ export function FloatingAIConsultant() {
   })
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isConfiguring, setIsConfiguring] = useState(false)
+  const [tempApiKey, setTempApiKey] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -24,7 +26,6 @@ export function FloatingAIConsultant() {
   }, [messages])
 
   const fetchCRMStats = async () => {
-    // Obtener datos globales para dar contexto a la IA
     const { count: dealsCount } = await supabase.from('deals').select('*', { count: 'exact', head: true })
     const { data: topDeals } = await supabase.from('deals').select('title, valor_neto, stage').order('valor_neto', { ascending: false }).limit(5)
     const { count: clientsCount } = await supabase.from('companies').select('*', { count: 'exact', head: true })
@@ -48,10 +49,8 @@ export function FloatingAIConsultant() {
 
     try {
       const stats = await fetchCRMStats()
-      const defaultKey = "AIzaSyAF4O7kEc1Vj2LuWbbgB6uvUEPy1TrwjD0"
-      const apiKey = localStorage.getItem('gemini_api_key') || defaultKey
-      const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+      const apiKey = getGeminiKey()
+      const model = getAIModel(apiKey)
 
       const prompt = `Actúa como el Consultor Senior de Estrategia para CRM Simon. 
 Eres experto en el mercado industrial B2B chileno. 
@@ -78,22 +77,32 @@ Asistente:`;
 
       setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }])
     } catch (err: any) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Lo siento, tuve un problema conectando con mis neuronas digitales. Revisa tu conexión o API Key.' }])
+      console.error("AI Error:", err)
+      const errMsg = err.message || 'Error desconocido'
+      setMessages(prev => [...prev, { role: 'assistant', content: `Lo siento, tuve un problema conectando: ${errMsg}. Revisa tu conexión o configura una API Key válida en el icono 🔒 de arriba.` }])
     } finally {
       setLoading(false)
     }
   }
 
+  const saveKey = () => {
+    if (tempApiKey.trim().startsWith('AIza')) {
+      localStorage.setItem('gemini_api_key', tempApiKey.trim())
+      setIsConfiguring(false)
+      setTempApiKey('')
+    } else {
+      alert('La clave debe comenzar con "AIza"')
+    }
+  }
+
   return (
     <div className="fixed bottom-[100px] right-6 md:bottom-8 md:right-8 z-[9999] flex flex-col items-end pointer-events-none">
-      {/* Ventana de Chat */}
       {isOpen && (
         <div className="w-[320px] sm:w-[380px] h-[500px] bg-white dark:bg-[#1C1C1E] border border-border/40 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden mb-4 animate-in slide-in-from-bottom-10 fade-in duration-300 pointer-events-auto">
-          {/* Header */}
           <div className="p-5 bg-foreground text-background flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary" />
+                <Brain className="h-4 w-4 text-primary" />
               </div>
               <div>
                 <h4 className="font-black text-xs uppercase tracking-widest leading-none">Consultor IA</h4>
@@ -103,57 +112,91 @@ Asistente:`;
                 </div>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 rounded-full hover:bg-white/10 text-background">
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsConfiguring(!isConfiguring)} 
+                className={`h-8 w-8 rounded-full transition-colors ${isConfiguring ? 'bg-primary/20 text-primary' : 'hover:bg-white/10 text-background'}`}
+              >
+                <Lock className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8 rounded-full hover:bg-white/10 text-background">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
-          {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth bg-slate-50/30 dark:bg-transparent">
-            {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed ${
-                  m.role === 'user' 
-                    ? 'bg-primary text-primary-foreground font-medium rounded-tr-none shadow-lg shadow-primary/10' 
-                    : 'bg-white dark:bg-white/[0.05] text-foreground font-medium rounded-tl-none border border-border/20 shadow-sm'
-                }`}>
-                  {m.content}
+            {isConfiguring ? (
+              <div className="p-4 bg-white dark:bg-[#2C2C2E] rounded-3xl border border-primary/20 space-y-4 animate-in zoom-in-95 duration-200">
+                <div className="flex flex-col items-center text-center gap-2">
+                   <div className="p-2 rounded-2xl bg-primary/10">
+                     <Key className="h-6 w-6 text-primary" />
+                   </div>
+                   <h5 className="font-black text-xs uppercase dark:text-white">API Key de Gemini</h5>
+                   <p className="text-[10px] text-muted-foreground leading-snug px-2">Ingresa tu llave para asegurar el funcionamiento. Se guarda solo en tu navegador.</p>
+                </div>
+                <input 
+                  type="password"
+                  placeholder="AIzaSy..."
+                  value={tempApiKey}
+                  onChange={(e) => setTempApiKey(e.target.value)}
+                  className="w-full bg-slate-100 dark:bg-black p-3 rounded-2xl text-[11px] font-mono border border-border/50 outline-none focus:border-primary transition-colors dark:text-white"
+                />
+                <div className="flex gap-2">
+                  <Button onClick={saveKey} className="flex-1 rounded-2xl h-10 font-black text-[10px] uppercase tracking-wider">Guardar</Button>
+                  <Button variant="ghost" onClick={() => setIsConfiguring(false)} className="rounded-2xl h-10 text-[10px] uppercase font-black">Cerrar</Button>
                 </div>
               </div>
-            ))}
-            {loading && (
-              <div className="flex justify-start">
-                <div className="bg-white dark:bg-white/[0.05] p-4 rounded-3xl rounded-tl-none border border-border/20 flex items-center gap-3 shadow-sm">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  <span className="text-xs font-bold text-muted-foreground animate-pulse leading-none">Analizando CRM...</span>
-                </div>
-              </div>
+            ) : (
+              <>
+                {messages.map((m, i) => (
+                  <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed ${
+                      m.role === 'user' 
+                        ? 'bg-primary text-primary-foreground font-medium rounded-tr-none shadow-lg shadow-primary/10' 
+                        : 'bg-white dark:bg-white/[0.05] text-foreground font-medium rounded-tl-none border border-border/20 shadow-sm'
+                    }`}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white dark:bg-white/[0.05] p-4 rounded-3xl rounded-tl-none border border-border/20 flex items-center gap-3 shadow-sm">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <span className="text-xs font-bold text-muted-foreground animate-pulse leading-none">Analizando CRM...</span>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
-          {/* Input */}
-          <div className="p-4 bg-white dark:bg-[#1C1C1E] border-t border-border/10">
-            <div className="relative flex items-center">
-              <input 
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Pregúntale a tu consultor..."
-                className="w-full h-12 pl-5 pr-12 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-[#3A3A3C] outline-none text-sm font-medium transition-all"
-              />
-              <button 
-                onClick={handleSendMessage}
-                disabled={loading || !input.trim()}
-                className="absolute right-1 w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
-              >
-                <Send className="h-4 w-4" />
-              </button>
+          {!isConfiguring && (
+            <div className="p-4 bg-white dark:bg-[#1C1C1E] border-t border-border/10">
+              <div className="relative flex items-center">
+                <input 
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Pregúntale a tu consultor..."
+                  className="w-full h-12 pl-5 pr-12 rounded-2xl bg-slate-100 dark:bg-[#2C2C2E] border border-transparent focus:border-primary/30 focus:bg-white dark:focus:bg-[#3A3A3C] outline-none text-sm font-medium transition-all"
+                />
+                <button 
+                  onClick={handleSendMessage}
+                  disabled={loading || !input.trim()}
+                  className="absolute right-1 w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Bubble Button */}
       <div className="pointer-events-auto">
         <Button 
           size="icon" 

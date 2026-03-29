@@ -3,7 +3,7 @@ import { Sparkles, Key, Mail, Activity, Lock, Loader2, Mic } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '../lib/supabase/client';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getGeminiKey, getAIModel } from '../lib/ai/config';
 
 export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewActivity?: () => void }) {
   const [apiKey, setApiKey] = useState('');
@@ -23,14 +23,12 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
 
   // Cargar llave desde localStorage al montar
   useEffect(() => {
-    const defaultKey = "AIzaSyAF4O7kEc1Vj2LuWbbgB6uvUEPy1TrwjD0";
     const stored = localStorage.getItem('gemini_api_key');
     if (stored) {
       setApiKey(stored);
       setHasKey(true);
     } else {
-      // Inyectar la llave predeterminada entregada por el usuario
-      setApiKey(defaultKey);
+      setApiKey(getGeminiKey()); // Usar la default si no hay almacenada
       setHasKey(true);
     }
   }, []);
@@ -68,8 +66,8 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
       setChatHistory(prev => [...prev, { role: 'user', content: userPrompt, type }]);
     }
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const apiKeyToUse = getGeminiKey();
+      const model = getAIModel(apiKeyToUse);
       
       const result = await model.generateContent(prompt);
       const text = result.response.text();
@@ -156,8 +154,8 @@ Etapa del Embudo (1-6): ${deal.stage}
     setLoadingType('voice');
     setChatHistory(prev => [...prev, { role: 'user', content: `🎙️ Voz: ${text}`, type: 'voice' }]);
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const apiKeyToUse = getGeminiKey();
+      const model = getAIModel(apiKeyToUse);
       
       const prompt = `Alguien de ventas B2B recién dictó esta nota de terreno: "${text}".
 Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON puro sin formato markdown, con esta estructura:
