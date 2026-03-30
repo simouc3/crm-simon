@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
-import { ArrowUpRight, TrendingUp, TrendingDown, Activity, DollarSign, Target, Briefcase, Zap } from "lucide-react"
+import { Activity, DollarSign, Briefcase, TrendingUp, ChevronLeft, ChevronRight, Download, Target, Zap, ArrowUpRight, TrendingDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { DashboardAIInsights } from "../components/DashboardAIInsights"
 
 const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
@@ -93,11 +94,12 @@ function BarChart({ data, color = '#10b981', prefix = '$' }: { data: { label: st
 }
 
 // ── KPI Card Widget ───────────────────────────────────────────────────
-function KpiCard({ label, value, sub, icon: Icon, trend, gradientClass, highlight }: {
-  label: string; value: string; sub?: string; icon: any; trend?: { val: string; up: boolean }; gradientClass?: string; highlight?: boolean
-}) {
+function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, gradientClass }: any) {
   return (
-    <div className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 ${gradientClass || 'bg-white dark:bg-black'} ${highlight ? 'ring-2 ring-primary/20' : ''}`}>
+    <div 
+      onClick={onClick}
+      className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 cursor-pointer ${gradientClass || 'bg-white dark:bg-black'} ${highlight ? 'ring-2 ring-primary/20' : ''}`}
+    >
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-colors" />
       
       <div className="flex items-center justify-between mb-2 relative z-10">
@@ -235,6 +237,9 @@ export default function Dashboard() {
     }
     return isRisk ? p * 0.5 : p
   }
+  const [selectedMetric, setSelectedMetric] = useState<{ label: string, deals: any[] } | null>(null)
+
+  const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 
   const totalPonderado = filteredDeals
     .filter(d => d.stage < 6 && d.stage > 0)
@@ -375,6 +380,7 @@ export default function Dashboard() {
                 sub={`${ganados.length} Cierres`}
                 icon={DollarSign}
                 gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400"
+                onClick={() => setSelectedMetric({ label: 'Cierres (Ganados)', deals: ganados })}
               />
               <KpiCard
                 label="Cierre Realista AI"
@@ -382,12 +388,14 @@ export default function Dashboard() {
                 sub="Ingreso ponderado por riesgo"
                 icon={Target}
                 highlight
+                onClick={() => setSelectedMetric({ label: 'Cierre Realista AI (Activos)', deals: activos })}
               />
               <KpiCard
                 label="Pipeline Activo"
                 value={fmtCLP(pipelineForecast)}
                 sub={`${propuestas.length} Propuestas`}
                 icon={Briefcase}
+                onClick={() => setSelectedMetric({ label: 'Pipeline Activo', deals: propuestas })}
               />
               <KpiCard
                 label="Win Rate"
@@ -493,6 +501,38 @@ export default function Dashboard() {
                 propuestas: propuestas.length
               }} 
             />
+
+            {/* Modal de Detalle de Metrica (Drill-down) */}
+            {selectedMetric && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                <div className="bg-white dark:bg-[#1C1C1E] rounded-[40px] w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col border border-border/20">
+                  <div className="p-8 border-b border-border/20 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-2xl font-black tracking-tight uppercase">{selectedMetric.label}</h3>
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{selectedMetric.deals.length} Negocios en este grupo</p>
+                    </div>
+                    <button onClick={() => setSelectedMetric(null)} className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center font-bold">X</button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-8 space-y-3">
+                    {selectedMetric.deals.map(d => (
+                      <div key={d.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/20 hover:border-primary/50 transition-all group">
+                        <div className="space-y-1">
+                          <div className="font-black text-[15px] group-hover:text-primary transition-colors">{d.companies?.razon_social || 'Cliente'}</div>
+                          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{d.title} · Etapa {d.stage}</div>
+                        </div>
+                        <div className="text-right">
+                           <div className="font-black text-lg">{fmtCLP(d.valor_neto)}</div>
+                           {d.is_risk && <span className="text-[9px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">En Riesgo</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-8 border-t border-border/20 bg-slate-50/50 dark:bg-white/2">
+                    <Button onClick={() => setSelectedMetric(null)} className="w-full h-12 rounded-2xl font-black uppercase tracking-widest">Cerrar Detalle</Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <KpiCard

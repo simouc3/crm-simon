@@ -119,22 +119,37 @@ Usa emojis de lucide-react (simbolizados por texto) y Markdown para estructura. 
 
       {insight && (
         <div className="mt-10 animate-in fade-in zoom-in-95 duration-700">
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Aquí simulamos una estructura limpia si la IA sigue el formato, o simplemente mostramos el texto */}
-              <div className="col-span-2 bg-slate-50/50 dark:bg-white/[0.02] rounded-[32px] p-8 border border-border/20 dark:border-white/[0.04] relative overflow-hidden text-sm leading-loose whitespace-pre-wrap font-medium">
-                <div className="absolute top-4 right-4 opacity-10">
-                   <Target className="h-24 w-24" />
-                </div>
-                {insight}
-              </div>
+          <div className="col-span-2 bg-slate-50/50 dark:bg-white/[0.03] rounded-[40px] p-10 border border-border/20 dark:border-white/[0.06] relative overflow-hidden shadow-inner font-medium leading-relaxed">
+            <div className="absolute top-6 right-6 opacity-[0.03] pointer-events-none">
+               <Sparkles className="h-48 w-48 text-indigo-500" />
+            </div>
+            
+            <div className="relative z-10 space-y-6 prose prose-indigo dark:prose-invert max-w-none">
+              {insight.split('\n\n').map((paragraph, idx) => {
+                const headerMatch = paragraph.match(/^(\d\.|📈|⚠️|🎯|🚀)\s+(.*)/);
+                if (headerMatch) {
+                  return (
+                    <div key={idx} className="bg-white/40 dark:bg-black/20 p-6 rounded-[24px] border border-white/40 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow group/card">
+                       <h4 className="text-sm font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-2">
+                         {headerMatch[1]} {headerMatch[2]}
+                       </h4>
+                       <div className="text-[13px] text-slate-600 dark:text-slate-300">
+                         {paragraph.replace(/^\d\.|📈|⚠️|🎯|🚀.*?\n/, '')}
+                       </div>
+                    </div>
+                  );
+                }
+                return <p key={idx} className="text-sm whitespace-pre-wrap">{paragraph}</p>;
+              })}
             </div>
           </div>
           
-          <div className="mt-8 flex items-center gap-2 p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
-             <Lightbulb className="h-5 w-5 text-indigo-500" />
-             <p className="text-[11px] font-bold text-indigo-700 dark:text-indigo-400 italic">
-               Este reporte es generado por IA basado en tus KPIs actuales. Úsalo como guía para tus próximas reuniones de directorio.
+          <div className="mt-8 flex items-center gap-3 p-5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-[24px] border border-indigo-500/20">
+             <div className="bg-indigo-500 p-2 rounded-lg shadow-lg">
+                <Lightbulb className="h-4 w-4 text-white" />
+             </div>
+             <p className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 italic opacity-80 leading-snug">
+               Reporte generado bajo demanda. Esta estrategia se ajusta en tiempo real según tu flujo de caja y tasa de cierre actual.
              </p>
           </div>
         </div>
