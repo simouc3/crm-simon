@@ -246,64 +246,61 @@ export default function AppLayout() {
         </header>
 
         {/* Dynamic Outlet Content */}
-        <main className="flex-1 min-h-0 bg-[#F5F5F7] dark:bg-black overflow-y-auto pb-32 md:pb-0 safe-top">
+        <main className="flex-1 min-h-0 bg-[#F5F5F7] dark:bg-black overflow-y-auto pb-36 md:pb-0 safe-top">
           <Outlet context={{ isDarkMode }} />
         </main>
-
-        {/* Mobile Bottom Navigation — Floating Apple Pill */}
-        <nav className="fixed bottom-5 left-5 right-5 md:hidden z-40">
-          <div className="relative bg-white/85 dark:bg-[#1C1C1E]/90 backdrop-blur-3xl rounded-[2rem] border border-white/60 dark:border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex items-center justify-around px-3 h-[64px]">
-            
-            <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
-              {({ isActive }) => (
-                <>
-                  <LayoutDashboard className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Dashboard</span>
-                </>
-              )}
-            </NavLink>
-
-            <NavLink to="/pipeline" className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
-              {({ isActive }) => (
-                <>
-                  <Columns3 className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Pipeline</span>
-                </>
-              )}
-            </NavLink>
-
-            {/* FAB — elevated above pill */}
-            <div className="relative -top-6 flex items-center justify-center">
-              <Button
-                size="icon"
-                className="h-[54px] w-[54px] rounded-full bg-foreground text-background shadow-[0_8px_32px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)] active:scale-90 transition-all duration-300 border-4 border-[#F5F5F7] dark:border-black"
-                onClick={() => setShowMobileActionSheet(true)}
-              >
-                <Plus className="h-6 w-6" />
-              </Button>
-            </div>
-
-            <NavLink to="/clients" className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
-              {({ isActive }) => (
-                <>
-                  <Users className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Clientes</span>
-                </>
-              )}
-            </NavLink>
-
-            <NavLink to="/calendar" className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
-              {({ isActive }) => (
-                <>
-                  <CalendarDays className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Agenda</span>
-                </>
-              )}
-            </NavLink>
-
-          </div>
-        </nav>
       </div>
+
+      {/* ── FLOATING ISLAND NAV — outside all overflow containers ── */}
+      <nav className="fixed bottom-5 left-4 right-4 md:hidden z-[9999] pointer-events-none">
+        <div className="pointer-events-auto bg-white/90 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-[30px] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-black/[0.06] dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
+
+          <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+            {({ isActive }) => (
+              <>
+                <LayoutDashboard className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Dashboard' : ''}</span>
+              </>
+            )}
+          </NavLink>
+
+          <NavLink to="/pipeline" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+            {({ isActive }) => (
+              <>
+                <Columns3 className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Pipeline' : ''}</span>
+              </>
+            )}
+          </NavLink>
+
+          {/* FAB */}
+          <button
+            onClick={() => setShowMobileActionSheet(true)}
+            className="-mt-7 h-[50px] w-[50px] rounded-full bg-black dark:bg-white flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform duration-150 border-[3px] border-[#F5F5F7] dark:border-black"
+          >
+            <Plus className="h-5 w-5 text-white dark:text-black" strokeWidth={2.5} />
+          </button>
+
+          <NavLink to="/clients" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+            {({ isActive }) => (
+              <>
+                <Users className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Clientes' : ''}</span>
+              </>
+            )}
+          </NavLink>
+
+          <NavLink to="/calendar" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+            {({ isActive }) => (
+              <>
+                <CalendarDays className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Agenda' : ''}</span>
+              </>
+            )}
+          </NavLink>
+
+        </div>
+      </nav>
 
       <SettingsDialog 
         open={showSettings} 

@@ -127,57 +127,65 @@ export default function KanbanBoard() {
     7: { hex: '#FF3B30', tint: 'bg-rose-50/60 dark:bg-rose-950/10',   border: 'border-l-rose-400',    dot: 'bg-rose-500',     label: 'Perdido'      },
   }
 
-  // ── Deal Card — Ultra Minimalist Apple 2026 ─────────────────────
+  // ── Deal Card — iOS List Row style ────────────────────────────────
   const DealCard = ({ deal, isDragging = false }: { deal: any; isDragging?: boolean }) => {
     const s = stageMap[deal.stage] || stageMap[1]
     const isRisk = deal.is_risk
+
     return (
       <div
         onClick={() => openDeal(deal)}
         className={`
-          relative cursor-pointer select-none
-          rounded-2xl border-l-[3px] overflow-hidden
-          transition-all duration-300 ease-out
-          ${s.tint} ${isRisk ? 'border-l-rose-500' : s.border}
-          border border-black/[0.06] dark:border-white/[0.06]
+          group cursor-pointer select-none
+          bg-white dark:bg-[#1C1C1E]
+          rounded-2xl overflow-hidden
+          border border-black/[0.05] dark:border-white/[0.05]
+          transition-all duration-200
           ${isDragging
-            ? 'scale-[1.03] rotate-[0.5deg] shadow-[0_24px_64px_rgba(0,0,0,0.2)] z-50'
-            : 'shadow-[0_1px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.09)] hover:-translate-y-0.5'
+            ? 'scale-[1.02] shadow-[0_16px_48px_rgba(0,0,0,0.18)] rotate-[0.3deg] z-50'
+            : 'shadow-[0_1px_4px_rgba(0,0,0,0.06)] active:scale-[0.98]'
           }
         `}
       >
-        <div className="px-4 py-3.5 flex flex-col gap-2.5">
+        {/* Color accent top strip — 3px */}
+        <div
+          className="h-[3px] w-full"
+          style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }}
+        />
 
-          {/* Row 1: Stage dot + label + risk + score */}
-          <div className="flex items-center gap-2">
-            <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${isRisk ? 'bg-rose-500 animate-pulse' : s.dot}`} />
-            <span className={`text-[9px] font-black uppercase tracking-[0.18em] ${isRisk ? 'text-rose-500' : 'text-muted-foreground/50'}`}>
-              {isRisk ? 'Riesgo' : s.label}
-            </span>
-            {deal.companies?.lead_score > 0 && (
-              <span className={`ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-md leading-none ${
-                deal.companies.lead_score >= 80 ? 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-400' :
-                deal.companies.lead_score >= 50 ? 'text-amber-700 bg-amber-100 dark:bg-amber-950/60 dark:text-amber-400' :
-                'text-slate-500 bg-slate-100 dark:bg-slate-800'
-              }`}>{deal.companies.lead_score}pts</span>
+        <div className="flex items-center gap-3 px-4 py-3">
+          {/* Left dot */}
+          <div
+            className="h-2 w-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }}
+          />
+
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            {/* Company name */}
+            <h4 className="text-[14px] font-semibold text-foreground tracking-[-0.01em] truncate leading-snug">
+              {deal.companies?.razon_social || 'Sin empresa'}
+            </h4>
+            {/* Stage label + zona */}
+            <p className="text-[11px] text-muted-foreground/50 truncate leading-snug mt-0.5">
+              {isRisk ? '⚠ Riesgo · ' : ''}{s.label}{deal.companies?.comuna ? ` · ${deal.companies.comuna.replace(/_/g, ' ')}` : ''}
+            </p>
+          </div>
+
+          {/* Right: Amount */}
+          <div className="text-right flex-shrink-0">
+            <p className="text-[13px] font-bold tabular-nums tracking-tight text-foreground">
+              {fmtCLP(deal.valor_neto || 0)}
+            </p>
+            {deal.is_contract && (
+              <p className="text-[9px] font-semibold text-[#007AFF] leading-none mt-0.5">
+                SLA {deal.contract_months}M
+              </p>
             )}
           </div>
 
-          {/* Row 2: Company name */}
-          <h4 className="font-black text-[14px] tracking-[-0.02em] leading-tight text-foreground line-clamp-1">
-            {deal.companies?.razon_social || 'Sin empresa'}
-          </h4>
-
-          {/* Row 3: Amount + zone */}
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] font-black tracking-[-0.03em] tabular-nums text-foreground/80">
-              {fmtCLP(deal.valor_neto || 0)}
-            </span>
-            <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest ml-2 truncate">
-              {deal.is_contract ? `SLA ${deal.contract_months}M` : deal.companies?.comuna?.replace(/_/g, ' ') || 'Spot'}
-            </span>
-          </div>
-
+          {/* Chevron */}
+          <svg className="h-4 w-4 text-black/20 dark:text-white/20 flex-shrink-0 -mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
         </div>
       </div>
     )
