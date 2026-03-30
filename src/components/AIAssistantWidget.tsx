@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Key, Mail, Activity, Lock, Loader2, Mic, Copy, Check } from 'lucide-react';
+import { Orbit, Key, Mail, Activity, Lock, Loader2, Mic, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '../lib/supabase/client';
@@ -81,7 +81,7 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
         await supabase.from('activities').insert([{
           deal_id: deal.id,
           user_id: user.id,
-          title: type === 'summary' ? 'Resumen Ejecutivo AI (Gemini)' : 'Draft de Email Guardado (Gemini)',
+          title: type === 'summary' ? 'Análisis Estratégico CORE' : 'Borrador Guardado por CORE',
           activity_type: type === 'summary' ? 'REUNION' : 'CORREO',
           completed: true,
           notes: text,
@@ -255,23 +255,23 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
 
 
   return (
-    <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-xl transition-shadow duration-500 mb-6 group relative">
+    <div className="rounded-[40px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-2xl transition-all duration-700 mb-6 group relative">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors" />
       
       {/* Header */}
-      <div className="p-6 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
-            <Sparkles className="h-5 w-5 text-white" />
+      <div className="p-8 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/30 dark:bg-white/[0.01]">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-[18px] bg-primary/10 flex items-center justify-center border border-primary/20">
+            <Orbit className="h-6 w-6 text-primary animate-[spin_8s_linear_infinite]" />
           </div>
           <div>
-            <h3 className="font-black text-[15px] tracking-tight dark:text-slate-100 uppercase">Copiloto AI</h3>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Impulsado por Google Gemini</p>
+            <h3 className="font-black text-[16px] tracking-tight dark:text-slate-100 uppercase">CORE AI</h3>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">Módulo de Apoyo Estratégico</p>
           </div>
         </div>
         
         {hasKey && !isConfiguring && (
-          <Button variant="ghost" size="icon" onClick={() => setIsConfiguring(true)} className="h-8 w-8 rounded-full hover:bg-slate-200 dark:hover:bg-[#2C2C2E] text-muted-foreground">
+          <Button variant="ghost" size="icon" onClick={() => setIsConfiguring(true)} className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground">
             <Lock className="h-4 w-4" />
           </Button>
         )}
@@ -312,32 +312,34 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-               <Button 
-                onClick={handleSummarize} 
-                disabled={loadingType !== null}
-                className="w-full rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:hover:bg-indigo-950/50 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50 h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
-               >
-                 {loadingType === 'summary' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Activity className="h-5 w-5" />}
-                 <span className="font-black text-[11px] uppercase tracking-wider">Resumir Historial</span>
-               </Button>
-               
-               <Button 
-                onClick={handleEmailDraft} 
-                disabled={loadingType !== null || isRecording}
-                className="w-full rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50 h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
-               >
-                 {loadingType === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
-                 <span className="font-black text-[11px] uppercase tracking-wider">Redactar Seguimiento</span>
-               </Button>
+            <div className="grid grid-cols-1 gap-3">
+               <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    onClick={handleSummarize} 
+                    disabled={loadingType !== null}
+                    className="w-full rounded-[24px] bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-foreground border border-black/[0.05] dark:border-white/[0.05] h-auto py-5 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
+                  >
+                    {loadingType === 'summary' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Activity className="h-5 w-5 text-primary" />}
+                    <span className="font-black text-[10px] uppercase tracking-wider">Análisis CORE</span>
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleEmailDraft} 
+                    disabled={loadingType !== null || isRecording}
+                    className="w-full rounded-[24px] bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-foreground border border-black/[0.05] dark:border-white/[0.05] h-auto py-5 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
+                  >
+                    {loadingType === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5 text-primary" />}
+                    <span className="font-black text-[10px] uppercase tracking-wider">Borrador Email</span>
+                  </Button>
+               </div>
                
                <Button 
                 onClick={handleVoiceNote} 
                 disabled={loadingType !== null || isRecording}
-                className={`w-full rounded-2xl border h-auto py-4 flex flex-col items-center justify-center gap-2 transition-all shadow-none ${isRecording ? 'bg-rose-500 text-white animate-pulse border-rose-600' : 'bg-slate-100 dark:bg-[#2C2C2E] hover:bg-slate-200 text-foreground border-border/40'}`}
+                className={`w-full rounded-full border h-14 flex items-center justify-center gap-4 transition-all shadow-none ${isRecording ? 'bg-rose-500 text-white animate-pulse border-rose-600' : 'bg-primary text-white hover:bg-primary/90 border-transparent shadow-xl shadow-primary/20'}`}
                >
                  {loadingType === 'voice' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mic className={`h-5 w-5 ${isRecording ? 'animate-bounce' : ''}`} />}
-                 <span className="font-black text-[11px] uppercase tracking-wider">{isRecording ? 'Escuchando...' : 'Grabar Nota en Terreno'}</span>
+                 <span className="font-black text-[11px] uppercase tracking-[0.2em]">{isRecording ? 'Escuchando Voz...' : 'Grabar Nota Técnica'}</span>
                </Button>
             </div>
 

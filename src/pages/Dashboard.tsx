@@ -98,37 +98,41 @@ function BarChart({ data, onSelect, color = '#10b981', prefix = '$' }: { data: {
 }
 
 // ── KPI Card Widget ───────────────────────────────────────────────────
-function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, gradientClass }: any) {
+function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, variant = 'glass' }: any) {
+  const baseStyles = "group relative overflow-hidden rounded-[28px] p-6 transition-all duration-700 cursor-pointer active:scale-[0.98]"
+  const variants: any = {
+    glass: "bg-white dark:bg-[#1C1C1E] border border-black/[0.03] dark:border-white/[0.03] shadow-sm hover:shadow-[0_30px_60px_rgba(0,0,0,0.07)] hover:-translate-y-1.5",
+    primary: "bg-primary text-white shadow-[0_20px_50px_rgba(0,122,255,0.25)] hover:shadow-[0_40px_80px_rgba(0,122,255,0.35)] hover:-translate-y-1.5",
+    accent: "bg-black dark:bg-white text-white dark:text-black shadow-2xl hover:-translate-y-1.5"
+  }
+
   return (
-    <div 
-      onClick={onClick}
-      className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 cursor-pointer ${gradientClass || 'bg-white dark:bg-black'} ${highlight ? 'ring-2 ring-primary/20' : ''}`}
-    >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-colors" />
-      
-      <div className="flex items-center justify-between mb-2 relative z-10">
-        <div className={`p-3 rounded-3xl border shadow-sm transition-all duration-300 ${gradientClass ? 'bg-white/20 border-white/20' : 'bg-slate-50 dark:bg-white/5 border-border/20 group-hover:bg-primary/10 group-hover:border-primary/20'}`}>
-          <Icon className={`h-6 w-6 ${gradientClass ? 'text-white' : 'text-primary'}`} strokeWidth={2.5} />
+    <div onClick={onClick} className={`${baseStyles} ${variants[variant]} ${highlight ? 'ring-2 ring-primary/20' : ''}`}>
+      {/* Icon + Trend row */}
+      <div className="flex items-center justify-between mb-6">
+        <div className={`p-3 rounded-2xl ${variant === 'glass' ? 'bg-slate-50 dark:bg-white/5 border border-black/[0.03] dark:border-white/5' : 'bg-white/10 border border-white/10'}`}>
+          <Icon className={`h-5 w-5 ${variant === 'glass' ? 'text-primary' : 'text-white dark:text-black'}`} strokeWidth={2.5} />
         </div>
         {trend && (
-          <div className={`flex items-center gap-1 text-[11px] font-black px-3 py-1.5 rounded-2xl shadow-sm border ${
-            gradientClass 
-              ? 'bg-white/20 border-white/20 text-white backdrop-blur-md'
-              : trend.up ? 'text-emerald-600 bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800' : 'text-rose-600 bg-rose-50/50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-800'
+          <div className={`flex items-center gap-1 text-[10px] font-black px-3 py-1.5 rounded-full border ${
+            variant !== 'glass'
+              ? 'bg-white/10 border-white/10 text-white'
+              : trend.up ? 'text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800' : 'text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-800'
           }`}>
-            {trend.up ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            {trend.up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
             {trend.val}
           </div>
         )}
       </div>
       
-      <div className="flex flex-col relative z-10 mt-2">
-        <span className={`text-[11px] font-black uppercase tracking-[0.2em] leading-none mb-2 ${gradientClass ? 'text-white/70' : 'text-muted-foreground opacity-60'}`}>{label}</span>
-        <div className={`text-4xl font-black tracking-tighter transition-all duration-300 ${gradientClass ? 'text-white' : 'text-foreground group-hover:text-primary'}`}>
+      {/* Value block */}
+      <div className="space-y-1 min-w-0">
+        <span className={`text-[10px] font-black uppercase tracking-[0.3em] leading-none block mb-3 ${variant === 'glass' ? 'text-muted-foreground opacity-40' : 'opacity-60'}`}>{label}</span>
+        <div className="text-[28px] font-black tracking-tighter leading-none tabular-nums truncate">
           {value}
         </div>
         {sub && (
-          <p className={`text-[12px] font-bold tracking-tight mt-1 truncate ${gradientClass ? 'text-white/80' : 'text-muted-foreground'}`}>
+          <p className={`text-[12px] font-bold tracking-tight mt-3 truncate ${variant === 'glass' ? 'text-muted-foreground' : 'opacity-70'}`}>
             {sub}
           </p>
         )}
@@ -136,6 +140,7 @@ function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, gra
     </div>
   )
 }
+
 
 // ── Section Title ─────────────────────────────────────────────────────
 function SectionTitle({ title, sub }: { title: string; sub: string }) {
@@ -284,9 +289,11 @@ export default function Dashboard() {
     })).sort((a, b) => b.value - a.value).slice(0, 5)
   })()
 
+  // Para BI y Analítica, a veces es mejor ver el histórico completo o un set más amplio
+  const biHistoricalDeals = deals.filter(d => d.stage !== 7)
   const porIndustria = (() => {
     const counts: Record<string, { total: number, deals: any[] }> = {}
-    activos.forEach(d => {
+    biHistoricalDeals.forEach(d => {
       const seg = d.companies?.segmento || 'OTROS'
       if (!counts[seg]) counts[seg] = { total: 0, deals: [] }
       counts[seg].total++
@@ -298,12 +305,12 @@ export default function Dashboard() {
       value: info.total,
       deals: info.deals,
       color: colors[i % colors.length]
-    }))
+    })).sort((a,b) => b.value - a.value)
   })()
 
   const porComuna = (() => {
     const counts: Record<string, { total: number, deals: any[] }> = {}
-    activos.forEach(d => {
+    biHistoricalDeals.forEach(d => {
       const com = d.companies?.comuna || 'SIN COMUNA'
       if (!counts[com]) counts[com] = { total: 0, deals: [] }
       counts[com].total++
@@ -312,41 +319,42 @@ export default function Dashboard() {
     return Object.entries(counts)
       .map(([label, info]) => ({ label, value: info.total, deals: info.deals }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5)
+      .slice(0, 8)
   })()
 
   return (
     <div className="p-6 md:p-10 space-y-10 max-w-7xl mx-auto font-sans pb-24">
       
-      {/* Dynamic Header with Tabs */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-8 border border-black/[0.02] dark:border-white/[0.02] shadow-sm">
-        <div className="space-y-1">
-          <h1 className="text-[36px] md:text-[42px] font-black tracking-tight text-foreground leading-none">
-            {activeTab === 'OVERVIEW' ? 'Dashboard' : 'Analítica BI'}
+      {/* Dynamic Header with Tabs (Clean Slate) */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between py-10 mb-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-1.5 w-8 rounded-full bg-primary" />
+            <span className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Intelligence Hub</span>
+          </div>
+          <h1 className="text-[48px] md:text-[64px] font-black tracking-tight text-foreground leading-[0.9] -ml-1">
+            {activeTab === 'OVERVIEW' ? 'Negocios' : 'Analítica BI'}
           </h1>
-          <p className="text-[13px] text-muted-foreground font-semibold">
-            {activeTab === 'OVERVIEW' ? 'Resumen de ventas y pipeline' : 'Inteligencia de negocios avanzada'}
-          </p>
           
-          <div className="flex gap-6 mt-8">
+          <div className="flex gap-10 pt-4">
             <button 
               onClick={() => setActiveTab('OVERVIEW')}
-              className={`text-[11px] font-black uppercase tracking-[0.2em] pb-2 border-b-2 transition-all ${activeTab === 'OVERVIEW' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-40 hover:opacity-100'}`}
+              className={`text-[12px] font-black uppercase tracking-[0.2em] pb-3 border-b-2 transition-all ${activeTab === 'OVERVIEW' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-30 hover:opacity-100'}`}
             >
-              Vista General
+              Overview
             </button>
             <button 
               onClick={() => setActiveTab('BI')}
-              className={`text-[11px] font-black uppercase tracking-[0.2em] pb-2 border-b-2 transition-all flex items-center gap-2 ${activeTab === 'BI' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-40 hover:opacity-100'}`}
+              className={`text-[12px] font-black uppercase tracking-[0.2em] pb-3 border-b-2 transition-all flex items-center gap-3 ${activeTab === 'BI' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-30 hover:opacity-100'}`}
             >
-              Analítica Avanzada <Zap className="h-3 w-3 fill-amber-500 text-amber-500" />
+              Insights <Zap className="h-4 w-4 fill-amber-500 text-amber-500" />
             </button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col md:items-end gap-3 mt-8 md:mt-0">
-          <div className="bg-[#F8FAFC] dark:bg-[#2C2C2E] p-1.5 rounded-full flex items-center shadow-inner">
+        <div className="flex flex-col md:items-end gap-4 mt-12 md:mt-0">
+          <div className="bg-slate-50 dark:bg-white/5 p-1 rounded-full flex items-center shadow-inner border border-black/[0.03] dark:border-white/5">
             {[
               { id: 'MONTH', label: 'Mes' },
               { id: 'QUARTER', label: 'Trimestre' },
@@ -355,10 +363,10 @@ export default function Dashboard() {
               <button
                 key={item.id}
                 onClick={() => setRange(item.id as TimeRange)}
-                className={`h-9 px-6 rounded-full flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                className={`h-9 px-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${
                   range === item.id 
-                    ? 'bg-white dark:bg-[#3A3A3C] text-black dark:text-white shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground opacity-50'
+                    ? 'bg-white dark:bg-[#3A3A3C] text-black dark:text-white shadow-lg' 
+                    : 'text-muted-foreground hover:text-foreground opacity-40'
                 }`}
               >
                 {item.label}
@@ -366,18 +374,18 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {range === 'MONTH' && (
-              <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer">
+              <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
                 {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
               </select>
             )}
             {range === 'QUARTER' && (
-              <select value={selectedQuarter} onChange={(e) => setSelectedQuarter(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer">
+              <select value={selectedQuarter} onChange={(e) => setSelectedQuarter(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
                 {[0,1,2,3].map(q => <option key={q} value={q}>Q{q+1}</option>)}
               </select>
             )}
-            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer">
+            <select value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
               {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
@@ -392,31 +400,33 @@ export default function Dashboard() {
               <KpiCard
                 label="Nuevos Ingresos"
                 value={fmtCLP(ingresosMes)}
-                sub={`${ganados.length} Cierres`}
+                sub={`${ganados.length} Cierres Exitosos`}
                 icon={DollarSign}
-                gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400"
+                variant="primary"
                 onClick={() => setSelectedMetric({ label: 'Cierres (Ganados)', deals: ganados })}
               />
               <KpiCard
                 label="Cierre Realista AI"
                 value={fmtCLP(totalPonderado)}
-                sub="Ingreso ponderado por riesgo"
+                sub="Basado en scoring de riesgo"
                 icon={Target}
                 highlight
+                trend={{ val: "IA Forecast", up: true }}
                 onClick={() => setSelectedMetric({ label: 'Cierre Realista AI (Activos)', deals: activos })}
               />
               <KpiCard
                 label="Pipeline Activo"
                 value={fmtCLP(pipelineForecast)}
-                sub={`${propuestas.length} Propuestas`}
+                sub={`${propuestas.length} Negociaciones`}
                 icon={Briefcase}
                 onClick={() => setSelectedMetric({ label: 'Pipeline Activo', deals: propuestas })}
               />
               <KpiCard
                 label="Win Rate"
                 value={`${winRate}%`}
-                sub="Tasa de éxito comercial"
+                sub="Conversión Comercial"
                 icon={TrendingUp}
+                trend={{ val: "Saludable", up: winRate > 30 }}
               />
             </div>
 
@@ -434,31 +444,31 @@ export default function Dashboard() {
               
               <div className="grid gap-6">
                 {[
-                  { label: 'Prospección inicial', stage: 1, c: '#94a3b8' },
-                  { label: 'Contacto establecido', stage: 2, c: '#60a5fa' },
-                  { label: 'Visita técnica', stage: 3, c: '#818cf8' },
-                  { label: 'Propuesta emitida', stage: 4, c: '#f59e0b' },
-                  { label: 'Cierre negociación', stage: 5, c: '#fb923c' },
+                  { id: 1, name: 'Prospección', color: '#64748b', bg: 'bg-slate-500/5', border: 'border-slate-500/20' },
+                  { id: 2, name: 'Contacto', color: '#0ea5e9', bg: 'bg-sky-500/5', border: 'border-sky-500/20' },
+                  { id: 3, name: 'Visita', color: '#8b5cf6', bg: 'bg-violet-500/5', border: 'border-violet-500/20' },
+                  { id: 4, name: 'Propuesta', color: '#f59e0b', bg: 'bg-amber-500/5', border: 'border-amber-500/20' },
+                  { id: 5, name: 'Negociación', color: '#f97316', bg: 'bg-orange-500/5', border: 'border-orange-500/20' },
                 ].map(s => {
-                  const stageDeals = filteredDeals.filter(d => d.stage === s.stage)
+                  const stageDeals = filteredDeals.filter(d => d.stage === s.id)
                   const count = stageDeals.length
                   const val = stageDeals.reduce((a, d) => a + (d.valor_neto || 0), 0)
                   const pct = activos.length > 0 ? (count / activos.length) * 100 : 0
                   return (
                     <div 
-                      key={s.stage} 
-                      onClick={() => setSelectedMetric({ label: `Etapa: ${s.label}`, deals: stageDeals })}
+                      key={s.id} 
+                      onClick={() => setSelectedMetric({ label: `Etapa: ${s.name}`, deals: stageDeals })}
                       className="flex flex-col gap-2 group cursor-pointer hover:bg-slate-50 dark:hover:bg-white/[0.02] p-3 -mx-3 rounded-2xl transition-all"
                     >
                       <div className="flex justify-between items-end">
                         <div className="flex items-center gap-2">
-                           <span className="font-black text-[13px] tracking-tight text-foreground/80 group-hover:text-primary transition-colors">{s.label}</span>
+                           <span className="font-black text-[13px] tracking-tight text-foreground/80 group-hover:text-primary transition-colors">{s.name}</span>
                            <span className="text-[10px] font-bold text-muted-foreground opacity-40 tabular-nums">({count})</span>
                         </div>
                         <span className="text-[11px] font-black tabular-nums">{val > 0 ? fmtCLP(val) : '-'}</span>
                       </div>
                       <div className="h-[6px] w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden border border-border/5">
-                        <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: s.c }} />
+                        <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: s.color }} />
                       </div>
                       {stageDeals.some(d => d.is_risk) && (
                         <div className="text-[9px] text-rose-500 font-black uppercase tracking-widest flex items-center gap-1">
@@ -566,38 +576,57 @@ export default function Dashboard() {
                 value={fmtCLP(cac)}
                 sub="Inversión por contrato ganado"
                 icon={Target}
-                trend={{ val: "Meta: < $300k", up: cac < 300000 }}
+                trend={{ val: "Target < $300k", up: cac < 300000 }}
               />
               <KpiCard
                 label="LTV (Valor Cliente)"
                 value={fmtCLP(ltv)}
-                sub="Ingreso estimado por ciclo vida"
+                sub="Ciclo de vida estimado"
                 icon={Zap}
-                gradientClass="bg-gradient-to-br from-amber-500 to-orange-600"
+                variant="accent"
               />
               <KpiCard
                 label="Ratio LTV:CAC"
                 value={`${Math.round(ltv / cac || 0)}x`}
-                sub="Salud del modelo de negocio"
+                sub="Salud del Negocio"
                 icon={TrendingUp}
-                gradientClass="bg-black dark:bg-zinc-100 dark:text-zinc-900 text-white"
+                highlight
               />
             </div>
 
-            <div className="mt-8 bg-slate-50 dark:bg-white/5 border border-border/30 rounded-[32px] p-8">
-               <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-black shadow-sm flex items-center justify-center shrink-0">
-                     <Activity className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="space-y-2">
-                     <h4 className="font-black text-[15px] uppercase tracking-tight">Guía de Métricas Estratégicas</h4>
-                     <p className="text-[13px] text-muted-foreground leading-relaxed">
-                        • **CAC (Cost of Acquisition):** Indica cuánto estás invirtiendo en marketing para conseguir un cliente. Si este valor sube demasiado, tu rentabilidad se ve afectada.<br/>
-                        • **LTV (Lifetime Value):** Es la proyección de cuánto dinero dejará un cliente durante toda su relación con la empresa. <br/>
-                        • **Ratio LTV:CAC:** Un ratio de **3x o superior** indica un modelo de negocio saludable y escalable.
-                     </p>
-                  </div>
-               </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+               {[
+                 { 
+                   title: 'CAC', 
+                   full: 'Cost of Acquisition', 
+                   desc: 'Inversión en marketing para captar un cliente. Si sube, tu rentabilidad baja.',
+                   color: 'bg-indigo-500'
+                 },
+                 { 
+                   title: 'LTV', 
+                   full: 'Lifetime Value', 
+                   desc: 'Ingreso proyectado de un cliente durante toda su relación con la empresa.',
+                   color: 'bg-amber-500'
+                 },
+                 { 
+                   title: 'Ratio LTV:CAC', 
+                   full: 'Modelo de Negocio', 
+                   desc: 'Un ratio de 3x o superior indica un negocio saludable y altamente escalable.',
+                   color: 'bg-emerald-500'
+                 }
+               ].map(m => (
+                 <div key={m.title} className="bg-white dark:bg-[#1C1C1E] p-8 rounded-[40px] border border-border/20 shadow-sm relative overflow-hidden group">
+                    <div className={`absolute top-0 right-0 w-24 h-24 ${m.color} opacity-5 blur-3xl -mr-12 -mt-12 transition-opacity group-hover:opacity-20`} />
+                    <div className="relative z-10 space-y-3">
+                       <div className="flex items-center gap-3">
+                          <div className={`h-2 w-2 rounded-full ${m.color}`} />
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">{m.full}</span>
+                       </div>
+                       <h4 className="text-2xl font-black tracking-tighter">{m.title}</h4>
+                       <p className="text-xs font-medium text-muted-foreground leading-relaxed">{m.desc}</p>
+                    </div>
+                 </div>
+               ))}
             </div>
           </section>
 

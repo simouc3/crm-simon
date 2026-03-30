@@ -1,5 +1,17 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, AlertTriangle, Lightbulb, Copy, Check, Zap } from 'lucide-react';
+import { 
+  Lightbulb, 
+  TrendingUp, 
+  Target, 
+  BarChart3, 
+  Loader2, 
+  AlertTriangle, 
+  Copy, 
+  Check,
+  ArrowRight,
+  Orbit,
+  Cpu
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getGeminiKey, getAIModel } from '../lib/ai/config';
 
@@ -25,6 +37,9 @@ export function DashboardAIInsights({ deals, metrics }: DashboardAIInsightsProps
     setError(null);
     try {
       const apiKey = getGeminiKey();
+      if (!apiKey) {
+        throw new Error("API Key no configurada. Por favor, revisa los ajustes del sistema.");
+      }
       const model = getAIModel(apiKey);
 
       const prompt = `Actúa como un Consultor de Estrategia de Negocios Senior especializado en Servicios Industriales B2B. 
@@ -42,17 +57,18 @@ ${deals.slice(0, 10).map(d => `- ${d.companies?.razon_social || 'Negocio'}: $${(
 
 TU MISIÓN:
 Genera un análisis en 4 puntos clave, usando un tono directo, corporativo y motivador:
-1. 📈 DIAGNÓSTICO DE SALUD: ¿Cómo va el motor comercial según el Win Rate y el Ratio LTV:CAC?
-2. ⚠️ ALERTA DE CONTINUIDAD: Identifica fugas en el embudo y cuellos de botella operativos.
-3. 🎯 FOCO ESTRATÉGICO: ¿En qué segmentos de alta rentabilidad (clínico, alimentario, logístico) deberíamos redoblar esfuerzos?
-4. 🚀 KPI PRIORITARIO: Una acción táctica obligatoria para subir el Win Rate un 5% esta semana.
+1. 📈 DIAGNÓSTICO DE SALUD: Análisis del Win Rate y el Ratio LTV:CAC.
+2. ⚠️ ALERTA DE CONTINUIDAD: Fugas en el embudo.
+3. 🎯 FOCO ESTRATÉGICO: Segmentos de alta rentabilidad.
+4. 🚀 KPI PRIORITARIO: Una acción táctica obligatoria para esta semana.
 
-Usa emojis de lucide-react (simbolizados por texto) y Markdown para estructura. Mantén el texto pulcro y profesional. Evita generalidades.`;
+Estructura tu respuesta con Markdown y usa emojis. Mantén el contenido ejecutivo y de alto nivel.`;
 
       const result = await model.generateContent(prompt);
-      setInsight(result.response.text());
+      const text = result.response.text();
+      setInsight(text);
     } catch (err: any) {
-      setError(err.message || 'Error al conectar con el cerebro de la IA');
+      setError(err.message || 'Error al conectar con CORE AI');
     } finally {
       setLoading(false);
     }
@@ -66,153 +82,160 @@ Usa emojis de lucide-react (simbolizados por texto) y Markdown para estructura. 
   };
 
   return (
-    <div className="relative group overflow-hidden rounded-[40px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] p-8 transition-all duration-500 shadow-sm hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)]">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full -mr-40 -mt-40 blur-3xl group-hover:bg-primary/10 transition-colors pointer-events-none" />
-      
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-[22px] bg-indigo-500 shadow-xl shadow-indigo-500/20 flex items-center justify-center border border-white/20">
-            <Sparkles className="h-7 w-7 text-white animate-pulse" />
+    <div className="space-y-12">
+      {/* Dashboard AI Branding Header (Apple-style Clean) */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 md:px-12 md:py-10 border border-black/[0.03] dark:border-white/[0.03] shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden relative group">
+        <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-primary/5 blur-[120px] rounded-full group-hover:bg-primary/10 transition-all duration-1000" />
+        
+        <div className="flex items-center gap-8 relative z-10">
+          <div className="w-20 h-20 rounded-[32px] bg-slate-50 dark:bg-black flex items-center justify-center border border-black/[0.05] dark:border-white/[0.05] shadow-inner transition-transform duration-700 group-hover:scale-105">
+            <div className="relative">
+              <Orbit className="h-10 w-10 text-primary animate-[spin_10s_linear_infinite]" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                 <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-black tracking-tight dark:text-slate-100 uppercase">Consultor Estratégico AI</h3>
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] opacity-60">Análisis Deep-BI con Google Gemini</p>
+          <div className="space-y-0.5">
+            <h3 className="text-3xl md:text-4xl font-black text-foreground tracking-tighter leading-none">CORE <span className="text-primary">AI</span></h3>
+            <p className="text-[12px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40 leading-none">Kernel de Inteligencia Estratégica</p>
           </div>
         </div>
-
+        
         {!insight ? (
-          <Button 
-            onClick={generateInsights} 
+          <button
+            onClick={generateInsights}
             disabled={loading}
-            className="rounded-full h-12 px-8 font-black text-xs uppercase tracking-widest bg-foreground text-background hover:scale-105 transition-transform"
+            className="relative z-10 bg-primary text-white hover:bg-primary/90 px-10 py-5 rounded-full font-black text-xs uppercase tracking-widest flex items-center gap-3 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 shadow-2xl shadow-primary/20"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
-            {loading ? 'Analizando Datos...' : 'Generar Reporte Estratégico'}
-          </Button>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Analizando...</span>
+              </div>
+            ) : (
+              <>
+                <Cpu className="h-4 w-4" />
+                <span>Generar Informe de Núcleo</span>
+              </>
+            )}
+          </button>
         ) : (
-          <div className="flex gap-2">
+          <div className="flex gap-2 relative z-10">
             <Button 
               variant="outline" 
               onClick={() => setInsight(null)}
-              className="rounded-full h-10 px-6 font-bold text-[10px] uppercase tracking-widest border-border/40"
+              className="rounded-full h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-white/10 border-white/20 text-white hover:bg-white/20"
             >
               Nuevo Análisis
             </Button>
             <Button 
               variant="outline" 
               onClick={copyToClipboard}
-              className="rounded-full h-10 w-10 p-0 border-border/40"
+              className="rounded-full h-10 w-10 p-0 bg-white/10 border-white/20 text-white hover:bg-white/20"
             >
-              {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+              {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
             </Button>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="mt-8 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-          <AlertTriangle className="h-5 w-5 text-rose-500" />
-          <p className="text-xs font-bold text-rose-600">{error}</p>
+        <div className="p-6 rounded-[32px] bg-rose-500/10 border border-rose-500/20 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
+          <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
+            <AlertTriangle className="h-5 w-5 text-white" />
+          </div>
+          <p className="text-sm font-black text-rose-600 dark:text-rose-400 tracking-tight">{error}</p>
         </div>
       )}
 
-      {insight && (
-        <div className="mt-10 animate-in fade-in zoom-in-95 duration-700">
-          <div className="col-span-2 bg-slate-50/50 dark:bg-white/[0.03] rounded-[40px] p-10 border border-border/20 dark:border-white/[0.06] relative overflow-hidden shadow-inner font-medium leading-relaxed">
-            <div className="absolute top-6 right-6 opacity-[0.03] pointer-events-none">
-               <Sparkles className="h-48 w-48 text-indigo-500" />
-            </div>
-            
-            <div className="relative z-10 space-y-6 prose prose-indigo dark:prose-invert max-w-none">
-              {insight.split('\n\n').map((paragraph, idx) => {
-                const headerMatch = paragraph.match(/^(\d\.|📈|⚠️|🎯|🚀)\s+(.*)/);
-                if (headerMatch) {
-                  return (
-                    <div key={idx} className="bg-white/40 dark:bg-black/20 p-6 rounded-[24px] border border-white/40 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow group/card">
-                       <h4 className="text-sm font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-2">
-                         {headerMatch[1]} {headerMatch[2]}
-                       </h4>
-                       <div className="text-[13px] text-slate-600 dark:text-slate-300">
-                         {paragraph.replace(/^\d\.|📈|⚠️|🎯|🚀.*?\n/, '')}
-                       </div>
-                    </div>
-                  );
-                }
-                return <p key={idx} className="text-sm whitespace-pre-wrap">{paragraph}</p>;
-              })}
-            </div>
-          </div>
-          
-          <div className="mt-8 flex items-center gap-3 p-5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-[24px] border border-indigo-500/20">
-             <div className="bg-indigo-500 p-2 rounded-lg shadow-lg">
-                <Lightbulb className="h-4 w-4 text-white" />
-             </div>
-             <p className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 italic opacity-80 leading-snug">
-               Reporte generado bajo demanda. Esta estrategia se ajusta en tiempo real según tu flujo de caja y tasa de cierre actual.
-             </p>
-          </div>
-        </div>
-      )}
-
-      {/* Guía de Métricas Rediseñada */}
+      {/* Guide Cards (Visible when no insight) */}
       {!insight && !loading && (
-        <div className="mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-            <h4 className="text-[14px] font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">Guía de Métricas Estratégicas</h4>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {[
-              { 
-                label: 'CAC', 
-                full: 'Cost of Acquisition', 
-                desc: 'Inversión necesaria para capturar un nuevo cliente. Clave para medir eficiencia de marketing.', 
-                color: 'text-blue-500', 
-                bg: 'bg-blue-500/5',
-                border: 'border-blue-500/20'
-              },
-              { 
-                label: 'LTV', 
-                full: 'Lifetime Value', 
-                desc: 'Valor neto total que un cliente genera durante toda su relación con la empresa.', 
-                color: 'text-purple-500', 
-                bg: 'bg-purple-500/5',
-                border: 'border-purple-500/20'
-              },
-              { 
-                label: 'Ratio LTV:CAC', 
-                full: 'Eficiencia de Capital', 
-                desc: 'Un ratio 3x indica que por cada $1 invertido, recuperas $3. Es señal de escalabilidad.', 
-                color: 'text-emerald-500', 
-                bg: 'bg-emerald-500/5',
-                border: 'border-emerald-500/20'
-              }
-            ].map((m, i) => (
-              <div key={i} className={`p-8 rounded-[40px] border ${m.border} ${m.bg} flex flex-col gap-4 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/5 duration-300 group`}>
-                <span className={`text-2xl font-black ${m.color} group-hover:scale-110 transition-transform origin-left`}>{m.label}</span>
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-[0.15em] opacity-50 text-foreground">{m.full}</p>
-                  <p className="text-[12px] font-medium leading-relaxed text-muted-foreground">{m.desc}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
+           {[
+             {
+               label: 'CAC',
+               title: 'Cost of Acquisition',
+               desc: 'Indica cuánto estás invirtiendo en marketing para conseguir un cliente. Si este valor sube demasiado, tu rentabilidad se ve afectada.',
+               icon: Target,
+               color: 'text-blue-500',
+               bg: 'bg-blue-500/5',
+               border: 'border-blue-500/10'
+             },
+             {
+               label: 'LTV',
+               title: 'Lifetime Value',
+               desc: 'Es la proyección de cuánto dinero dejará un cliente durante toda su relación con la empresa.',
+               icon: TrendingUp,
+               color: 'text-purple-500',
+               bg: 'bg-purple-500/5',
+               border: 'border-purple-500/10'
+             },
+             {
+               label: 'Ratio 3x+',
+               title: 'Escalabilidad',
+               desc: 'Un ratio de 3x o superior indica un modelo de negocio saludable y escalable. Crucial para medir la salud financiera.',
+               icon: BarChart3,
+               color: 'text-emerald-500',
+               bg: 'bg-emerald-500/5',
+               border: 'border-emerald-500/10'
+             }
+           ].map((card, i) => (
+             <div key={i} className={`p-8 rounded-[48px] border ${card.border} ${card.bg} flex flex-col gap-6 group hover:translate-y-[-8px] transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/5`}>
+                <div className={`w-14 h-14 rounded-2xl ${card.bg} border ${card.border} flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-sm`}>
+                   <card.icon className={`h-6 w-6 ${card.color}`} strokeWidth={2.5} />
                 </div>
-              </div>
-            ))}
+                <div className="space-y-2">
+                   <h5 className={`text-xl font-black tracking-tighter ${card.color}`}>{card.label}</h5>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 leading-none">{card.title}</p>
+                   <p className="text-[13px] font-bold text-muted-foreground leading-relaxed pt-2">
+                     {card.desc}
+                   </p>
+                </div>
+                <div className="mt-auto pt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity text-primary">
+                  Saber más <ArrowRight className="h-3 w-3" />
+                </div>
+             </div>
+           ))}
+        </div>
+      )}
+
+      {/* Insight Result */}
+      {insight && (
+        <div className="animate-in fade-in zoom-in-95 duration-700 font-sans">
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-border/40 shadow-xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
+                <Orbit className="h-64 w-64 text-primary" />
+             </div>
+             
+             <div className="relative z-10 space-y-8 prose prose-indigo dark:prose-invert max-w-none">
+                {insight.split('\n\n').map((paragraph: string, idx: number) => {
+                  const headerMatch = paragraph.match(/^(\d\.|📈|⚠️|🎯|🚀)\s+(.*)/);
+                  if (headerMatch) {
+                    return (
+                      <div key={idx} className="bg-slate-50 dark:bg-white/[0.02] p-8 rounded-[32px] border border-border/40 group/card transition-all hover:border-indigo-500/30 shadow-sm">
+                         <h4 className="text-[15px] font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 mb-4 flex items-center gap-3">
+                           <span className="text-xl">{headerMatch[1]}</span> {headerMatch[2]}
+                         </h4>
+                         <div className="text-[14px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                           {paragraph.replace(/^\d\.|📈|⚠️|🎯|🚀.*?\n/, '')}
+                         </div>
+                      </div>
+                    );
+                  }
+                  return <p key={idx} className="text-sm font-bold leading-relaxed opacity-80">{paragraph}</p>;
+                })}
+             </div>
           </div>
 
-          <div className="p-8 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-[40px] border border-indigo-500/10 flex items-center gap-6 group/tip overflow-hidden relative">
-             <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none group-hover:scale-125 transition-transform duration-1000">
-                <Sparkles className="h-32 w-32 text-indigo-500" />
+          <div className="mt-8 p-8 bg-slate-50 dark:bg-white/[0.02] rounded-[40px] border border-border/40 flex flex-col md:flex-row md:items-center gap-8">
+             <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-2xl shadow-primary/30">
+                <Lightbulb className="h-8 w-8 text-white animate-pulse" />
              </div>
-             <div className="w-14 h-14 rounded-3xl bg-white dark:bg-white/5 shadow-sm flex items-center justify-center shrink-0 border border-white dark:border-white/10 group-hover:rotate-6 transition-transform">
-                <Lightbulb className="h-7 w-7 text-indigo-500 animate-pulse" />
-             </div>
-             <div className="space-y-1">
-                <p className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Tip de Senior Management</p>
-                <p className="text-[13px] font-bold text-muted-foreground leading-relaxed">
-                  Haz clic en cualquiera de las gráficas o etapas del embudo para ver el listado de clientes asociado. <span className="text-foreground">Auditoría total en un toque.</span>
-                </p>
-             </div>
+             <p className="text-[13px] font-black text-foreground opacity-60 leading-relaxed uppercase tracking-[0.1em]">
+                Informe CORE AI v2.0 <br />
+                <span className="text-[10px] font-bold opacity-40 tracking-widest italic lowercase">Sincronización basada en parámetros de rentabilidad industrial.</span>
+             </p>
           </div>
         </div>
       )}

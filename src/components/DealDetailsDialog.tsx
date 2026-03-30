@@ -3,14 +3,25 @@ import { supabase } from "../lib/supabase/client"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Phone, Mail, MapPin, CheckCircle2, AlertCircle, Trophy, History } from "lucide-react"
+import { AIAssistantWidget } from "./AIAssistantWidget"
+import { 
+  Building2, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  ChevronRight, 
+  Target, 
+  Zap, 
+  ShieldCheck, 
+  FileText,
+  BarChart4,
+  History,
+  CheckCircle2
+} from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -18,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { AIAssistantWidget } from "./AIAssistantWidget"
 
 const fmtCLP = (val: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(val)
@@ -41,7 +51,6 @@ interface DealDetailsDialogProps {
 }
 
 export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: DealDetailsDialogProps) {
-  const [loading, setLoading] = useState(false)
   const [visitaRealizada, setVisitaRealizada] = useState(false)
   const [currentStage, setCurrentStage] = useState<number>(1)
   
@@ -51,7 +60,6 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
   
   // States for Images/Files
   const [files, setFiles] = useState<any[]>([])
-  const [uploading, setUploading] = useState(false)
 
   // States for Email tracking
   const [ultimoCorreoAt, setUltimoCorreoAt] = useState<string | null>(null)
@@ -59,10 +67,6 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
 
   // State for Loss Reason
   const [motivoPerdida, setMotivoPerdida] = useState("")
-
-  // State for inline editing of commercial data
-  const [isEditingValor, setIsEditingValor] = useState(false)
-  const [newValorNeto, setNewValorNeto] = useState("")
 
   // State for recurring contracts (MRR)
   const [isContract, setIsContract] = useState(false)
@@ -79,7 +83,6 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
       setVisitaRealizada(deal.visita_realizada || false)
       setCotizacionDetalles(deal.cotizacion_detalles || "")
       setValorNetoCotizado(deal.valor_neto ? String(deal.valor_neto) : "")
-      setNewValorNeto(deal.valor_neto ? String(deal.valor_neto) : "")
       setCurrentStage(deal.stage || 1)
       setUltimoCorreoAt(deal.ultimo_correo_at || null)
       setCorreoRespondido(deal.correo_respondido || false)
@@ -193,7 +196,6 @@ Equipo Comercial`)
   }
 
   const toggleVisita = async () => {
-    setLoading(true)
     const newValue = !visitaRealizada
     const { error } = await supabase.from('deals').update({ visita_realizada: newValue }).eq('id', deal.id)
     if (!error) {
@@ -202,14 +204,12 @@ Equipo Comercial`)
     } else {
       alert("Error actualizando visita: " + error.message)
     }
-    setLoading(false)
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files
     if (!selectedFiles || selectedFiles.length === 0) return
     
-    setUploading(true)
     for (let i = 0; i < selectedFiles.length; i++) {
       const file = selectedFiles[i]
       const fileExt = file.name.split('.').pop()
@@ -236,11 +236,9 @@ Equipo Comercial`)
     }
     
     await fetchFiles()
-    setUploading(false)
   }
 
   const saveCotizacion = async () => {
-    setLoading(true)
     const neto = parseFloat(valorNetoCotizado) || 0
     const { error } = await supabase.from('deals').update({ 
       cotizacion_detalles: cotizacionDetalles,
@@ -248,7 +246,6 @@ Equipo Comercial`)
       valor_total: neto * 1.19
     }).eq('id', deal.id)
     
-    setLoading(false)
     if (!error) {
       if (onDealUpdated) onDealUpdated()
       alert("Cotización guardada exitosamente.")
@@ -257,535 +254,436 @@ Equipo Comercial`)
     }
   }
 
-  const saveValorComercial = async () => {
-    setLoading(true)
-    const neto = parseFloat(newValorNeto) || 0
-    const { error } = await supabase.from('deals').update({
-      valor_neto: neto,
-      valor_total: neto * 1.19
-    }).eq('id', deal.id)
-    setLoading(false)
-    if (!error) {
-      setIsEditingValor(false)
-      if (onDealUpdated) onDealUpdated()
-    } else {
-      alert("Error actualizando valor: " + error.message)
-    }
-  }
-
-  const saveContractConfig = async () => {
-    setLoading(true)
-    const months = parseInt(contractMonths) || 0
-    const { error } = await supabase.from('deals').update({
-      is_contract: isContract,
-      contract_months: isContract ? months : 0
-    }).eq('id', deal.id)
-    setLoading(false)
-    if (!error) {
-      if (onDealUpdated) onDealUpdated()
-      alert("Configuración de contrato guardada exitosamente.")
-    } else {
-      alert("Error guardando contrato: " + error.message)
-    }
-  }
-
   if (!deal) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-[550px] max-h-[90vh] overflow-y-auto rounded-[32px] p-4 sm:p-6">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <DialogTitle className="text-xl">{deal.title}</DialogTitle>
-            {deal.companies?.lead_score && (
-              <div className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-1">
-                🔥 {deal.companies.lead_score}
-              </div>
-            )}
-          </div>
-          <DialogDescription>
-            {deal.companies?.razon_social} · Ficha del negocio
-          </DialogDescription>
-        </DialogHeader>
-
-        {/* Alerta de Riesgo IA */}
-        {deal.is_risk && (
-          <div className="bg-rose-500 text-white rounded-2xl p-4 border border-rose-600 shadow-lg shadow-rose-500/20 animate-in slide-in-from-top-2 duration-500">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertCircle className="h-5 w-5 animate-bounce" />
-              <span className="font-black text-xs uppercase tracking-widest">ALERTA DE RIESGO DETECTADA</span>
-            </div>
-            <p className="text-[11px] font-bold opacity-90 leading-relaxed">
-              Gemini detectó señales de posible pérdida del negocio: "{deal.risk_reason}"
-            </p>
-          </div>
-        )}
-
-        {/* Stage Selector */}
-        <div className="bg-muted/40 rounded-lg p-3 border">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Cambiar Etapa del Negocio</p>
-          <Select value={String(currentStage)} onValueChange={(val) => changeStage(parseInt(val))}>
-            <SelectTrigger className="h-9 text-sm">
-              <SelectValue placeholder="Selecciona etapa..." />
-            </SelectTrigger>
-            <SelectContent>
-              {STAGES.map(s => (
-                <SelectItem key={s.id} value={String(s.id)}>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      s.id === 6 ? 'bg-emerald-500' : 
-                      s.id === 7 ? 'bg-red-500' : 
-                      s.id === currentStage ? 'bg-primary' : 'bg-muted-foreground/30'
-                    }`} />
-                    {s.name}
+      <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[48px] p-0 border-none bg-white dark:bg-black shadow-[0_40px_100px_rgba(0,0,0,0.15)]">
+        
+        {/* Top Header Section (Apple Clean Slate) */}
+        <div className="p-10 md:p-14 bg-white dark:bg-black border-b border-black/[0.03] dark:border-white/[0.03] relative overflow-hidden">
+           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 blur-[120px] -mr-48 -mt-48 rounded-full pointer-events-none" />
+           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Expediente Operativo</span>
+                  <div className="h-1 w-1 rounded-full bg-primary" />
+                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-20">ID: {deal.id.split('-')[0]}</span>
+                </div>
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none text-foreground">
+                  {deal.nombre_proyecto || 'Oportunidad'}
+                </h2>
+                <div className="flex items-center gap-4 text-muted-foreground font-bold text-lg">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
+                    <Building2 className="h-4 w-4 text-primary" />
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                  {deal.companies?.razon_social}
+                </div>
+              </div>
+
+              <div className="flex flex-col md:items-end gap-3">
+                <div className="text-[12px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Presupuesto Estimado</div>
+                <div className="text-5xl md:text-6xl font-black tracking-tighter text-foreground tabular-nums leading-none">
+                  {fmtCLP(deal.valor_neto || 0)}
+                </div>
+                {deal.companies?.lead_score && (
+                  <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-white/5 text-primary text-[11px] font-black px-5 py-2 rounded-full border border-black/[0.03] dark:border-white/[0.05]">
+                    <Zap className="h-4 w-4 fill-primary" /> CALIDAD LEAD: {deal.companies.lead_score}%
+                  </div>
+                )}
+              </div>
+           </div>
         </div>
 
-        {/* Motivo de Pérdida (solo si es Etapa 7) */}
-        {currentStage === 7 && (
-          <div className="bg-red-500/5 rounded-lg p-3 border border-red-500/20">
-            <p className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-              <AlertCircle className="h-3 w-3" /> Indicar Motivo de Pérdida
-            </p>
-            <Select value={motivoPerdida} onValueChange={updateMotivoPerdida}>
-              <SelectTrigger className="h-9 text-sm border-red-500/30 focus:ring-red-500">
-                <SelectValue placeholder="¿Por qué se perdió el negocio?" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Precio">Precio (Presupuesto excedido)</SelectItem>
-                <SelectItem value="Competencia">Competencia (Eligieron a otro)</SelectItem>
-                <SelectItem value="Requisito Legal">Falta de Requisito Legal</SelectItem>
-                <SelectItem value="Otros">Otros / Sin respuesta</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <div className="p-6 md:p-10 space-y-10">
+          
+          {/* ── Status Bar (Apple iOS Cards Style) ── */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
 
-        {/* Configuración de Contrato (solo si es Etapa 6) */}
-        {currentStage === 6 && (
-          <div className="bg-emerald-500/5 rounded-2xl p-5 border border-emerald-500/20 space-y-4 shadow-inner">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4" /> Configuración de Cierre
-                </p>
-                <p className="text-[10px] text-muted-foreground font-medium mt-1">¿Este negocio es un contrato recurrente?</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
-                <input type="checkbox" className="sr-only peer" checked={isContract} onChange={(e) => setIsContract(e.target.checked)} />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500 shadow-inner"></div>
-              </label>
-            </div>
-            
-            {isContract && (
-              <div className="flex flex-col gap-3 pt-4 border-t border-emerald-500/10">
-                <label className="text-[10px] font-black text-emerald-700/80 uppercase tracking-widest">Duración del contrato (meses)</label>
-                <div className="flex gap-2">
-                  <Input 
-                    type="number" 
-                    min="1"
-                    placeholder="Ej. 12"
-                    value={contractMonths}
-                    onChange={(e) => setContractMonths(e.target.value)}
-                    className="h-10 rounded-xl bg-white dark:bg-slate-900 border-emerald-500/30 focus-visible:ring-emerald-500/20 tabular-nums font-bold"
-                  />
-                  <Button onClick={saveContractConfig} disabled={loading} className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] tracking-widest px-6 shadow-md shadow-emerald-500/20">
-                    {loading ? '...' : 'Guardar MRR'}
-                  </Button>
+            {/* Pipeline Stage — wide card */}
+            <div className="md:col-span-5 relative overflow-hidden rounded-[32px] p-7 bg-white dark:bg-[#1C1C1E] border border-black/[0.04] dark:border-white/[0.04] shadow-sm flex flex-col gap-5">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Etapa Actual</p>
                 </div>
-                {contractMonths && parseInt(contractMonths) > 0 && deal.valor_total > 0 && (
-                  <div className="mt-2 bg-emerald-100 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/20 flex items-center justify-between">
-                     <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">MRR Estimado Mensual</span>
-                     <span className="text-[14px] font-black text-emerald-600 tabular-nums tracking-tighter">
-                       {fmtCLP(deal.valor_total / parseInt(contractMonths))}
-                     </span>
-                  </div>
-                )}
+                <div className="h-9 w-9 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <BarChart4 className="h-4 w-4 text-primary" />
+                </div>
               </div>
-            )}
-            
-            {!isContract && (
-              <div className="pt-2 border-t border-emerald-500/10">
-                 <Button onClick={saveContractConfig} disabled={loading} variant="outline" className="w-full h-10 rounded-xl text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all">
-                   Confirmar Venta Única
-                 </Button>
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* AI Assistant Copilot */}
-        <AIAssistantWidget deal={deal} onNewActivity={onDealUpdated} />
+              <Select value={String(currentStage)} onValueChange={(val) => changeStage(parseInt(val))}>
+                <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-black/30 border border-black/[0.04] dark:border-white/[0.04] font-black text-[15px] px-5 shadow-none focus:ring-2 focus:ring-primary/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-none shadow-2xl p-2 backdrop-blur-xl">
+                  {STAGES.map(s => (
+                    <SelectItem key={s.id} value={String(s.id)} className="rounded-xl my-0.5 focus:bg-primary focus:text-white font-bold px-4">
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-        <div className="grid gap-4">
-          {/* Card: Información del Cliente */}
-          <div className="border text-card-foreground rounded-lg bg-card shadow-sm p-4">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-border/10">
-              <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Información de la Empresa</h4>
-              {/* Acciones Rápidas */}
-              <div className="flex gap-2">
-                {deal.companies?.contact_phone && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2.5 text-[10px] font-bold uppercase tracking-tight border-emerald-500/30 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 transition-all rounded-md"
-                    onClick={() => window.open(`tel:${deal.companies.contact_phone}`, '_blank')}
-                  >
-                    <Phone className="h-3 w-3 mr-1.5 opacity-70" />
-                    Llamar
-                  </Button>
-                )}
-                {deal.companies?.contact_email && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2.5 text-[10px] font-bold uppercase tracking-tight border-primary/30 text-primary hover:bg-primary/5 hover:text-primary transition-all rounded-md"
-                    onClick={() => window.open(`mailto:${deal.companies.contact_email}?subject=Cotización - ${deal.title}`, '_blank')}
-                  >
-                    <Mail className="h-3 w-3 mr-1.5 opacity-70" />
-                    Correo
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-4 text-sm">
-              <div className="flex flex-col">
-                <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Razón Social</span>
-                <span className="font-bold tracking-tight break-words">{deal.companies?.razon_social || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">RUT Empresa</span>
-                <span className="font-bold tracking-tight">{deal.companies?.rut || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Contacto Principal</span>
-                <span className="font-bold tracking-tight break-words">{deal.companies?.contact_name || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Teléfono</span>
-                <span className="font-bold tracking-tight text-emerald-600">{deal.companies?.contact_phone || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Email Contacto</span>
-                <span className="font-bold tracking-tight text-primary break-all">{deal.companies?.contact_email || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Ubicación / Comuna</span>
-                <span className="font-bold tracking-tight">{deal.companies?.comuna?.replace(/_/g, ' ') || 'N/A'}</span>
-              </div>
-              {deal.companies?.direccion && (
-                <div className="flex flex-col sm:col-span-2">
-                  <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Dirección</span>
-                  <span className="break-words italic opacity-80">{deal.companies.direccion}</span>
+              {currentStage === 7 && (
+                <div className="animate-in slide-in-from-top-2 duration-300">
+                  <Select value={motivoPerdida} onValueChange={updateMotivoPerdida}>
+                    <SelectTrigger className="h-11 rounded-xl bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200/50 font-bold text-sm">
+                      <SelectValue placeholder="¿Por qué se perdió?" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="Precio">Precio</SelectItem>
+                      <SelectItem value="Competencia">Competencia</SelectItem>
+                      <SelectItem value="Requisito Legal">Requisito Legal</SelectItem>
+                      <SelectItem value="Otros">Otros</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
 
-            {/* Ubicación - Enlace a Google Maps */}
-            {(deal.companies?.direccion || deal.companies?.comuna) && (() => {
-              const parts = [deal.companies?.direccion, deal.companies?.comuna?.replace(/_/g, ' '), 'Chile'].filter(Boolean)
-              const q = parts.join(', ')
-              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`
-              return (
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 flex items-center gap-2 rounded-xl border border-border/30 bg-muted/20 px-3 py-3 hover:bg-muted/40 hover:border-primary/20 transition-all group shadow-sm overflow-hidden"
-                >
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10">
-                    <MapPin className="h-4 w-4 text-primary opacity-60 transition-transform group-hover:scale-110" />
-                  </div>
-                  <div className="flex-1 min-w-0 ml-1">
-                    <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Ubicación del Cliente</p>
-                    <p className="text-[11px] font-bold tracking-tight truncate mt-0.5">{q}</p>
-                  </div>
-                  <span className="text-[9px] text-primary font-black uppercase tracking-tighter shrink-0 group-hover:underline opacity-80 decoration-2">
-                    MAPA ↗
+            {/* Tempo en Etapa — accent card */}
+            <div className="md:col-span-3 relative overflow-hidden rounded-[32px] p-7 bg-[#1C1C1E] dark:bg-white/5 text-white flex flex-col justify-between">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Tempo en Etapa</p>
+              <div className="mt-4">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-[56px] font-black tracking-tighter tabular-nums leading-none">
+                    {deal.stage_changed_at ? Math.floor((Date.now() - new Date(deal.stage_changed_at).getTime()) / (1000 * 60 * 60 * 24)) : 0}
                   </span>
-                </a>
-              )
-            })()}
-          </div>
-
-          {/* Card: Seguimiento de Correos */}
-          {(() => {
-            const diasSinRespuesta = ultimoCorreoAt
-              ? Math.floor((Date.now() - new Date(ultimoCorreoAt).getTime()) / (1000 * 60 * 60 * 24))
-              : null
-            const enAlerta = ultimoCorreoAt && !correoRespondido && diasSinRespuesta !== null && diasSinRespuesta >= 3
-
-            return (
-              <div className={`border rounded-lg shadow-sm p-4 ${enAlerta ? 'border-red-500/60 bg-red-500/5' : 'border-border bg-card'}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-                    <History className="h-3 w-3 opacity-60" /> Seguimiento de Correos
-                    {enAlerta && (
-                      <span className="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter animate-pulse ml-2 shadow-sm shadow-red-500/20">
-                        {diasSinRespuesta}d sin avance
-                      </span>
-                    )}
-                    {correoRespondido && ultimoCorreoAt && (
-                      <span className="text-[9px] bg-emerald-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter ml-2 shadow-sm shadow-emerald-500/20">
-                        Respondido
-                      </span>
-                    )}
-                  </h4>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-white/30 pb-1">días</span>
                 </div>
-
-                {ultimoCorreoAt ? (
-                  <div className="text-xs text-muted-foreground mb-3">
-                    Último correo enviado: <strong>{new Date(ultimoCorreoAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>
-                    {diasSinRespuesta !== null && (
-                      <span className={`ml-2 font-semibold ${diasSinRespuesta >= 3 && !correoRespondido ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        · Hace {diasSinRespuesta} día{diasSinRespuesta !== 1 ? 's' : ''}
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground mb-3">Aún no se ha registrado ningún correo enviado a este cliente.</p>
-                )}
-
-                <div className="grid grid-cols-1 gap-2 mt-2">
-                  <Button size="sm" variant="outline" className="text-[10px] font-bold uppercase tracking-tight h-10 px-4 rounded-xl border-border/40 hover:bg-muted w-full justify-start sm:justify-center" onClick={registerCorreo}>
-                    <Mail className="h-3 w-3 mr-2 opacity-60" /> Registrar Correo
-                  </Button>
-                  {ultimoCorreoAt && !correoRespondido && (
-                    <Button size="sm" className="text-[10px] font-bold uppercase tracking-tight h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm w-full justify-start sm:justify-center" onClick={markRespondido}>
-                      <CheckCircle2 className="h-3 w-3 mr-2" /> Marcar Respondido
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )
-          })()}
-
-          {/* Card: Finanzas / Datos Comerciales */}
-          <div className="bg-card border border-border/40 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Datos Comerciales</h4>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-7 text-[9px] font-black uppercase tracking-widest text-primary hover:bg-primary/5"
-                onClick={() => setIsEditingValor(!isEditingValor)}
-              >
-                {isEditingValor ? 'CANCELAR' : 'EDITAR VALOR'}
-              </Button>
-            </div>
-
-            {isEditingValor ? (
-              <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-1 duration-300">
-                <div>
-                  <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 block opacity-60">Nuevo Valor Neto ($)</label>
-                  <div className="flex gap-2">
-                    <Input 
-                      type="number" 
-                      value={newValorNeto}
-                      onChange={(e) => setNewValorNeto(e.target.value)}
-                      className="h-10 text-sm font-bold tracking-tight rounded-xl"
-                      placeholder="Ej: 1500000"
-                    />
-                    <Button 
-                      className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest"
-                      onClick={saveValorComercial}
-                      disabled={loading}
-                    >
-                      {loading ? '...' : 'GUARDAR'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Valor Neto Estimado</span>
-                  <span className="text-xl font-black tracking-tight text-foreground">
-                    {fmtCLP(deal.valor_neto || 0)}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:items-end sm:text-right">
-                  <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mb-1 opacity-60">Valor Total (IVA Inc.)</span>
-                  <span className="text-xl font-black tracking-tight text-primary">
-                    {fmtCLP(deal.valor_total || 0)}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Card: Traspaso a Operaciones (solo Cierre Ganado) */}
-          {currentStage === 6 && (() => {
-            const empresa = deal.companies?.razon_social || deal.title
-            const contacto = deal.companies?.contact_name || '—'
-            const telefono = deal.companies?.contact_phone || '—'
-            const emailContacto = deal.companies?.contact_email || '—'
-            const comuna = deal.companies?.comuna?.replace(/_/g, ' ') || '—'
-            const direccion = (deal.companies as any)?.direccion || '—'
-            const m2 = deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')} m²` : '—'
-            const neto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(deal.valor_neto || 0)
-            const req = deal.companies?.requisitos_legales?.join(', ') || 'Sin requisitos especificados'
-            const cond = deal.companies?.condiciones_pago?.replace(/_/g, ' ') || '—'
-
-            const subject = encodeURIComponent(`🎉 CIERRE GANADO - Traspaso Operaciones: ${empresa}`)
-            const body = encodeURIComponent(
-`Estimado equipo operativo,
-
-Se ha confirmado el cierre del siguiente negocio. Por favor preparen los insumos y documentación necesaria.
-
-═══════════════════════════════════
-📋 RESUMEN DEL CLIENTE
-═══════════════════════════════════
-Empresa:        ${empresa}
-Contacto:       ${contacto}
-Teléfono:       ${telefono}
-Email:          ${emailContacto}
-Ubicación:      ${direccion}, ${comuna}
-Área estimada:  ${m2}
-
-═══════════════════════════════════
-💰 DETALLES COMERCIALES
-═══════════════════════════════════
-Negocio:           ${deal.title}
-Valor Neto:        ${neto}
-Condiciones Pago:  ${cond}
-
-═══════════════════════════════════
-⚖️ REQUISITOS LEGALES
-═══════════════════════════════════
-${req}
-
-Favor coordinar:
-• Mutual de Seguridad (credenciales y registro)
-• Certificados DT (Dirección del Trabajo)
-• Preparación de insumos y equipos para ${m2}
-
-Saludos,
-Equipo Comercial`)
-
-            return (
-              <div className="relative border border-emerald-500/20 bg-emerald-500/5 rounded-2xl shadow-sm p-5 overflow-hidden">
-                {/* Accent Line */}
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500" />
-                
-                <div className="flex items-center gap-2 mb-4">
-                  <Trophy className="h-4 w-4 text-emerald-600 opacity-80" />
-                  <h4 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Traspaso a Operaciones</h4>
-                  <span className="ml-auto text-[9px] bg-emerald-500 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter shadow-sm shadow-emerald-500/20">CIERRE GANADO</span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Envía el resumen completo del cliente al equipo operativo para que preparen los insumos, credenciales Mutual y certificados DT.
+                <p className="text-[10px] text-white/30 font-bold mt-2 uppercase tracking-widest">
+                  {currentStage === 6 ? 'Contrato cerrado' : 'Sin cambio de etapa'}
                 </p>
-                <div className="bg-white/60 dark:bg-black/20 rounded-xl p-4 text-[11px] space-y-2 mb-5 border border-emerald-500/10 shadow-inner">
-                  <div className="flex justify-between border-b border-emerald-500/5 pb-1"><span className="text-[9px] font-black text-muted-foreground uppercase opacity-60">Empresa:</span> <strong className="font-bold tracking-tight text-emerald-800 dark:text-emerald-200">{empresa}</strong></div>
-                  <div className="flex justify-between border-b border-emerald-500/5 pb-1"><span className="text-[9px] font-black text-muted-foreground uppercase opacity-60">Contacto:</span> <span className="font-medium">{contacto} · {telefono}</span></div>
-                  <div className="flex justify-between border-b border-emerald-500/5 pb-1"><span className="text-[9px] font-black text-muted-foreground uppercase opacity-60">Área:</span> <span className="font-medium">{m2} · {direccion}</span></div>
-                  <div className="flex justify-between border-b border-emerald-500/5 pb-1"><span className="text-[9px] font-black text-muted-foreground uppercase opacity-60">Valor:</span> <span className="font-bold">{neto} · {cond}</span></div>
-                  <div className="flex justify-between"><span className="text-[9px] font-black text-muted-foreground uppercase opacity-60">Requisitos:</span> <span className="font-medium truncate max-w-[200px]">{req}</span></div>
-                </div>
-                <Button
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black uppercase tracking-widest h-11 rounded-xl shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.02]"
-                  onClick={() => window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Enviar a Operaciones
-                </Button>
-              </div>
-            )
-          })()}
-
-          {/* Módulo Especial: Etapa 3 (Visita Agendada) */}
-          {deal.stage === 3 && (
-            <div className="border border-primary/40 text-card-foreground rounded-lg bg-primary/5 shadow-sm p-4">
-              <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
-                📷 Evidencia en Terreno (Visita)
-              </h4>
-              <p className="text-xs text-muted-foreground mb-4">
-                Por favor, adjunta fotografías del área a intervenir para poder respaldar y generar la propuesta comercial con mayor precisión.
-              </p>
-              
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between border-b border-border/50 pb-3 mb-1">
-                  <div className="text-sm font-medium">Estado de la Visita</div>
-                  <Button 
-                    size="sm" 
-                    variant={visitaRealizada ? "default" : "outline"}
-                    className={visitaRealizada ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-                    onClick={toggleVisita}
-                    disabled={loading}
-                  >
-                    {visitaRealizada ? "✅ Realizada" : "Marcar como Realizada"}
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Input 
-                    type="file" 
-                    multiple 
-                    accept="image/*" 
-                    className="text-xs cursor-pointer box-border" 
-                    onChange={handleFileUpload}
-                    disabled={uploading}
-                  />
-                  {uploading && <span className="text-xs text-muted-foreground animate-pulse">Subiendo...</span>}
-                </div>
-                {/* Zona de previsualización */}
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {files.length === 0 && !uploading && (
-                    <div className="col-span-3 text-xs text-muted-foreground italic p-2 text-center bg-muted/50 rounded-md">
-                      Aún no hay fotos subidas.
-                    </div>
-                  )}
-                  {files.map((f, idx) => (
-                    <div key={idx} className="aspect-square bg-muted rounded-md overflow-hidden border">
-                      <img src={f.file_url} alt="Evidencia" className="w-full h-full object-cover hover:scale-105 transition-transform" />
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
-          )}
 
-          {/* Módulo Especial: Etapa 4 (Propuesta Enviada) */}
-          {deal.stage === 4 && (
-            <div className="border border-primary/40 text-card-foreground rounded-lg bg-primary/5 shadow-sm p-4">
-              <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
-                📄 Detalles de Cotización
-              </h4>
-              <p className="text-xs text-muted-foreground mb-4">
-                Define el monto cotizado final y añade detalles específicos de la propuesta formal enviada al cliente.
-              </p>
-              
-              <div className="flex flex-col gap-3">
-                <div>
-                  <label className="text-xs font-medium mb-1 block">Monto Neto Cotizado ($)</label>
-                  <Input 
-                    type="number" 
-                    value={valorNetoCotizado} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValorNetoCotizado(e.target.value)} 
-                    className="h-8 text-sm" 
-                    placeholder="Ej. 1500000" 
+            {/* Contrato — interactive card */}
+            <div className={`md:col-span-4 relative overflow-hidden rounded-[32px] p-7 flex flex-col justify-between transition-all duration-700 ${
+              isContract 
+                ? 'bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)]' 
+                : 'bg-white dark:bg-[#1C1C1E] border border-black/[0.04] dark:border-white/[0.04]'
+            }`}>
+              {/* Background decoration */}
+              {isContract && (
+                <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+              )}
+
+              <div className="flex items-center justify-between relative z-10">
+                <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${isContract ? 'text-white/60' : 'text-muted-foreground opacity-40'}`}>
+                  Contrato SLA
+                </p>
+                {/* Apple-style toggle */}
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={isContract}
+                    onChange={(e) => setIsContract(e.target.checked)}
                   />
-                </div>
-                <div>
-                  <label className="text-xs font-medium mb-1 block">Detalles de la Propuesta / Servicios Incluidos</label>
-                  <Textarea 
-                    value={cotizacionDetalles} 
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCotizacionDetalles(e.target.value)} 
-                    className="min-h-[80px] text-sm resize-none" 
-                    placeholder="Incluye limpieza de 500m2, insumos y maquinaria especializada..." 
-                  />
-                </div>
-                <Button size="sm" className="w-full mt-2" onClick={saveCotizacion} disabled={loading}>
-                  {loading ? 'Guardando...' : 'Guardar Cotización Oficial'}
-                </Button>
+                  <div className={`relative w-12 h-7 rounded-full transition-all duration-500 ${isContract ? 'bg-white/30' : 'bg-slate-200 dark:bg-white/10'}`}>
+                    <div className={`absolute top-1 h-5 w-5 rounded-full shadow-md transition-all duration-500 ${
+                      isContract ? 'left-[26px] bg-white' : 'left-1 bg-white dark:bg-slate-400'
+                    }`} />
+                  </div>
+                </label>
+              </div>
+
+              <div className="relative z-10 mt-4 space-y-3">
+                {isContract ? (
+                  <>
+                    <p className={`text-[10px] font-black uppercase tracking-widest ${isContract ? 'text-white/50' : 'text-muted-foreground/40'}`}>
+                      Duración (meses)
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        min="1"
+                        max="60"
+                        value={contractMonths}
+                        onChange={(e) => setContractMonths(e.target.value)}
+                        placeholder="0"
+                        className="w-24 h-12 rounded-2xl bg-white/20 border border-white/20 text-white font-black text-[22px] text-center placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/40 tabular-nums"
+                      />
+                      <span className="text-white/70 font-black text-[13px] uppercase tracking-widest">meses</span>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        const months = parseInt(contractMonths) || 0
+                        const { error } = await supabase.from('deals').update({
+                          is_contract: true,
+                          contract_months: months
+                        }).eq('id', deal.id)
+                        if (!error && onDealUpdated) onDealUpdated()
+                      }}
+                      className="w-full h-10 rounded-2xl bg-white/20 hover:bg-white/30 border border-white/20 text-white font-black text-[11px] uppercase tracking-widest transition-all duration-300"
+                    >
+                      Guardar SLA
+                    </button>
+                  </>
+                ) : (
+                  <div>
+                    <p className="text-2xl font-black tracking-tight text-muted-foreground/30">Spot</p>
+                    <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest mt-1">Sin compromiso fijo</p>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+
+          </div>
+
+          {/* Main Grid: Data Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            {/* Column Left: Insights & AI */}
+            <div className="space-y-8">
+               
+               {/* Risk & Indicators */}
+               {deal.is_risk ? (
+                 <div className="bg-rose-500 p-8 rounded-[40px] text-white shadow-2xl shadow-rose-500/20 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 -mr-10 -mt-10 opacity-20 rotate-12 transition-transform group-hover:scale-125">
+                       <ShieldCheck className="h-40 w-40" />
+                    </div>
+                    <div className="relative z-10 space-y-4">
+                       <div className="flex items-center gap-2">
+                          <Zap className="h-5 w-5 fill-white animate-pulse" />
+                          <span className="text-[11px] font-black uppercase tracking-[0.3em]">IA: ALERTA CRÍTICA DE RIESGO</span>
+                       </div>
+                       <h4 className="text-xl font-black tracking-tight leading-tight">
+                         "{deal.risk_reason}"
+                       </h4>
+                       <p className="text-xs font-medium text-white/80 leading-relaxed">
+                         Nuestra IA detectó patrones de pérdida basados en la inactividad y el historial de este segmento. Sugerimos contacto inmediato.
+                       </p>
+                    </div>
+                 </div>
+               ) : (
+                 <div className="bg-indigo-600 p-8 rounded-[40px] text-white shadow-xl relative overflow-hidden group">
+                    <div className="absolute bottom-0 right-0 -mr-10 -mb-10 opacity-10 transition-transform group-hover:scale-110">
+                       <Target className="h-40 w-40" />
+                    </div>
+                    <div className="relative z-10">
+                       <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Salud del Negocio</span>
+                       </div>
+                       <p className="text-xl font-black tracking-tight">Oportunidad Estable</p>
+                       <p className="text-xs font-semibold opacity-60 mt-1">Sin desviaciones detectadas en los últimos 7 días.</p>
+                    </div>
+                 </div>
+               )}
+
+               <div className="bg-slate-50 dark:bg-white/[0.02] rounded-[48px] p-2 border border-black/[0.03] dark:border-white/[0.03]">
+                  <AIAssistantWidget deal={deal} onNewActivity={onDealUpdated} />
+               </div>
+
+               {/* Action History / Communication Tracking */}
+               <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-8">
+                  <div className="flex items-center justify-between">
+                     <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Registro de Enlaces</h4>
+                     <History className="h-5 w-5 text-muted-foreground opacity-20" />
+                  </div>
+
+                  <div className="space-y-6">
+                     <div className="flex items-center gap-6 p-6 rounded-[32px] bg-slate-50 dark:bg-black/40 border border-black/[0.03] dark:border-white/[0.05]">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${ultimoCorreoAt ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-200 text-slate-400'}`}>
+                           <Mail className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 leading-none mb-1">Último Contacto</p>
+                           <p className="text-[15px] font-black tracking-tight truncate">
+                             {ultimoCorreoAt ? new Date(ultimoCorreoAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long' }) : 'Pendiente de inicio'}
+                           </p>
+                        </div>
+                        {!correoRespondido && ultimoCorreoAt && (
+                          <div className="h-3 w-3 rounded-full bg-rose-500 animate-pulse border-2 border-white dark:border-black" />
+                        )}
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <Button variant="outline" className="h-14 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 border-black/10 dark:border-white/10 shadow-sm" onClick={registerCorreo}>
+                           Registrar Envío
+                        </Button>
+                        {!correoRespondido && ultimoCorreoAt && (
+                          <Button className="h-14 rounded-full font-black text-[11px] uppercase tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20" onClick={markRespondido}>
+                             Marcar Respuesta
+                          </Button>
+                        )}
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* Column Right: Details & Operations */}
+            <div className="space-y-10">
+               
+               {/* Contact Card (Apple Glassmorphism) */}
+               <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-black/[0.03] dark:border-white/[0.03] shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-10">
+                     <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-primary">Perfil del Partner</h4>
+                     <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
+                        <Building2 className="h-5 w-5 opacity-40 text-primary" />
+                     </div>
+                  </div>
+
+                  <div className="space-y-8">
+                     <div className="grid grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Identificación (RUT)</p>
+                           <p className="text-lg font-black tracking-tighter">{deal.companies?.rut || '—'}</p>
+                        </div>
+                        <div className="space-y-2">
+                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Punto Operativo</p>
+                           <p className="text-lg font-black tracking-tighter text-primary">{deal.companies?.comuna?.replace(/_/g, ' ') || '—'}</p>
+                        </div>
+                     </div>
+
+                     <div className="pt-8 border-t border-black/[0.05] dark:border-white/[0.05] space-y-6">
+                        <div className="flex items-center gap-6">
+                           <div className="w-16 h-16 rounded-full bg-slate-950 dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 shadow-xl">
+                              <span className="font-black text-2xl">{deal.companies?.contact_name?.[0] || '?'}</span>
+                           </div>
+                           <div className="flex-1 min-w-0">
+                              <p className="font-black tracking-tighter text-2xl leading-none truncate">{deal.companies?.contact_name || 'Sin Contacto'}</p>
+                              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 mt-1">{deal.companies?.cargo || 'Key Decision Maker'}</p>
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3">
+                           <Button asChild variant="outline" className="h-14 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-6">
+                              <a href={`tel:${deal.companies?.contact_phone}`} className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-4">
+                                  <Phone className="h-5 w-5 text-primary" />
+                                  <span className="text-[14px] font-black tracking-tight">{deal.companies?.contact_phone || 'Registrar Número'}</span>
+                                </div>
+                                <ChevronRight className="h-4 w-4 opacity-40 group-hover:translate-x-1 transition-transform" />
+                              </a>
+                           </Button>
+                           <Button asChild variant="outline" className="h-14 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-6">
+                              <a href={`mailto:${deal.companies?.contact_email}`} className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-4">
+                                  <Mail className="h-5 w-5 text-primary" />
+                                  <span className="text-[14px] font-black tracking-tight truncate max-w-[200px]">{deal.companies?.contact_email || 'Enviar Invitación'}</span>
+                                </div>
+                                <ChevronRight className="h-4 w-4 opacity-40 group-hover:translate-x-1 transition-transform" />
+                              </a>
+                           </Button>
+                        </div>
+                     </div>
+
+                     {/* Strategic Map Link */}
+                     {(deal.companies?.direccion || deal.companies?.comuna) && (
+                        <Button asChild className="h-16 w-full rounded-[24px] bg-slate-50 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05] hover:bg-slate-100 group transition-all px-6 text-foreground shadow-none">
+                           <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([deal.companies?.direccion, deal.companies?.comuna?.replace(/_/g, ' '), 'Chile'].filter(Boolean).join(', '))}`}
+                              target="_blank"
+                              className="flex items-center justify-between w-full"
+                           >
+                              <div className="flex items-center gap-4">
+                                 <div className="w-10 h-10 rounded-xl bg-white dark:bg-black flex items-center justify-center shadow-sm">
+                                    <MapPin className="h-5 w-5 text-primary" />
+                                 </div>
+                                 <div className="flex-1 min-w-0 text-left">
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40 leading-none mb-1">Geolocalización</p>
+                                    <p className="text-[13px] font-black tracking-tight truncate">{deal.companies?.direccion || deal.companies?.comuna?.replace(/_/g, ' ')}</p>
+                                 </div>
+                              </div>
+                              <ChevronRight className="h-4 w-4 opacity-20 group-hover:translate-x-1 transition-transform" />
+                           </a>
+                        </Button>
+                     )}
+                  </div>
+               </div>
+
+               {/* Operational & Tech Section */}
+               <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-8">
+                  <div className="flex items-center justify-between">
+                     <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Métricas Operativas</h4>
+                     <FileText className="h-5 w-5 text-muted-foreground opacity-20" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-10 pb-8 border-b border-black/[0.05] dark:border-white/[0.05]">
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Área Estimada</p>
+                        <p className="text-4xl font-black tracking-tighter tabular-nums leading-none">
+                           {deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')} m²` : '—'}
+                        </p>
+                     </div>
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">SLA de Pago</p>
+                        <p className="text-2xl font-black tracking-tighter uppercase leading-none">
+                           {deal.companies?.condiciones_pago?.replace(/_/g, ' ') || '—'}
+                        </p>
+                     </div>
+                  </div>
+
+                  {/* Stage-Specific Modules (Apple Style) */}
+                  <div className="space-y-6">
+                     {currentStage === 3 && (
+                        <div className="p-8 rounded-[40px] bg-slate-50 dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.05] space-y-6">
+                           <div className="flex items-center justify-between">
+                             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Auditoría de Visita</p>
+                             <Button size="sm" variant={visitaRealizada ? "default" : "outline"} className={`rounded-full h-10 px-6 text-[10px] font-black uppercase tracking-widest ${visitaRealizada ? 'bg-primary text-white border-transparent shadow-lg shadow-primary/20' : 'border-black/10 dark:border-white/10'}`} onClick={toggleVisita}>
+                               {visitaRealizada ? "✅ VISITADO" : "MARCAR VISITA"}
+                             </Button>
+                           </div>
+                           <div className="space-y-4">
+                              <label className="block p-8 border-2 border-dashed border-black/[0.1] dark:border-white/[0.1] rounded-[32px] hover:bg-white dark:hover:bg-black/20 hover:border-primary/40 transition-all cursor-pointer text-center">
+                                 <Input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" />
+                                 <FileText className="h-8 w-8 text-muted-foreground opacity-20 mx-auto mb-3" />
+                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Subir Evidencia Fotográfica</p>
+                              </label>
+                              
+                              <div className="grid grid-cols-3 gap-3">
+                                {files.map((f, i) => (
+                                  <div key={i} className="aspect-square rounded-[24px] overflow-hidden border border-black/[0.05] dark:border-white/[0.05] shadow-sm transform hover:scale-105 transition-all duration-500">
+                                    <img src={f.file_url} className="w-full h-full object-cover" />
+                                  </div>
+                                ))}
+                              </div>
+                           </div>
+                        </div>
+                     )}
+
+                     {currentStage === 4 && (
+                        <div className="p-8 rounded-[40px] bg-amber-500/5 border border-amber-500/20 space-y-6">
+                           <div className="flex items-center gap-3">
+                              <div className="h-2 w-2 rounded-full bg-amber-500" />
+                              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600">Configuración de Propuesta</p>
+                           </div>
+                           <div className="space-y-4">
+                              <Input type="number" placeholder="Monto Neto Ofertado ($)..." value={valorNetoCotizado} onChange={(e) => setValorNetoCotizado(e.target.value)} className="h-14 rounded-full font-black text-lg px-8 border-amber-500/10 dark:bg-black/20" />
+                              <Textarea placeholder="Desglose de servicios y alcances técnicos..." value={cotizacionDetalles} onChange={(e) => setCotizacionDetalles(e.target.value)} className="rounded-[32px] min-h-[120px] font-bold text-[14px] p-6 border-amber-500/10 dark:bg-black/20" />
+                              <Button className="w-full h-14 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20" onClick={saveCotizacion}>
+                                 Fijar Propuesta Final
+                              </Button>
+                           </div>
+                        </div>
+                     )}
+                     
+                     {currentStage === 6 && (
+                        <div className="p-10 rounded-[48px] bg-primary text-white shadow-[0_30px_70px_rgba(0,122,255,0.3)] relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 -mr-12 -mt-12 opacity-10 group-hover:rotate-12 transition-transform duration-1000">
+                              <ShieldCheck className="h-56 w-56" />
+                           </div>
+                           <div className="relative z-10 space-y-6">
+                              <div className="space-y-2">
+                                 <h4 className="text-3xl font-black tracking-tighter leading-none">Entrega a Operaciones</h4>
+                                 <p className="text-[13px] font-bold opacity-70 leading-relaxed max-w-[80%]">Sincronización automatizada de datos técnicos para el despliegue del proyecto.</p>
+                              </div>
+                              <Button className="w-full h-16 rounded-full bg-white text-primary hover:bg-slate-100 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-4 shadow-2xl" onClick={() => {
+                                 const empresa = deal.companies?.razon_social || deal.title
+                                 const subject = encodeURIComponent(`📦 TRASPASO TÉCNICO - ${empresa}`)
+                                 window.open(`mailto:?subject=${subject}&body=Resumen ejecutivo de cierre listo en plataforma...`, '_blank')
+                              }}>
+                                 <Mail className="h-6 w-6" /> Notificar Despliegue
+                              </Button>
+                           </div>
+                        </div>
+                     )}
+                  </div>
+               </div>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

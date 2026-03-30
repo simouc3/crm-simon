@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { supabase } from '../lib/supabase/client'
 import { DealFormDialog } from '../components/DealFormDialog'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { GripVertical, Building2, MapPin, ChevronRight, Briefcase } from 'lucide-react'
+import { Briefcase } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
-  { id: 1, name: 'Prospección', color: '#94a3b8' },
-  { id: 2, name: 'Contacto', color: '#60a5fa' },
-  { id: 3, name: 'Visita', color: '#818cf8' },
-  { id: 4, name: 'Propuesta', color: '#f59e0b' },
-  { id: 5, name: 'Negociación', color: '#fb923c' },
-  { id: 6, name: 'Ganado', color: '#10b981' },
-  { id: 7, name: 'Perdido', color: '#ef4444' },
+  { id: 1, name: 'Prospección', color: '#64748b', bg: 'bg-slate-500/[0.03]', border: 'border-slate-500/10' },
+  { id: 2, name: 'Contacto', color: '#0ea5e9', bg: 'bg-sky-500/[0.04]', border: 'border-sky-500/20' },
+  { id: 3, name: 'Visita', color: '#8b5cf6', bg: 'bg-violet-500/[0.04]', border: 'border-violet-500/20' },
+  { id: 4, name: 'Propuesta', color: '#f59e0b', bg: 'bg-amber-500/[0.04]', border: 'border-amber-500/20' },
+  { id: 5, name: 'Negociación', color: '#f97316', bg: 'bg-orange-500/[0.04]', border: 'border-orange-500/20' },
+  { id: 6, name: 'Ganado', color: '#10b981', bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/30' },
+  { id: 7, name: 'Perdido', color: '#ef4444', bg: 'bg-rose-500/[0.06]', border: 'border-rose-500/30' },
 ]
 
 const fmtCLP = (n: number) =>
@@ -117,117 +116,127 @@ export default function KanbanBoard() {
   const activeStageValue = activeStageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
   const activeStage = KANBAN_STAGES.find(s => s.id === activeStageId)
 
-  // ── Deal Card Component ──────────────────────────────────────────
-  const DealCard = ({ deal, isDragging = false, showGrip = false }: { deal: any; isDragging?: boolean; showGrip?: boolean }) => (
-    <div
-      onClick={() => openDeal(deal)}
-      className={`bg-white dark:bg-[#1C1C1E] rounded-2xl p-4 cursor-pointer group transition-all duration-300
-        ${isDragging 
-          ? 'shadow-2xl shadow-primary/20 ring-2 ring-primary/30 scale-[1.03] rotate-1' 
-          : 'shadow-[0_1px_3px_rgba(0,0,0,0.06)] dark:shadow-none hover:shadow-lg hover:-translate-y-0.5'
-        }
-        ${deal.stage === 6 ? 'border-l-[3px] border-l-emerald-500' : ''}
-        ${deal.stage === 7 ? 'border-l-[3px] border-l-rose-500' : ''}
-        ${deal.is_risk ? 'border-l-[3px] border-l-rose-600 ring-1 ring-rose-500/20 shadow-lg shadow-rose-500/10' : ''}
-        ${deal.stage < 6 && !deal.is_risk ? 'border border-border/20 dark:border-white/[0.06]' : ''}
-      `}
-    >
-      {/* Top: Company + Grip */}
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-            deal.is_risk ? 'bg-rose-500 shadow-lg shadow-rose-500/30' : 'bg-slate-100/50 dark:bg-white/5'
-          }`}>
-            {deal.is_risk ? <span className="text-white text-[10px] font-black animate-pulse">!</span> : <Building2 className="h-4 w-4 text-muted-foreground/60" />}
+  // Stage palette — Apple 2026 style (tinted backgrounds, not gradients)
+  const stageMap: Record<number, { hex: string; tint: string; border: string; badge: string; dot: string; label: string }> = {
+    1: { hex: '#8E8E93', tint: 'bg-slate-50/80 dark:bg-slate-900/30',       border: 'border-l-slate-300 dark:border-l-slate-600',   badge: 'text-slate-500 bg-slate-100/80 dark:bg-slate-800/60',    dot: 'bg-slate-400',    label: 'Prospección'  },
+    2: { hex: '#32ADE6', tint: 'bg-sky-50/80 dark:bg-sky-950/20',           border: 'border-l-sky-400 dark:border-l-sky-500',         badge: 'text-sky-600 bg-sky-100/80 dark:bg-sky-950/50',          dot: 'bg-sky-500',      label: 'Contacto'     },
+    3: { hex: '#BF5AF2', tint: 'bg-violet-50/80 dark:bg-violet-950/20',     border: 'border-l-violet-400 dark:border-l-violet-500',   badge: 'text-violet-600 bg-violet-100/80 dark:bg-violet-950/50', dot: 'bg-violet-500',   label: 'Visita'       },
+    4: { hex: '#FF9F0A', tint: 'bg-amber-50/80 dark:bg-amber-950/20',       border: 'border-l-amber-400 dark:border-l-amber-500',     badge: 'text-amber-700 bg-amber-100/80 dark:bg-amber-950/50',    dot: 'bg-amber-500',    label: 'Propuesta'    },
+    5: { hex: '#FF6B00', tint: 'bg-orange-50/80 dark:bg-orange-950/20',     border: 'border-l-orange-400 dark:border-l-orange-500',   badge: 'text-orange-700 bg-orange-100/80 dark:bg-orange-950/50', dot: 'bg-orange-500',   label: 'Negociación'  },
+    6: { hex: '#34C759', tint: 'bg-emerald-50/80 dark:bg-emerald-950/20',   border: 'border-l-emerald-400 dark:border-l-emerald-500', badge: 'text-emerald-700 bg-emerald-100/80 dark:bg-emerald-950/50', dot: 'bg-emerald-500', label: 'Ganado'       },
+    7: { hex: '#FF3B30', tint: 'bg-rose-50/80 dark:bg-rose-950/20',         border: 'border-l-rose-400 dark:border-l-rose-500',       badge: 'text-rose-600 bg-rose-100/80 dark:bg-rose-950/50',       dot: 'bg-rose-500',     label: 'Perdido'      },
+  }
+
+  // ── Deal Card Component — Apple 2026 ─────────────────────────────
+  const DealCard = ({ deal, isDragging = false }: { deal: any; isDragging?: boolean }) => {
+    const s = stageMap[deal.stage] || stageMap[1]
+    const isRisk = deal.is_risk
+
+    return (
+      <div
+        onClick={() => openDeal(deal)}
+        className={`
+          relative cursor-pointer group select-none
+          rounded-[22px] border-l-[3px] overflow-hidden
+          transition-all duration-500 ease-out
+          ${s.tint} ${isRisk ? 'border-l-rose-500' : s.border}
+          ${isDragging
+            ? 'scale-[1.04] rotate-[0.8deg] shadow-[0_32px_80px_rgba(0,0,0,0.22)] z-50'
+            : 'shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.10)] hover:-translate-y-1'
+          }
+          border border-black/[0.05] dark:border-white/[0.05]
+        `}
+      >
+        {/* Content */}
+        <div className="p-5">
+
+          {/* Top row: Stage badge + lead score */}
+          <div className="flex items-center justify-between mb-4">
+            <div className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1 rounded-full ${isRisk ? 'bg-rose-100/80 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300' : s.badge}`}>
+              <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${isRisk ? 'bg-rose-500 animate-pulse' : s.dot}`} />
+              {isRisk ? 'Riesgo Activo' : s.label}
+            </div>
+
+            {deal.companies?.lead_score > 0 && (
+              <div className={`text-[10px] font-black tabular-nums px-2 py-0.5 rounded-lg ${
+                deal.companies.lead_score >= 80 ? 'text-emerald-700 bg-emerald-100/80 dark:bg-emerald-950/50 dark:text-emerald-400' :
+                deal.companies.lead_score >= 50 ? 'text-amber-700 bg-amber-100/80 dark:bg-amber-950/50 dark:text-amber-400' :
+                'text-slate-500 bg-slate-100/80 dark:bg-slate-800/60'
+              }`}>
+                {deal.companies.lead_score}pts
+              </div>
+            )}
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <p className="font-bold text-[13px] text-foreground truncate leading-tight group-hover:text-primary transition-colors">
-                {deal.companies?.razon_social || 'Empresa'}
+
+          {/* Company name — Hero element */}
+          <div className="mb-4">
+            <h4 className="font-black text-[17px] tracking-[-0.03em] leading-[1.15] text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-2">
+              {deal.companies?.razon_social || 'Sin empresa'}
+            </h4>
+            {deal.nombre_proyecto && deal.nombre_proyecto !== 'Nuevo Proyecto' && (
+              <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.15em] mt-1 truncate">
+                {deal.nombre_proyecto}
               </p>
-              {deal.is_risk && (
-                 <span className="shrink-0 text-[8px] font-black bg-rose-600 text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-bounce">Riesgo</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5">
-              {deal.companies?.lead_score && (
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0 shadow-sm ${
-                  deal.companies.lead_score >= 80 ? 'bg-emerald-500 text-white' : 
-                  deal.companies.lead_score >= 50 ? 'bg-amber-500 text-white' : 'bg-slate-400 text-white'
-                }`}>
-                  {deal.companies.lead_score}
-                </span>
-              )}
-              {deal.nombre_proyecto && (
-                <p className="text-[11px] text-primary/80 font-semibold truncate leading-tight">
-                  {deal.nombre_proyecto}
-                </p>
-              )}
-            </div>
+            )}
+          </div>
+
+          {/* Key metric: Value */}
+          <div className="mb-4">
+            <p className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest mb-0.5">Inversión</p>
+            <p className="text-[20px] font-black tracking-[-0.04em] tabular-nums text-foreground leading-none">
+              {fmtCLP(deal.valor_neto || 0)}
+            </p>
+          </div>
+
+          {/* Footer row */}
+          <div className="flex items-center justify-between pt-3.5 border-t border-black/[0.05] dark:border-white/[0.05]">
+            <span className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest truncate">
+              {deal.companies?.comuna?.replace(/_/g, ' ') || '—'}
+            </span>
+
+            {deal.is_contract ? (
+              <span className="inline-flex items-center gap-1 text-[9px] font-black bg-primary/10 text-primary px-2.5 py-1 rounded-full uppercase tracking-widest flex-shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                SLA {deal.contract_months}M
+              </span>
+            ) : (
+              <span className="text-[9px] font-black text-muted-foreground/25 uppercase tracking-widest flex-shrink-0">Spot</span>
+            )}
           </div>
         </div>
-        {showGrip && (
-          <GripVertical className="h-4 w-4 text-muted-foreground/20 group-hover:text-muted-foreground/50 transition-colors shrink-0 mt-1" />
-        )}
-        {!showGrip && (
-          <ChevronRight className="h-4 w-4 text-muted-foreground/20 group-hover:text-primary/60 transition-colors shrink-0 mt-1" />
-        )}
       </div>
-
-      {/* Location */}
-      <div className="flex items-center gap-1.5 mt-2.5">
-        <MapPin className="h-3 w-3 text-muted-foreground/30 shrink-0" />
-        <span className="text-[10px] text-muted-foreground/60 font-semibold truncate uppercase tracking-wider">
-          {deal.companies?.comuna?.replace(/_/g, ' ') || 'Sin ubicación'}
-        </span>
-      </div>
-
-      {/* Bottom: Tags + Value */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-border/10 dark:border-white/[0.04]">
-        <div className="flex gap-1.5 flex-wrap">
-          <Badge className="text-[9px] font-bold px-2 h-5 bg-slate-100 dark:bg-[#2C2C2E] text-muted-foreground border-none tracking-wide">
-            {deal.companies?.segmento?.replace(/_/g, ' ') || 'Industrial'}
-          </Badge>
-          {deal.is_contract && (
-            <Badge className="text-[9px] font-bold px-2 h-5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-none tracking-wide">
-              {deal.contract_months}M
-            </Badge>
-          )}
-        </div>
-        <span className="text-[14px] font-black text-foreground tabular-nums tracking-tight">
-          {fmtCLP(deal.valor_neto || 0)}
-        </span>
-      </div>
-    </div>
-  )
+    )
+  }
 
   return (
     <div className="h-full flex flex-col bg-[#F5F5F7] dark:bg-black">
       
-      {/* Ultra Minimalist Header */}
-      <div className="shrink-0 p-4 md:p-6 pb-0 md:pb-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-[#1C1C1E] rounded-[40px] p-8 md:px-10 md:py-8 mb-4 border border-black/[0.02] dark:border-white/[0.02] max-w-[1600px] mx-auto">
-          <div className="space-y-1">
-            <h1 className="text-[36px] md:text-[42px] font-black tracking-tight text-foreground leading-none">
-              Pipeline
+      {/* Ultra Minimalist Header (Clean Slate) */}
+      <div className="shrink-0 p-8 md:p-12 pb-0">
+        <div className="flex flex-col md:flex-row md:items-end justify-between max-w-[1600px] mx-auto py-10 border-b border-black/[0.03] dark:border-white/[0.03]">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-1.5 w-8 rounded-full bg-primary" />
+              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Sales Pipeline</span>
+            </div>
+            <h1 className="text-[48px] md:text-[64px] font-black tracking-tighter text-foreground leading-[0.9] -ml-1">
+              Flujo Comercial
             </h1>
-            <p className="text-[13px] text-muted-foreground font-semibold">
-              {totalDeals} oportunidades · {fmtCLP(totalPipeline)} en vuelo
+            <p className="text-[14px] text-muted-foreground font-black uppercase tracking-widest opacity-40">
+              {totalDeals} oportunidades en vuelo · {fmtCLP(totalPipeline)} proyectados
             </p>
           </div>
-          <div className="flex flex-col md:items-end gap-3 mt-6 md:mt-0">
-            <div className="flex items-center gap-2">
-              <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-border/20">
+          
+          <div className="flex flex-col md:items-end gap-5 mt-10 md:mt-0">
+            <div className="flex items-center gap-3">
+              <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
                 {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
               </select>
-              <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-[#F8FAFC] dark:bg-[#2C2C2E] rounded-full px-4 h-9 text-[11px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-border/20">
+              <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
                 {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
               </select>
               <DealFormDialog onDealCreated={fetchDeals} />
             </div>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-40 text-right pr-4">
-               Filtrando Histórico (Ganados/Perdidos)
-            </p>
           </div>
         </div>
       </div>
@@ -299,15 +308,22 @@ export default function KanbanBoard() {
               return (
                 <div key={stage.id} className="flex flex-col w-[280px] shrink-0">
                   {/* Column Header */}
-                  <div className="flex items-center justify-between mb-4 px-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
-                      <span className="text-[12px] font-bold text-foreground tracking-tight">{stage.name}</span>
-                      <span className="text-[10px] font-bold text-muted-foreground/50 tabular-nums">{stageDeals.length}</span>
+                  <div className="flex items-end justify-between mb-6 px-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />
+                        <span className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">{stage.name}</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                         <span className="text-2xl font-black tracking-tighter leading-none">{stageDeals.length}</span>
+                         <span className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.2em]">Deals</span>
+                      </div>
                     </div>
-                    <span className="text-[11px] font-bold text-muted-foreground/50 tabular-nums">
-                      {stageValue > 0 ? fmtCLP(stageValue) : ''}
-                    </span>
+                    <div className="text-right">
+                       <span className="text-[13px] font-black tracking-tight tabular-nums opacity-60">
+                         {stageValue > 0 ? fmtCLP(stageValue) : ''}
+                       </span>
+                    </div>
                   </div>
 
                   {/* Droppable Column */}
@@ -330,7 +346,10 @@ export default function KanbanBoard() {
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                               >
-                                <DealCard deal={deal} isDragging={snapshot.isDragging} showGrip />
+                                <DealCard 
+                                  deal={deal} 
+                                  isDragging={snapshot.isDragging}
+                                />
                               </div>
                             )}
                           </Draggable>
