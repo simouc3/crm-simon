@@ -250,50 +250,58 @@ export default function AppLayout() {
           <Outlet context={{ isDarkMode }} />
         </main>
 
-        {/* Mobile Bottom Navigation — Apple Tab Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/80 dark:bg-[#1C1C1E]/90 backdrop-blur-3xl border-t border-black/[0.04] dark:border-white/[0.04] flex items-center justify-around px-2 z-40 pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)', height: '72px' }}>
-           <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 min-w-[56px] ${isActive ? 'text-primary' : 'text-muted-foreground/50'}`}>
-             {({ isActive }) => (
-               <>
-                 <LayoutDashboard className={`h-[22px] w-[22px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                 <span className={`text-[9px] font-black uppercase tracking-wide transition-all ${isActive ? 'opacity-100' : 'opacity-0 scale-75'}`}>Dashboard</span>
-               </>
-             )}
-           </NavLink>
-           
-           <NavLink to="/pipeline" className={({ isActive }) => `flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 min-w-[56px] ${isActive ? 'text-primary' : 'text-muted-foreground/50'}`}>
-             {({ isActive }) => (
-               <>
-                 <Columns3 className={`h-[22px] w-[22px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                 <span className={`text-[9px] font-black uppercase tracking-wide transition-all ${isActive ? 'opacity-100' : 'opacity-0 scale-75'}`}>Pipeline</span>
-               </>
-             )}
-           </NavLink>
-           
-           {/* Action Center FAB */}
-           <div className="relative flex items-center justify-center">
-             <Button size="icon" className="h-[52px] w-[52px] rounded-full bg-foreground text-background shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 flex items-center justify-center" onClick={() => setShowMobileActionSheet(true)}>
-               <Plus className="h-6 w-6" />
-             </Button>
-           </div>
+        {/* Mobile Bottom Navigation — Floating Apple Pill */}
+        <nav className="fixed bottom-5 left-5 right-5 md:hidden z-40">
+          <div className="relative bg-white/85 dark:bg-[#1C1C1E]/90 backdrop-blur-3xl rounded-[2rem] border border-white/60 dark:border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)] flex items-center justify-around px-3 h-[64px]">
+            
+            <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
+              {({ isActive }) => (
+                <>
+                  <LayoutDashboard className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Dashboard</span>
+                </>
+              )}
+            </NavLink>
 
-           <NavLink to="/clients" className={({ isActive }) => `flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 min-w-[56px] ${isActive ? 'text-primary' : 'text-muted-foreground/50'}`}>
-             {({ isActive }) => (
-               <>
-                 <Users className={`h-[22px] w-[22px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                 <span className={`text-[9px] font-black uppercase tracking-wide transition-all ${isActive ? 'opacity-100' : 'opacity-0 scale-75'}`}>Clientes</span>
-               </>
-             )}
-           </NavLink>
-           
-           <NavLink to="/calendar" className={({ isActive }) => `flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 min-w-[56px] ${isActive ? 'text-primary' : 'text-muted-foreground/50'}`}>
-             {({ isActive }) => (
-               <>
-                 <CalendarDays className={`h-[22px] w-[22px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-                 <span className={`text-[9px] font-black uppercase tracking-wide transition-all ${isActive ? 'opacity-100' : 'opacity-0 scale-75'}`}>Agenda</span>
-               </>
-             )}
-           </NavLink>
+            <NavLink to="/pipeline" className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
+              {({ isActive }) => (
+                <>
+                  <Columns3 className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Pipeline</span>
+                </>
+              )}
+            </NavLink>
+
+            {/* FAB — elevated above pill */}
+            <div className="relative -top-6 flex items-center justify-center">
+              <Button
+                size="icon"
+                className="h-[54px] w-[54px] rounded-full bg-foreground text-background shadow-[0_8px_32px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)] active:scale-90 transition-all duration-300 border-4 border-[#F5F5F7] dark:border-black"
+                onClick={() => setShowMobileActionSheet(true)}
+              >
+                <Plus className="h-6 w-6" />
+              </Button>
+            </div>
+
+            <NavLink to="/clients" className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
+              {({ isActive }) => (
+                <>
+                  <Users className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Clientes</span>
+                </>
+              )}
+            </NavLink>
+
+            <NavLink to="/calendar" className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`}>
+              {({ isActive }) => (
+                <>
+                  <CalendarDays className={`h-[21px] w-[21px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+                  <span className="text-[9px] font-black uppercase tracking-wide leading-none">Agenda</span>
+                </>
+              )}
+            </NavLink>
+
+          </div>
         </nav>
       </div>
 
