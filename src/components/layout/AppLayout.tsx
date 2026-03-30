@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { LayoutDashboard, Users, Columns3, LogOut, Settings as SettingsIcon, CalendarDays, Moon, Sun, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 import { supabase } from '@/lib/supabase/client'
 import { SettingsDialog } from '../SettingsDialog'
 import { NotificationPrompt } from '../NotificationPrompt'
@@ -103,7 +104,7 @@ export default function AppLayout() {
   ]
 
   return (
-    <div className={`flex h-screen bg-[#F5F5F7] dark:bg-black text-foreground font-sans antialiased overflow-hidden ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`flex h-screen bg-[#F5F5F7] dark:bg-black text-foreground font-sans antialiased ${isDarkMode ? 'dark' : ''}`}>
       {/* Sidebar Desktop */}
       <aside className="w-[220px] bg-white/70 dark:bg-[#1C1C1E]/90 backdrop-blur-2xl border-r border-border/30 dark:border-transparent hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-none">
         
@@ -251,65 +252,68 @@ export default function AppLayout() {
         </main>
       </div>
 
-      {/* ── FLOATING ISLAND NAV — outside all overflow containers ── */}
-      <nav className="fixed bottom-5 left-4 right-4 md:hidden z-[9999] pointer-events-none">
-        <div className="pointer-events-auto bg-white/90 dark:bg-[#1C1C1E]/95 backdrop-blur-2xl rounded-[30px] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.6)] border border-black/[0.06] dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
+      {/* ── FLOATING ISLAND NAV — rendered via Portal directly on body ── */}
+      {ReactDOM.createPortal(
+        <nav className="fixed bottom-5 left-4 right-4 md:hidden z-[9999]">
+          <div className="bg-white/92 dark:bg-[#1C1C1E]/96 backdrop-blur-xl rounded-[30px] shadow-[0_8px_40px_rgba(0,0,0,0.20),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-black/[0.05] dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
 
-          <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
-            {({ isActive }) => (
-              <>
-                <LayoutDashboard className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
-                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Dashboard' : ''}</span>
-              </>
-            )}
-          </NavLink>
+            <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+              {({ isActive }) => (
+                <>
+                  <LayoutDashboard className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                  {isActive && <span className="text-[9px] font-semibold tracking-tight leading-none">Dashboard</span>}
+                </>
+              )}
+            </NavLink>
 
-          <NavLink to="/pipeline" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
-            {({ isActive }) => (
-              <>
-                <Columns3 className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
-                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Pipeline' : ''}</span>
-              </>
-            )}
-          </NavLink>
+            <NavLink to="/pipeline" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+              {({ isActive }) => (
+                <>
+                  <Columns3 className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                  {isActive && <span className="text-[9px] font-semibold tracking-tight leading-none">Pipeline</span>}
+                </>
+              )}
+            </NavLink>
 
-          {/* FAB */}
-          <button
-            onClick={() => setShowMobileActionSheet(true)}
-            className="-mt-7 h-[50px] w-[50px] rounded-full bg-black dark:bg-white flex items-center justify-center shadow-[0_6px_20px_rgba(0,0,0,0.25)] active:scale-90 transition-transform duration-150 border-[3px] border-[#F5F5F7] dark:border-black"
-          >
-            <Plus className="h-5 w-5 text-white dark:text-black" strokeWidth={2.5} />
-          </button>
+            {/* FAB — rises above pill */}
+            <button
+              onClick={() => setShowMobileActionSheet(true)}
+              className="-mt-8 h-[52px] w-[52px] rounded-full bg-black dark:bg-white flex items-center justify-center shadow-[0_6px_24px_rgba(0,0,0,0.30)] active:scale-90 transition-transform duration-150 border-[3.5px] border-[#F5F5F7] dark:border-[#000]"
+            >
+              <Plus className="h-5 w-5 text-white dark:text-black" strokeWidth={2.5} />
+            </button>
 
-          <NavLink to="/clients" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
-            {({ isActive }) => (
-              <>
-                <Users className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
-                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Clientes' : ''}</span>
-              </>
-            )}
-          </NavLink>
+            <NavLink to="/clients" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+              {({ isActive }) => (
+                <>
+                  <Users className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                  {isActive && <span className="text-[9px] font-semibold tracking-tight leading-none">Clientes</span>}
+                </>
+              )}
+            </NavLink>
 
-          <NavLink to="/calendar" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
-            {({ isActive }) => (
-              <>
-                <CalendarDays className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
-                <span className="text-[9px] font-semibold tracking-tight leading-none">{isActive ? 'Agenda' : ''}</span>
-              </>
-            )}
-          </NavLink>
+            <NavLink to="/calendar" className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
+              {({ isActive }) => (
+                <>
+                  <CalendarDays className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 1.8} />
+                  {isActive && <span className="text-[9px] font-semibold tracking-tight leading-none">Agenda</span>}
+                </>
+              )}
+            </NavLink>
 
-        </div>
-      </nav>
+          </div>
+        </nav>,
+        document.body
+      )}
 
-      <SettingsDialog 
-        open={showSettings} 
-        onOpenChange={setShowSettings} 
-        onSettingsUpdated={fetchBranding} 
+      <SettingsDialog
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        onSettingsUpdated={fetchBranding}
       />
-      <MobileActionSheet 
-        isOpen={showMobileActionSheet} 
-        onClose={() => setShowMobileActionSheet(false)} 
+      <MobileActionSheet
+        isOpen={showMobileActionSheet}
+        onClose={() => setShowMobileActionSheet(false)}
       />
       <NotificationPrompt />
     </div>
