@@ -14,7 +14,6 @@ import {
   Phone, 
   Mail, 
   ChevronRight, 
-  Target, 
   Zap, 
   ShieldCheck, 
   FileText,
@@ -258,61 +257,61 @@ Equipo Comercial`)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[48px] p-0 border-none bg-white dark:bg-black shadow-[0_40px_100px_rgba(0,0,0,0.15)]">
+      <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[32px] p-0 border-none bg-white dark:bg-black shadow-[0_40px_100px_rgba(0,0,0,0.15)]">
         
-        {/* Top Header Section (Apple Clean Slate) */}
-        <div className="p-10 md:p-14 bg-white dark:bg-black border-b border-black/[0.03] dark:border-white/[0.03] relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 blur-[120px] -mr-48 -mt-48 rounded-full pointer-events-none" />
-           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Expediente Operativo</span>
-                  <div className="h-1 w-1 rounded-full bg-primary" />
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-20">ID: {deal.id.split('-')[0]}</span>
-                </div>
-                <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-none text-foreground">
-                  {deal.nombre_proyecto || 'Oportunidad'}
-                </h2>
-                <div className="flex items-center gap-4 text-muted-foreground font-bold text-lg">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
-                    <Building2 className="h-4 w-4 text-primary" />
-                  </div>
-                  {deal.companies?.razon_social}
+        {/* ── Compact Header (mobile-first) ── */}
+        <div className="px-5 pt-5 pb-4 md:px-10 md:pt-8 md:pb-6 bg-white dark:bg-black border-b border-black/[0.04] dark:border-white/[0.04] relative">
+           <div className="relative z-10">
+              {/* Top: ID + stage badge */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">ID: {deal.id.split('-')[0]}</span>
                 </div>
               </div>
 
-              <div className="flex flex-col md:items-end gap-3">
-                <div className="text-[12px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Presupuesto Estimado</div>
-                <div className="text-5xl md:text-6xl font-black tracking-tighter text-foreground tabular-nums leading-none">
-                  {fmtCLP(deal.valor_neto || 0)}
+              {/* Company + title row */}
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex-shrink-0 flex items-center justify-center border border-black/[0.04]">
+                  <Building2 className="h-5 w-5 text-primary/60" />
                 </div>
-                {deal.companies?.lead_score && (
-                  <div className="inline-flex items-center gap-2 bg-slate-50 dark:bg-white/5 text-primary text-[11px] font-black px-5 py-2 rounded-full border border-black/[0.03] dark:border-white/[0.05]">
-                    <Zap className="h-4 w-4 fill-primary" /> CALIDAD LEAD: {deal.companies.lead_score}%
-                  </div>
-                )}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-[22px] md:text-[32px] font-black tracking-tight leading-none text-foreground mb-1">
+                    {deal.nombre_proyecto || 'Oportunidad'}
+                  </h2>
+                  <p className="text-[13px] font-semibold text-muted-foreground/60 truncate">{deal.companies?.razon_social}</p>
+                </div>
+                {/* Amount — right aligned */}
+                <div className="text-right flex-shrink-0">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none mb-1">Inversión</p>
+                  <p className="text-[20px] md:text-[28px] font-black tracking-tighter text-foreground tabular-nums leading-none">
+                    {fmtCLP(deal.valor_neto || 0)}
+                  </p>
+                  {deal.companies?.lead_score && (
+                    <div className="inline-flex items-center gap-1 bg-primary/10 text-primary text-[9px] font-black px-2 py-0.5 rounded-full mt-1">
+                      <Zap className="h-2.5 w-2.5 fill-primary" /> {deal.companies.lead_score}pts
+                    </div>
+                  )}
+                </div>
               </div>
            </div>
         </div>
 
-        <div className="p-6 md:p-10 space-y-10">
+        <div className="p-4 md:p-8 space-y-4 md:space-y-8">
           
           {/* ── Status Bar (Apple iOS Cards Style) ── */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
 
             {/* Pipeline Stage — wide card */}
-            <div className="md:col-span-5 relative overflow-hidden rounded-[32px] p-7 bg-white dark:bg-[#1C1C1E] border border-black/[0.04] dark:border-white/[0.04] shadow-sm flex flex-col gap-5">
+            <div className="md:col-span-5 relative overflow-hidden rounded-2xl p-4 bg-white dark:bg-[#1C1C1E] border border-black/[0.04] dark:border-white/[0.04] shadow-sm flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Etapa Actual</p>
-                </div>
-                <div className="h-9 w-9 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <BarChart4 className="h-4 w-4 text-primary" />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Etapa Actual</p>
+                <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <BarChart4 className="h-3.5 w-3.5 text-primary" />
                 </div>
               </div>
 
               <Select value={String(currentStage)} onValueChange={(val) => changeStage(parseInt(val))}>
-                <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-black/30 border border-black/[0.04] dark:border-white/[0.04] font-black text-[15px] px-5 shadow-none focus:ring-2 focus:ring-primary/20">
+                <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-black/30 border border-black/[0.04] dark:border-white/[0.04] font-bold text-[13px] px-4 shadow-none focus:ring-2 focus:ring-primary/20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-none shadow-2xl p-2 backdrop-blur-xl">
@@ -341,24 +340,24 @@ Equipo Comercial`)
               )}
             </div>
 
-            {/* Tempo en Etapa — accent card */}
-            <div className="md:col-span-3 relative overflow-hidden rounded-[32px] p-7 bg-[#1C1C1E] dark:bg-white/5 text-white flex flex-col justify-between">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Tempo en Etapa</p>
-              <div className="mt-4">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-[56px] font-black tracking-tighter tabular-nums leading-none">
+            {/* Tempo en Etapa */}
+            <div className="md:col-span-3 relative overflow-hidden rounded-2xl p-4 bg-[#1C1C1E] dark:bg-white/5 text-white flex flex-col justify-between">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Días en Etapa</p>
+              <div className="mt-2">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[36px] font-black tracking-tighter tabular-nums leading-none">
                     {deal.stage_changed_at ? Math.floor((Date.now() - new Date(deal.stage_changed_at).getTime()) / (1000 * 60 * 60 * 24)) : 0}
                   </span>
-                  <span className="text-[11px] font-black uppercase tracking-widest text-white/30 pb-1">días</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30 pb-0.5">días</span>
                 </div>
-                <p className="text-[10px] text-white/30 font-bold mt-2 uppercase tracking-widest">
-                  {currentStage === 6 ? 'Contrato cerrado' : 'Sin cambio de etapa'}
+                <p className="text-[9px] text-white/30 font-bold mt-1 uppercase tracking-widest">
+                  {currentStage === 6 ? 'Contrato cerrado' : 'Sin cambio'}
                 </p>
               </div>
             </div>
 
-            {/* Contrato — interactive card */}
-            <div className={`md:col-span-4 relative overflow-hidden rounded-[32px] p-7 flex flex-col justify-between transition-all duration-700 ${
+            {/* Contrato */}
+            <div className={`md:col-span-4 relative overflow-hidden rounded-2xl p-4 flex flex-col justify-between transition-all duration-700 ${
               isContract 
                 ? 'bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)]' 
                 : 'bg-white dark:bg-[#1C1C1E] border border-black/[0.04] dark:border-white/[0.04]'
@@ -431,81 +430,70 @@ Equipo Comercial`)
 
           </div>
 
-          {/* Main Grid: Data Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Main Grid: compact */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
             
             {/* Column Left: Insights & AI */}
             <div className="space-y-8">
                
                {/* Risk & Indicators */}
                {deal.is_risk ? (
-                 <div className="bg-rose-500 p-8 rounded-[40px] text-white shadow-2xl shadow-rose-500/20 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 -mr-10 -mt-10 opacity-20 rotate-12 transition-transform group-hover:scale-125">
-                       <ShieldCheck className="h-40 w-40" />
-                    </div>
-                    <div className="relative z-10 space-y-4">
+                 <div className="bg-rose-500 p-5 rounded-2xl text-white shadow-xl shadow-rose-500/20 relative overflow-hidden">
+                    <div className="relative z-10 space-y-2">
                        <div className="flex items-center gap-2">
-                          <Zap className="h-5 w-5 fill-white animate-pulse" />
-                          <span className="text-[11px] font-black uppercase tracking-[0.3em]">IA: ALERTA CRÍTICA DE RIESGO</span>
+                          <Zap className="h-4 w-4 fill-white animate-pulse" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.25em]">Alerta de Riesgo</span>
                        </div>
-                       <h4 className="text-xl font-black tracking-tight leading-tight">
-                         "{deal.risk_reason}"
-                       </h4>
-                       <p className="text-xs font-medium text-white/80 leading-relaxed">
-                         Nuestra IA detectó patrones de pérdida basados en la inactividad y el historial de este segmento. Sugerimos contacto inmediato.
-                       </p>
+                       <h4 className="text-[15px] font-black tracking-tight leading-tight">"{deal.risk_reason}"</h4>
                     </div>
                  </div>
                ) : (
-                 <div className="bg-indigo-600 p-8 rounded-[40px] text-white shadow-xl relative overflow-hidden group">
-                    <div className="absolute bottom-0 right-0 -mr-10 -mb-10 opacity-10 transition-transform group-hover:scale-110">
-                       <Target className="h-40 w-40" />
-                    </div>
+                 <div className="bg-indigo-600 p-5 rounded-2xl text-white shadow-lg relative overflow-hidden">
                     <div className="relative z-10">
-                       <div className="flex items-center gap-2 mb-2">
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span className="text-[10px] font-black uppercase tracking-widest opacity-80">Salud del Negocio</span>
+                       <div className="flex items-center gap-2 mb-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span className="text-[9px] font-black uppercase tracking-widest opacity-80">Salud del Negocio</span>
                        </div>
-                       <p className="text-xl font-black tracking-tight">Oportunidad Estable</p>
-                       <p className="text-xs font-semibold opacity-60 mt-1">Sin desviaciones detectadas en los últimos 7 días.</p>
+                       <p className="text-[15px] font-black tracking-tight">Oportunidad Estable</p>
+                       <p className="text-[11px] font-semibold opacity-60 mt-0.5">Sin desviaciones detectadas.</p>
                     </div>
                  </div>
                )}
 
-               <div className="bg-slate-50 dark:bg-white/[0.02] rounded-[48px] p-2 border border-black/[0.03] dark:border-white/[0.03]">
+               <div className="bg-slate-50 dark:bg-white/[0.02] rounded-2xl p-1.5 border border-black/[0.03] dark:border-white/[0.03]">
                   <AIAssistantWidget deal={deal} onNewActivity={onDealUpdated} />
                </div>
 
-               {/* Action History / Communication Tracking */}
-               <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-8">
+               {/* Communication Tracking */}
+               <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-4">
                   <div className="flex items-center justify-between">
-                     <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Registro de Enlaces</h4>
-                     <History className="h-5 w-5 text-muted-foreground opacity-20" />
+                     <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Registro de Contacto</h4>
+                     <History className="h-4 w-4 text-muted-foreground opacity-20" />
                   </div>
 
-                  <div className="space-y-6">
-                     <div className="flex items-center gap-6 p-6 rounded-[32px] bg-slate-50 dark:bg-black/40 border border-black/[0.03] dark:border-white/[0.05]">
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${ultimoCorreoAt ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-slate-200 text-slate-400'}`}>
-                           <Mail className="h-6 w-6" />
+                  <div className="space-y-3">
+                     <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-black/40 border border-black/[0.03]">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ultimoCorreoAt ? 'bg-primary text-white' : 'bg-slate-200 text-slate-400'}`}>
+                           <Mail className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 leading-none mb-1">Último Contacto</p>
-                           <p className="text-[15px] font-black tracking-tight truncate">
-                             {ultimoCorreoAt ? new Date(ultimoCorreoAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long' }) : 'Pendiente de inicio'}
+                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 leading-none mb-0.5">Último Contacto</p>
+                           <p className="text-[13px] font-black tracking-tight truncate">
+                             {ultimoCorreoAt ? new Date(ultimoCorreoAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long' }) : 'Pendiente'}
                            </p>
                         </div>
                         {!correoRespondido && ultimoCorreoAt && (
-                          <div className="h-3 w-3 rounded-full bg-rose-500 animate-pulse border-2 border-white dark:border-black" />
+                          <div className="h-2.5 w-2.5 rounded-full bg-rose-500 animate-pulse" />
                         )}
                      </div>
 
-                     <div className="grid grid-cols-2 gap-4">
-                        <Button variant="outline" className="h-14 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 border-black/10 dark:border-white/10 shadow-sm" onClick={registerCorreo}>
+                     <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" className="h-10 rounded-full font-black text-[10px] uppercase tracking-widest" onClick={registerCorreo}>
                            Registrar Envío
                         </Button>
                         {!correoRespondido && ultimoCorreoAt && (
-                          <Button className="h-14 rounded-full font-black text-[11px] uppercase tracking-widest bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20" onClick={markRespondido}>
-                             Marcar Respuesta
+                          <Button className="h-10 rounded-full font-black text-[10px] uppercase tracking-widest bg-primary text-white" onClick={markRespondido}>
+                             Respuesta
                           </Button>
                         )}
                      </div>
@@ -516,55 +504,53 @@ Equipo Comercial`)
             {/* Column Right: Details & Operations */}
             <div className="space-y-10">
                
-               {/* Contact Card (Apple Glassmorphism) */}
-               <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-black/[0.03] dark:border-white/[0.03] shadow-sm relative overflow-hidden">
-                  <div className="flex items-center justify-between mb-10">
-                     <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-primary">Perfil del Partner</h4>
-                     <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
-                        <Building2 className="h-5 w-5 opacity-40 text-primary" />
-                     </div>
+               {/* Contact Card */}
+               <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.03] shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                     <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-primary">Perfil del Partner</h4>
+                     <Building2 className="h-4 w-4 opacity-30 text-primary" />
                   </div>
 
-                  <div className="space-y-8">
-                     <div className="grid grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Identificación (RUT)</p>
-                           <p className="text-lg font-black tracking-tighter">{deal.companies?.rut || '—'}</p>
+                  <div className="space-y-4">
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">RUT</p>
+                           <p className="text-[13px] font-black tracking-tighter">{deal.companies?.rut || '—'}</p>
                         </div>
-                        <div className="space-y-2">
-                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Punto Operativo</p>
-                           <p className="text-lg font-black tracking-tighter text-primary">{deal.companies?.comuna?.replace(/_/g, ' ') || '—'}</p>
+                        <div className="space-y-1">
+                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Punto Operativo</p>
+                           <p className="text-[13px] font-black tracking-tighter text-primary">{deal.companies?.comuna?.replace(/_/g, ' ') || '—'}</p>
                         </div>
                      </div>
 
-                     <div className="pt-8 border-t border-black/[0.05] dark:border-white/[0.05] space-y-6">
-                        <div className="flex items-center gap-6">
-                           <div className="w-16 h-16 rounded-full bg-slate-950 dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 shadow-xl">
-                              <span className="font-black text-2xl">{deal.companies?.contact_name?.[0] || '?'}</span>
+                     <div className="pt-4 border-t border-black/[0.05] dark:border-white/[0.05] space-y-3">
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-full bg-slate-950 dark:bg-white text-white dark:text-black flex items-center justify-center shrink-0 shadow-md">
+                              <span className="font-black text-base">{deal.companies?.contact_name?.[0] || '?'}</span>
                            </div>
                            <div className="flex-1 min-w-0">
-                              <p className="font-black tracking-tighter text-2xl leading-none truncate">{deal.companies?.contact_name || 'Sin Contacto'}</p>
-                              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 mt-1">{deal.companies?.cargo || 'Key Decision Maker'}</p>
+                              <p className="font-black tracking-tighter text-[16px] leading-none truncate">{deal.companies?.contact_name || 'Sin Contacto'}</p>
+                              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 mt-0.5">{deal.companies?.cargo || 'Key Decision Maker'}</p>
                            </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3">
-                           <Button asChild variant="outline" className="h-14 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-6">
+                        <div className="grid grid-cols-1 gap-2">
+                           <Button asChild variant="outline" className="h-10 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-4 text-[13px]">
                               <a href={`tel:${deal.companies?.contact_phone}`} className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-4">
-                                  <Phone className="h-5 w-5 text-primary" />
-                                  <span className="text-[14px] font-black tracking-tight">{deal.companies?.contact_phone || 'Registrar Número'}</span>
+                                <div className="flex items-center gap-3">
+                                  <Phone className="h-4 w-4 text-primary" />
+                                  <span className="text-[13px] font-bold tracking-tight">{deal.companies?.contact_phone || 'Registrar Número'}</span>
                                 </div>
-                                <ChevronRight className="h-4 w-4 opacity-40 group-hover:translate-x-1 transition-transform" />
+                                <ChevronRight className="h-3.5 w-3.5 opacity-40" />
                               </a>
                            </Button>
-                           <Button asChild variant="outline" className="h-14 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-6">
+                           <Button asChild variant="outline" className="h-10 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-4">
                               <a href={`mailto:${deal.companies?.contact_email}`} className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-4">
-                                  <Mail className="h-5 w-5 text-primary" />
-                                  <span className="text-[14px] font-black tracking-tight truncate max-w-[200px]">{deal.companies?.contact_email || 'Enviar Invitación'}</span>
+                                <div className="flex items-center gap-3">
+                                  <Mail className="h-4 w-4 text-primary" />
+                                  <span className="text-[13px] font-bold tracking-tight truncate max-w-[180px]">{deal.companies?.contact_email || 'Enviar Invitación'}</span>
                                 </div>
-                                <ChevronRight className="h-4 w-4 opacity-40 group-hover:translate-x-1 transition-transform" />
+                                <ChevronRight className="h-3.5 w-3.5 opacity-40" />
                               </a>
                            </Button>
                         </div>
@@ -594,23 +580,23 @@ Equipo Comercial`)
                   </div>
                </div>
 
-               {/* Operational & Tech Section */}
-               <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-8">
+               {/* Operational Metrics  */}
+               <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-4">
                   <div className="flex items-center justify-between">
-                     <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Métricas Operativas</h4>
-                     <FileText className="h-5 w-5 text-muted-foreground opacity-20" />
+                     <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Métricas Operativas</h4>
+                     <FileText className="h-4 w-4 text-muted-foreground opacity-20" />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-10 pb-8 border-b border-black/[0.05] dark:border-white/[0.05]">
-                     <div className="space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Área Estimada</p>
-                        <p className="text-4xl font-black tracking-tighter tabular-nums leading-none">
+                  <div className="grid grid-cols-2 gap-4 pb-4 border-b border-black/[0.05] dark:border-white/[0.05]">
+                     <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Área Estimada</p>
+                        <p className="text-[22px] font-black tracking-tighter tabular-nums leading-none">
                            {deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')} m²` : '—'}
                         </p>
                      </div>
-                     <div className="space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">SLA de Pago</p>
-                        <p className="text-2xl font-black tracking-tighter uppercase leading-none">
+                     <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">SLA de Pago</p>
+                        <p className="text-[15px] font-black tracking-tighter uppercase leading-none">
                            {deal.companies?.condiciones_pago?.replace(/_/g, ' ') || '—'}
                         </p>
                      </div>

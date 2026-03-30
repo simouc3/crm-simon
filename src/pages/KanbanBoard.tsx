@@ -127,7 +127,7 @@ export default function KanbanBoard() {
     7: { hex: '#FF3B30', tint: 'bg-rose-50/60 dark:bg-rose-950/10',   border: 'border-l-rose-400',    dot: 'bg-rose-500',     label: 'Perdido'      },
   }
 
-  // ── Deal Card — iOS List Row style ────────────────────────────────
+  // ── Deal Card — Client-style rich card with quick actions ──────────
   const DealCard = ({ deal, isDragging = false }: { deal: any; isDragging?: boolean }) => {
     const s = stageMap[deal.stage] || stageMap[1]
     const isRisk = deal.is_risk
@@ -138,54 +138,115 @@ export default function KanbanBoard() {
         className={`
           group cursor-pointer select-none
           bg-white dark:bg-[#1C1C1E]
-          rounded-2xl overflow-hidden
+          rounded-[32px] overflow-hidden
           border border-black/[0.05] dark:border-white/[0.05]
-          transition-all duration-200
+          relative
+          transition-all duration-300
           ${isDragging
-            ? 'scale-[1.02] shadow-[0_16px_48px_rgba(0,0,0,0.18)] rotate-[0.3deg] z-50'
-            : 'shadow-[0_1px_4px_rgba(0,0,0,0.06)] active:scale-[0.98]'
+            ? 'scale-[1.02] shadow-[0_20px_60px_rgba(0,0,0,0.18)] rotate-[0.3deg] z-50'
+            : 'shadow-[0_2px_12px_rgba(0,0,0,0.06)] active:scale-[0.98] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)]'
           }
         `}
       >
-        {/* Color accent top strip — 3px */}
+        {/* Stage color accent — left bar */}
         <div
-          className="h-[3px] w-full"
+          className="absolute left-0 top-0 bottom-0 w-[4px] rounded-l-[32px]"
           style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }}
         />
 
-        <div className="flex items-center gap-3 px-4 py-3">
-          {/* Left dot */}
-          <div
-            className="h-2 w-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }}
-          />
+        <div className="pl-5 pr-4 pt-4 pb-3">
 
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
-            {/* Company name */}
-            <h4 className="text-[14px] font-semibold text-foreground tracking-[-0.01em] truncate leading-snug">
-              {deal.companies?.razon_social || 'Sin empresa'}
-            </h4>
-            {/* Stage label + zona */}
-            <p className="text-[11px] text-muted-foreground/50 truncate leading-snug mt-0.5">
-              {isRisk ? '⚠ Riesgo · ' : ''}{s.label}{deal.companies?.comuna ? ` · ${deal.companies.comuna.replace(/_/g, ' ')}` : ''}
-            </p>
-          </div>
-
-          {/* Right: Amount */}
-          <div className="text-right flex-shrink-0">
-            <p className="text-[13px] font-bold tabular-nums tracking-tight text-foreground">
-              {fmtCLP(deal.valor_neto || 0)}
-            </p>
-            {deal.is_contract && (
-              <p className="text-[9px] font-semibold text-[#007AFF] leading-none mt-0.5">
-                SLA {deal.contract_months}M
-              </p>
+          {/* Row 1: Stage badge + risk + score */}
+          <div className="flex items-center justify-between mb-3">
+            <span
+              className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
+              style={{
+                backgroundColor: isRisk ? '#FF3B30' + '18' : s.hex + '18',
+                color: isRisk ? '#FF3B30' : s.hex
+              }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }} />
+              {isRisk ? '⚠ Riesgo' : s.label}
+            </span>
+            {deal.companies?.lead_score > 0 && (
+              <span className={`text-[9px] font-black px-2 py-0.5 rounded-md tabular-nums ${
+                deal.companies.lead_score >= 80 ? 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60' :
+                deal.companies.lead_score >= 50 ? 'text-amber-700 bg-amber-100 dark:bg-amber-950/60' :
+                'text-slate-500 bg-slate-100 dark:bg-slate-800'
+              }`}>{deal.companies.lead_score}pts</span>
             )}
           </div>
 
-          {/* Chevron */}
-          <svg className="h-4 w-4 text-black/20 dark:text-white/20 flex-shrink-0 -mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+          {/* Row 2: Company icon + name */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0 border border-black/[0.04]">
+              <svg className="h-5 w-5" style={{ color: s.hex }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-black text-[15px] tracking-[-0.02em] leading-tight text-foreground truncate">
+                {deal.companies?.razon_social || 'Sin empresa'}
+              </h4>
+              {deal.companies?.contact_name && (
+                <p className="text-[11px] text-muted-foreground/50 truncate leading-snug mt-0.5">
+                  {deal.companies.contact_name}{deal.companies?.cargo ? ` · ${deal.companies.cargo}` : ''}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Row 3: Value + location */}
+          <div className="flex items-center justify-between mb-3 pb-3 border-b border-black/[0.05] dark:border-white/[0.05]">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none mb-1">Inversión</p>
+              <p className="text-[16px] font-black tracking-[-0.03em] tabular-nums text-foreground leading-none">
+                {fmtCLP(deal.valor_neto || 0)}
+              </p>
+            </div>
+            <div className="text-right">
+              {deal.is_contract ? (
+                <span className="inline-flex items-center gap-1 text-[9px] font-black bg-[#007AFF]/10 text-[#007AFF] px-2.5 py-1 rounded-full">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#007AFF]" />SLA {deal.contract_months}M
+                </span>
+              ) : (
+                <span className="text-[11px] font-semibold text-muted-foreground/40">Spot</span>
+              )}
+              {deal.companies?.comuna && (
+                <p className="text-[9px] text-muted-foreground/30 font-semibold uppercase tracking-wider mt-0.5 truncate max-w-[100px]">
+                  {deal.companies.comuna.replace(/_/g, ' ')}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Row 4: Quick action buttons */}
+          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+            {deal.companies?.contact_phone && (() => {
+              const digits = deal.companies.contact_phone.replace(/\D/g, '')
+              const waUrl = digits.startsWith('569') ? `https://wa.me/${digits}` :
+                digits.startsWith('9') && digits.length === 9 ? `https://wa.me/56${digits}` : null
+              return waUrl ? (
+                <a href={waUrl} target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100 transition-colors flex-shrink-0"
+                  title="WhatsApp">
+                  <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                </a>
+              ) : (
+                <a href={`tel:${deal.companies.contact_phone}`}
+                  className="flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 hover:bg-emerald-100 transition-colors flex-shrink-0">
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 9.91a16 16 0 006.72 6.72l1.28-1.34a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                </a>
+              )
+            })()}
+            {deal.companies?.contact_email && (
+              <a href={`mailto:${deal.companies.contact_email}`}
+                className="flex items-center justify-center h-8 w-8 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0">
+                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+              </a>
+            )}
+            <div className="flex-1" />
+            <span className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-wide">Ver detalle →</span>
+          </div>
+
         </div>
       </div>
     )
