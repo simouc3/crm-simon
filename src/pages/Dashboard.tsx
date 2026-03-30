@@ -167,6 +167,8 @@ export default function Dashboard() {
   const availableYears = [2024, 2025, 2026]
 
 
+  const [selectedMetric, setSelectedMetric] = useState<{ label: string, deals: any[] } | null>(null)
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
@@ -237,10 +239,6 @@ export default function Dashboard() {
     }
     return isRisk ? p * 0.5 : p
   }
-  const [selectedMetric, setSelectedMetric] = useState<{ label: string, deals: any[] } | null>(null)
-
-  const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
-
   const totalPonderado = filteredDeals
     .filter(d => d.stage < 6 && d.stage > 0)
     .reduce((acc, d) => acc + ((d.valor_neto || 0) * (getProbability(d.stage, !!d.is_risk) / 100)), 0)
