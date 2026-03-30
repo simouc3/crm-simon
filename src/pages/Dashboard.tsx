@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
-import { Activity, DollarSign, Briefcase, TrendingUp, Target, Zap, ArrowUpRight, TrendingDown } from 'lucide-react'
+import { Activity, DollarSign, Briefcase, TrendingUp, Target, Zap, TrendingDown, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DashboardAIInsights } from "../components/DashboardAIInsights"
 
@@ -9,7 +9,7 @@ const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency'
 type TimeRange = 'MONTH' | 'QUARTER' | 'YEAR'
 
 // ── Mini SVG Pie Chart ────────────────────────────────────────────────
-function PieChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+function PieChart({ data, onSelect }: { data: { label: string; value: number; color: string; deals: any[] }[], onSelect?: (item: any) => void }) {
   const total = data.reduce((s, d) => s + d.value, 0)
   if (total === 0) return <div className="text-center text-muted-foreground text-[10px] py-10 font-bold uppercase tracking-widest opacity-40">Sin datos en este rango</div>
 
@@ -31,7 +31,7 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
       <div className="relative w-36 h-36 shrink-0">
         <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl rotate-0 transition-transform duration-700 hover:rotate-6">
           {total > 0 && slices.length === 1 ? (
-            <circle cx="50" cy="50" r="42" fill={slices[0].color} stroke="currentColor" className="text-white/10 dark:text-black/20" strokeWidth="0.5" />
+            <circle cx="50" cy="50" r="42" fill={slices[0].color} stroke="currentColor" className="text-white/10 dark:text-black/20" strokeWidth="0.5" onClick={() => onSelect?.(slices[0])} style={{ cursor: onSelect ? 'pointer' : 'default' }} />
           ) : (
             slices.map((s, i) => {
               const start = polarToXY(s.startAngle, 42)
@@ -43,8 +43,9 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
                   d={`M 50 50 L ${start.x} ${start.y} A 42 42 0 ${largeArc} 1 ${end.x} ${end.y} Z`}
                   fill={s.color}
                   stroke="currentColor"
-                  className="text-white/10 dark:text-black/20"
+                  className="text-white/10 dark:text-black/20 cursor-pointer hover:opacity-80 transition-opacity"
                   strokeWidth="0.5"
+                  onClick={() => onSelect?.(s)}
                 />
               )
             })
@@ -58,9 +59,13 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
       </div>
       <div className="grid grid-cols-1 gap-2 flex-1 w-full">
         {slices.map((s, i) => (
-          <div key={i} className="flex items-center gap-3 text-xs p-1">
+          <div 
+            key={i} 
+            className="flex items-center gap-3 text-xs p-1 cursor-pointer hover:bg-slate-200/50 dark:hover:bg-white/5 rounded-lg transition-colors group/slice"
+            onClick={() => onSelect?.(s)}
+          >
             <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ background: s.color }} />
-            <span className="truncate text-muted-foreground font-bold tracking-tight flex-1">{s.label}</span>
+            <span className="truncate text-muted-foreground font-bold tracking-tight flex-1 group-hover/slice:text-primary">{s.label}</span>
             <span className="font-black tabular-nums text-[10px] text-muted-foreground mr-1">{s.value > 1000 ? fmtCLP(s.value) : s.value}</span>
             <span className="font-black tabular-nums bg-white dark:bg-[#2C2C2E] px-2 py-0.5 rounded-lg border border-border/20 dark:border-transparent">{Math.round(s.pct * 100)}%</span>
           </div>
@@ -70,20 +75,19 @@ function PieChart({ data }: { data: { label: string; value: number; color: strin
   )
 }
 
-// ── Mini Bar Chart ────────────────────────────────────────────────────
-function BarChart({ data, color = '#10b981', prefix = '$' }: { data: { label: string; value: number }[]; color?: string; prefix?: string }) {
+function BarChart({ data, onSelect, color = '#10b981', prefix = '$' }: { data: { label: string; value: number; deals: any[] }[]; onSelect?: (item: any) => void; color?: string; prefix?: string }) {
   const max = Math.max(...data.map(d => d.value), 1)
   return (
     <div className="space-y-4 w-full">
       {data.map((d, i) => (
-        <div key={i} className="space-y-2 group">
+        <div key={i} className="space-y-2 group cursor-pointer" onClick={() => onSelect?.(d)}>
           <div className="flex justify-between items-end">
             <span className="text-[11px] font-black text-muted-foreground uppercase tracking-tight truncate max-w-[60%] group-hover:text-primary transition-colors">{d.label}</span>
             <span className="text-xs font-black tabular-nums dark:text-slate-200">{prefix}{d.value.toLocaleString('es-CL')}</span>
           </div>
           <div className="h-3 w-full bg-slate-100 dark:bg-white/5 rounded-2xl overflow-hidden shadow-inner border border-border/5">
             <div
-              className="h-full rounded-2xl transition-all duration-1000 ease-out shadow-lg"
+              className="h-full rounded-2xl transition-all duration-1000 ease-out shadow-lg group-hover:brightness-110"
               style={{ width: `${(d.value / max) * 100}%`, background: `linear-gradient(90deg, ${color}dd, ${color})` }}
             />
           </div>
@@ -244,18 +248,20 @@ export default function Dashboard() {
     .reduce((acc, d) => acc + ((d.valor_neto || 0) * (getProbability(d.stage, !!d.is_risk) / 100)), 0)
 
   const rentabilidadM2 = (() => {
-    const data: Record<string, { totalValor: number, totalM2: number }> = {}
+    const data: Record<string, { totalValor: number, totalM2: number, deals: any[] }> = {}
     ganados.forEach(d => {
-      const seg = d.companies?.segmento?.replace(/_/g, ' ') || 'Otros'
-      const m2 = d.companies?.m2_estimados || 0
-      if (!data[seg]) data[seg] = { totalValor: 0, totalM2: 0 }
+      const seg = d.companies?.segmento || 'OTROS'
+      const m2 = Number(d.companies?.m2_estimados) || 0
+      if (!data[seg]) data[seg] = { totalValor: 0, totalM2: 0, deals: [] }
       data[seg].totalValor += (d.valor_neto || 0)
       data[seg].totalM2 += m2
+      data[seg].deals.push(d)
     })
     return Object.entries(data)
-      .map(([label, { totalValor, totalM2 }]) => ({ 
+      .map(([label, { totalValor, totalM2, deals }]) => ({ 
         label, 
-        value: totalM2 > 0 ? Math.round(totalValor / totalM2) : 0 
+        value: totalM2 > 0 ? Math.round(totalValor / totalM2) : 0,
+        deals
       }))
       .sort((a, b) => b.value - a.value).slice(0, 5)
   })()
@@ -265,37 +271,48 @@ export default function Dashboard() {
   const ltv = ticketPromedio * 18
 
   const motivosPerdida = (() => {
-    const counts: Record<string, number> = {}
+    const counts: Record<string, { total: number, deals: any[] }> = {}
     perdidos.forEach(d => {
       const m = d.motivo_perdida || 'Otros'
-      counts[m] = (counts[m] || 0) + 1
+      if (!counts[m]) counts[m] = { total: 0, deals: [] }
+      counts[m].total++
+      counts[m].deals.push(d)
     })
     const colors = ['#ef4444', '#f97316', '#f59e0b', '#dc2626', '#b91c1c']
-    return Object.entries(counts).map(([label, value], i) => ({
-      label, value, color: colors[i % colors.length]
+    return Object.entries(counts).map(([label, info], i) => ({
+      label, value: info.total, deals: info.deals, color: colors[i % colors.length]
     })).sort((a, b) => b.value - a.value).slice(0, 5)
   })()
 
   const porIndustria = (() => {
-    const map: Record<string, number> = {}
-    ganados.forEach(d => {
-      const seg = d.companies?.segmento?.replace(/_/g, ' ') || 'Sin clasificar'
-      map[seg] = (map[seg] || 0) + (d.valor_neto || 0)
+    const counts: Record<string, { total: number, deals: any[] }> = {}
+    activos.forEach(d => {
+      const seg = d.companies?.segmento || 'OTROS'
+      if (!counts[seg]) counts[seg] = { total: 0, deals: [] }
+      counts[seg].total++
+      counts[seg].deals.push(d)
     })
-    const colors = ['#10b981', '#6366f1', '#06b6d4', '#f59e0b', '#ec4899']
-    return Object.entries(map).map(([label, value], i) => ({
-      label, value, color: colors[i % colors.length]
-    })).sort((a, b) => b.value - a.value).slice(0, 5)
+    const colors = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308']
+    return Object.entries(counts).map(([label, info], i) => ({
+      label,
+      value: info.total,
+      deals: info.deals,
+      color: colors[i % colors.length]
+    }))
   })()
 
   const porComuna = (() => {
-    const map: Record<string, number> = {}
-    ganados.forEach(d => {
-      const c = d.companies?.comuna?.replace(/_/g, ' ') || 'Zonas Varias'
-      map[c] = (map[c] || 0) + (d.valor_neto || 0)
+    const counts: Record<string, { total: number, deals: any[] }> = {}
+    activos.forEach(d => {
+      const com = d.companies?.comuna || 'SIN COMUNA'
+      if (!counts[com]) counts[com] = { total: 0, deals: [] }
+      counts[com].total++
+      counts[com].deals.push(d)
     })
-    return Object.entries(map).map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value).slice(0, 5)
+    return Object.entries(counts)
+      .map(([label, info]) => ({ label, value: info.total, deals: info.deals }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5)
   })()
 
   return (
@@ -428,7 +445,11 @@ export default function Dashboard() {
                   const val = stageDeals.reduce((a, d) => a + (d.valor_neto || 0), 0)
                   const pct = activos.length > 0 ? (count / activos.length) * 100 : 0
                   return (
-                    <div key={s.stage} className="flex flex-col gap-2 group">
+                    <div 
+                      key={s.stage} 
+                      onClick={() => setSelectedMetric({ label: `Etapa: ${s.label}`, deals: stageDeals })}
+                      className="flex flex-col gap-2 group cursor-pointer hover:bg-slate-50 dark:hover:bg-white/[0.02] p-3 -mx-3 rounded-2xl transition-all"
+                    >
                       <div className="flex justify-between items-end">
                         <div className="flex items-center gap-2">
                            <span className="font-black text-[13px] tracking-tight text-foreground/80 group-hover:text-primary transition-colors">{s.label}</span>
@@ -473,13 +494,20 @@ export default function Dashboard() {
               </div>
               <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden p-6">
                  <h3 className="font-black text-[14px] text-foreground uppercase tracking-wider mb-6">Top Segmentos</h3>
-                 <PieChart data={porIndustria} />
+                 <PieChart 
+                    data={porIndustria} 
+                    onSelect={(item) => setSelectedMetric({ label: `Segmento: ${item.label}`, deals: item.deals })}
+                  />
               </div>
             </div>
             <div className="space-y-6">
                <SectionTitle title="Análisis Geográfico" sub="Top comunas con mayor tracción" />
                <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden p-6">
-                  <BarChart data={porComuna} color="#10b981" />
+                  <BarChart 
+                    data={porComuna} 
+                    color="#10b981" 
+                    onSelect={(item) => setSelectedMetric({ label: `Comuna: ${item.label}`, deals: item.deals })}
+                  />
                </div>
             </div>
           </section>

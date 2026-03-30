@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, TrendingUp, AlertTriangle, Lightbulb, Copy, Check, Zap } from 'lucide-react';
+import { Sparkles, Loader2, AlertTriangle, Lightbulb, Copy, Check, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getGeminiKey, getAIModel } from '../lib/ai/config';
 
@@ -155,20 +155,65 @@ Usa emojis de lucide-react (simbolizados por texto) y Markdown para estructura. 
         </div>
       )}
 
+      {/* Guía de Métricas Rediseñada */}
       {!insight && !loading && (
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700">
-            <div className="space-y-2">
-               <TrendingUp className="h-5 w-5" />
-               <p className="text-[10px] font-black uppercase tracking-widest leading-tight">Optimización de Win Rate</p>
-            </div>
-            <div className="space-y-2">
-               <AlertTriangle className="h-5 w-5" />
-               <p className="text-[10px] font-black uppercase tracking-widest leading-tight">Detección de Fugas</p>
-            </div>
-            <div className="space-y-2">
-               <Lightbulb className="h-5 w-5" />
-               <p className="text-[10px] font-black uppercase tracking-widest leading-tight">Oportunidades Escondidas</p>
-            </div>
+        <div className="mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+            <h4 className="text-[14px] font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">Guía de Métricas Estratégicas</h4>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { 
+                label: 'CAC', 
+                full: 'Cost of Acquisition', 
+                desc: 'Inversión necesaria para capturar un nuevo cliente. Clave para medir eficiencia de marketing.', 
+                color: 'text-blue-500', 
+                bg: 'bg-blue-500/5',
+                border: 'border-blue-500/20'
+              },
+              { 
+                label: 'LTV', 
+                full: 'Lifetime Value', 
+                desc: 'Valor neto total que un cliente genera durante toda su relación con la empresa.', 
+                color: 'text-purple-500', 
+                bg: 'bg-purple-500/5',
+                border: 'border-purple-500/20'
+              },
+              { 
+                label: 'Ratio LTV:CAC', 
+                full: 'Eficiencia de Capital', 
+                desc: 'Un ratio 3x indica que por cada $1 invertido, recuperas $3. Es señal de escalabilidad.', 
+                color: 'text-emerald-500', 
+                bg: 'bg-emerald-500/5',
+                border: 'border-emerald-500/20'
+              }
+            ].map((m, i) => (
+              <div key={i} className={`p-8 rounded-[40px] border ${m.border} ${m.bg} flex flex-col gap-4 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/5 duration-300 group`}>
+                <span className={`text-2xl font-black ${m.color} group-hover:scale-110 transition-transform origin-left`}>{m.label}</span>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.15em] opacity-50 text-foreground">{m.full}</p>
+                  <p className="text-[12px] font-medium leading-relaxed text-muted-foreground">{m.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-8 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-[40px] border border-indigo-500/10 flex items-center gap-6 group/tip overflow-hidden relative">
+             <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none group-hover:scale-125 transition-transform duration-1000">
+                <Sparkles className="h-32 w-32 text-indigo-500" />
+             </div>
+             <div className="w-14 h-14 rounded-3xl bg-white dark:bg-white/5 shadow-sm flex items-center justify-center shrink-0 border border-white dark:border-white/10 group-hover:rotate-6 transition-transform">
+                <Lightbulb className="h-7 w-7 text-indigo-500 animate-pulse" />
+             </div>
+             <div className="space-y-1">
+                <p className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Tip de Senior Management</p>
+                <p className="text-[13px] font-bold text-muted-foreground leading-relaxed">
+                  Haz clic en cualquiera de las gráficas o etapas del embudo para ver el listado de clientes asociado. <span className="text-foreground">Auditoría total en un toque.</span>
+                </p>
+             </div>
+          </div>
         </div>
       )}
     </div>

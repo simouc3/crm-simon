@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 export const DEFAULT_GEMINI_KEY = "AIzaSyDlkjep9LYBmCbrcfOekAx85RypShBRS2M";
 
-// Modelo estándar y compatible
+// Modelo estándar y compatible (Usar -latest para asegurar disponibilidad)
 export const GEMINI_MODEL = "gemini-1.5-flash";
 
 /**
@@ -30,6 +30,6 @@ export const getGeminiKey = (): string => {
  */
 export const getAIModel = (apiKey: string) => {
   const genAI = new GoogleGenerativeAI(apiKey);
-  // Usar default del SDK (v1beta) que es más compatible con Flash modelos nuevos
+  // El SDK v0.24.1 maneja internamente la mejor versión (v1)
   return genAI.getGenerativeModel({ model: GEMINI_MODEL });
 };
