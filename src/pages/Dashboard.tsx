@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
-import { Activity, DollarSign, Briefcase, TrendingUp, ChevronLeft, ChevronRight, Download, Target, Zap, ArrowUpRight, TrendingDown } from 'lucide-react'
+import { Activity, DollarSign, Briefcase, TrendingUp, Target, Zap, ArrowUpRight, TrendingDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DashboardAIInsights } from "../components/DashboardAIInsights"
 

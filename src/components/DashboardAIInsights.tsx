@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, TrendingUp, AlertTriangle, Target, Lightbulb, Copy, Check, Zap } from 'lucide-react';
+import { Sparkles, Loader2, TrendingUp, AlertTriangle, Lightbulb, Copy, Check, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getGeminiKey, getAIModel } from '../lib/ai/config';
 
