@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
 import { ArrowUpRight, TrendingUp, TrendingDown, Activity, DollarSign, Target, Briefcase, Zap } from "lucide-react"
+import { DashboardAIInsights } from "../components/DashboardAIInsights"
 
 const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 
@@ -92,11 +93,11 @@ function BarChart({ data, color = '#10b981', prefix = '$' }: { data: { label: st
 }
 
 // ── KPI Card Widget ───────────────────────────────────────────────────
-function KpiCard({ label, value, sub, icon: Icon, trend, gradientClass }: {
-  label: string; value: string; sub: string; icon: any; trend?: { val: string; up: boolean }; gradientClass?: string
+function KpiCard({ label, value, sub, icon: Icon, trend, gradientClass, highlight }: {
+  label: string; value: string; sub?: string; icon: any; trend?: { val: string; up: boolean }; gradientClass?: string; highlight?: boolean
 }) {
   return (
-    <div className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 ${gradientClass || 'bg-white dark:bg-black'}`}>
+    <div className={`group relative overflow-hidden rounded-[40px] border border-border/40 p-8 flex flex-col gap-1 shadow-sm transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.98] duration-500 ${gradientClass || 'bg-white dark:bg-black'} ${highlight ? 'ring-2 ring-primary/20' : ''}`}>
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-colors" />
       
       <div className="flex items-center justify-between mb-2 relative z-10">
@@ -120,9 +121,11 @@ function KpiCard({ label, value, sub, icon: Icon, trend, gradientClass }: {
         <div className={`text-4xl font-black tracking-tighter transition-all duration-300 ${gradientClass ? 'text-white' : 'text-foreground group-hover:text-primary'}`}>
           {value}
         </div>
-        <p className={`text-[12px] font-bold tracking-tight mt-1 truncate ${gradientClass ? 'text-white/80' : 'text-muted-foreground'}`}>
-          {sub}
-        </p>
+        {sub && (
+          <p className={`text-[12px] font-bold tracking-tight mt-1 truncate ${gradientClass ? 'text-white/80' : 'text-muted-foreground'}`}>
+            {sub}
+          </p>
+        )}
       </div>
     </div>
   )
@@ -202,7 +205,7 @@ export default function Dashboard() {
   // Cálculos Base
   const ganados = filteredDeals.filter(d => d.stage === 6)
   const perdidos = filteredDeals.filter(d => d.stage === 7)
-  const propuestas = filteredDeals.filter(d => d.stage === 4)
+  const propuestas = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5)
   const activos = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5)
 
   const mrrContractual = ganados
@@ -219,6 +222,24 @@ export default function Dashboard() {
   const winRate = (ganados.length + perdidos.length) > 0 ? Math.round((ganados.length / (ganados.length + perdidos.length)) * 100) : 0
 
   // Métricas BI
+  const getProbability = (stage: number, isRisk: boolean) => {
+    let p = 0
+    switch(stage) {
+      case 1: p = 10; break
+      case 2: p = 25; break
+      case 3: p = 50; break
+      case 4: p = 70; break
+      case 5: p = 90; break
+      case 6: p = 100; break
+      default: p = 0
+    }
+    return isRisk ? p * 0.5 : p
+  }
+
+  const totalPonderado = filteredDeals
+    .filter(d => d.stage < 6 && d.stage > 0)
+    .reduce((acc, d) => acc + ((d.valor_neto || 0) * (getProbability(d.stage, !!d.is_risk) / 100)), 0)
+
   const rentabilidadM2 = (() => {
     const data: Record<string, { totalValor: number, totalM2: number }> = {}
     ganados.forEach(d => {
@@ -347,28 +368,32 @@ export default function Dashboard() {
         <>
           <section>
             <SectionTitle title="Ventas & Proyecciones" sub="Estado financiero de contratos y propuestas enviadas" />
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
-                label="Nuevos Ingresos (Ventas + MRR)"
+                label="Nuevos Ingresos"
                 value={fmtCLP(ingresosMes)}
-                sub={`${ganados.length} Cierres en el Periodo`}
+                sub={`${ganados.length} Cierres`}
                 icon={DollarSign}
-                trend={{ val: "+12.5%", up: true }}
-                gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400 bg-noise"
+                gradientClass="bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400"
               />
               <KpiCard
-                label="Pipeline en Oferta"
-                value={fmtCLP(pipelineForecast)}
-                sub={`${propuestas.length} Propuestas Activas`}
+                label="Cierre Realista AI"
+                value={fmtCLP(totalPonderado)}
+                sub="Ingreso ponderado por riesgo"
                 icon={Target}
-                gradientClass="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 bg-noise"
+                highlight
               />
               <KpiCard
-                label="Ticket Promedio"
-                value={fmtCLP(ticketPromedio)}
-                sub="Medida por Cierre B2B"
+                label="Pipeline Activo"
+                value={fmtCLP(pipelineForecast)}
+                sub={`${propuestas.length} Propuestas`}
                 icon={Briefcase}
-                gradientClass="bg-gradient-to-br from-orange-500 via-rose-500 to-red-500 bg-noise"
+              />
+              <KpiCard
+                label="Win Rate"
+                value={`${winRate}%`}
+                sub="Tasa de éxito comercial"
+                icon={TrendingUp}
               />
             </div>
 
@@ -392,8 +417,9 @@ export default function Dashboard() {
                   { label: 'Propuesta emitida', stage: 4, c: '#f59e0b' },
                   { label: 'Cierre negociación', stage: 5, c: '#fb923c' },
                 ].map(s => {
-                  const count = filteredDeals.filter(d => d.stage === s.stage).length
-                  const val = filteredDeals.filter(d => d.stage === s.stage).reduce((a, d) => a + (d.valor_neto || 0), 0)
+                  const stageDeals = filteredDeals.filter(d => d.stage === s.stage)
+                  const count = stageDeals.length
+                  const val = stageDeals.reduce((a, d) => a + (d.valor_neto || 0), 0)
                   const pct = activos.length > 0 ? (count / activos.length) * 100 : 0
                   return (
                     <div key={s.stage} className="flex flex-col gap-2 group">
@@ -407,6 +433,11 @@ export default function Dashboard() {
                       <div className="h-[6px] w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden border border-border/5">
                         <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: s.c }} />
                       </div>
+                      {stageDeals.some(d => d.is_risk) && (
+                        <div className="text-[9px] text-rose-500 font-black uppercase tracking-widest flex items-center gap-1">
+                          <span className="animate-pulse">●</span> Riesgo detectado en {stageDeals.filter(d => d.is_risk).length} tratos
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -423,7 +454,6 @@ export default function Dashboard() {
                   value={`${winRate}%`}
                   sub="Tasa de Éxito Comercial"
                   icon={TrendingUp}
-                  trend={{ val: "Estable", up: true }}
                 />
                 <div className="rounded-[40px] border border-border/40 bg-primary p-8 text-white shadow-xl relative overflow-hidden group">
                   <span className="text-[10px] font-black text-white/60 uppercase tracking-widest block mb-2">Estado General</span>
@@ -450,8 +480,20 @@ export default function Dashboard() {
         </>
       ) : (
         <>
-          <section>
+          <section className="space-y-10">
             <SectionTitle title="KPIs de Rentabilidad" sub="Alineación estratégica y costos de adquisición" />
+            
+            <DashboardAIInsights 
+              deals={filteredDeals} 
+              metrics={{
+                ingresos: ingresosMes,
+                winRate: winRate,
+                cac: cac,
+                ltv: ltv,
+                propuestas: propuestas.length
+              }} 
+            />
+
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               <KpiCard
                 label="CAC (Adquisición)"

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select"
 import { supabase } from "../lib/supabase/client"
 import { type Deal, type Company } from "../types/database"
+import { LeadEnricher } from "../lib/ai/LeadEnricher"
 
 interface DealFormProps {
   onDealCreated?: () => void
@@ -94,6 +95,38 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger }: DealFormP
     if (error) {
       alert("Error guardando negocio: " + error.message)
     } else {
+      // LOGICA DE PLAYBOOK IA PARA NUEVOS NEGOCIOS
+      if (!dealToEdit) {
+        // Obtenemos el ID del negocio recién creado (asumiendo que insert devuelve data o podemos sacarlo)
+        const { data: newDeals } = await supabase.from('deals').select('id, company_id').eq('title', dataToSave.title).eq('company_id', dataToSave.company_id).order('created_at', { ascending: false }).limit(1)
+        
+        if (newDeals && newDeals[0]) {
+          const dealId = newDeals[0].id
+          const company = companies.find(c => c.id === formData.company_id)
+          
+          if (company) {
+            // Ejecutamos en segundo plano para no bloquear al usuario
+            LeadEnricher.suggestInitialTasks(company.razon_social, company.segmento || 'INDUSTRIAL').then(async (tasks) => {
+              const { data: { user } } = await supabase.auth.getUser()
+              if (!user) return
+
+              const activitiesToInsert = tasks.map((t, index) => ({
+                deal_id: dealId,
+                user_id: user.id,
+                title: t,
+                activity_type: index === 0 ? 'LLAMADA' : 'REUNION',
+                completed: false,
+                scheduled_at: new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString(),
+                notes: 'Tarea sugerida por IA según segmento del cliente.'
+              }))
+
+              await supabase.from('activities').insert(activitiesToInsert)
+              if (onDealCreated) onDealCreated()
+            })
+          }
+        }
+      }
+
       setOpen(false)
       if (onDealCreated) onDealCreated()
     }

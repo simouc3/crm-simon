@@ -128,24 +128,42 @@ export default function KanbanBoard() {
         }
         ${deal.stage === 6 ? 'border-l-[3px] border-l-emerald-500' : ''}
         ${deal.stage === 7 ? 'border-l-[3px] border-l-rose-500' : ''}
-        ${deal.stage < 6 ? 'border border-border/20 dark:border-white/[0.06]' : ''}
+        ${deal.is_risk ? 'border-l-[3px] border-l-rose-600 ring-1 ring-rose-500/20 shadow-lg shadow-rose-500/10' : ''}
+        ${deal.stage < 6 && !deal.is_risk ? 'border border-border/20 dark:border-white/[0.06]' : ''}
       `}
     >
       {/* Top: Company + Grip */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="w-8 h-8 rounded-xl bg-slate-100/50 dark:bg-white/5 flex items-center justify-center shrink-0">
-            <Building2 className="h-4 w-4 text-muted-foreground/60" />
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+            deal.is_risk ? 'bg-rose-500 shadow-lg shadow-rose-500/30' : 'bg-slate-100/50 dark:bg-white/5'
+          }`}>
+            {deal.is_risk ? <span className="text-white text-[10px] font-black animate-pulse">!</span> : <Building2 className="h-4 w-4 text-muted-foreground/60" />}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-bold text-[13px] text-foreground truncate leading-tight group-hover:text-primary transition-colors">
-              {deal.companies?.razon_social || 'Empresa'}
-            </p>
-            {deal.nombre_proyecto && (
-              <p className="text-[11px] text-primary/80 font-semibold truncate leading-tight mt-0.5">
-                {deal.nombre_proyecto}
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-bold text-[13px] text-foreground truncate leading-tight group-hover:text-primary transition-colors">
+                {deal.companies?.razon_social || 'Empresa'}
               </p>
-            )}
+              {deal.is_risk && (
+                 <span className="shrink-0 text-[8px] font-black bg-rose-600 text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-bounce">Riesgo</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              {deal.companies?.lead_score && (
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0 shadow-sm ${
+                  deal.companies.lead_score >= 80 ? 'bg-emerald-500 text-white' : 
+                  deal.companies.lead_score >= 50 ? 'bg-amber-500 text-white' : 'bg-slate-400 text-white'
+                }`}>
+                  {deal.companies.lead_score}
+                </span>
+              )}
+              {deal.nombre_proyecto && (
+                <p className="text-[11px] text-primary/80 font-semibold truncate leading-tight">
+                  {deal.nombre_proyecto}
+                </p>
+              )}
+            </div>
           </div>
         </div>
         {showGrip && (

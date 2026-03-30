@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Key, Mail, Activity, Lock, Loader2, Mic } from 'lucide-react';
+import { Sparkles, Key, Mail, Activity, Lock, Loader2, Mic, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '../lib/supabase/client';
@@ -16,6 +16,7 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
   });
   const [loadingType, setLoadingType] = useState<'summary'|'email'|'voice'|null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     localStorage.setItem(`ai_deal_chat_${deal.id}`, JSON.stringify(chatHistory));
@@ -103,14 +104,13 @@ export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewAct
 
   const handleSummarize = async () => {
     const activities = await fetchActivities();
-    let prompt = `Actúa como un Director Comercial Estratégico experto en servicios industriales. Tu misión es analizar el historial de este Negocio y devolver un informe ejecutivo de alto nivel que incluya: 
+    let prompt = `Actúa como un Director Comercial Estratégico experto en servicios industriales. 
+1. 📈 DIAGNÓSTICO DE SALUD: ¿Cómo va el motor comercial según el Win Rate y el Ratio LTV:CAC?
+2. ⚠️ ALERTA DE CONTINUIDAD: Identifica fugas en el embudo y cuellos de botella operativos.
+3. 🎯 FOCO ESTRATÉGICO: ¿En qué segmentos de alta rentabilidad (clínico, alimentario, logístico) deberíamos redoblar esfuerzos?
+4. 🚀 KPI PRIORITARIO: Una acción táctica obligatoria para subir el Win Rate un 5% esta semana.
 
-1) ANÁLISIS DE SITUACIÓN: Resumen corto de dónde estamos parados.
-2) GAP ANALYSIS: ¿Qué información o compromiso nos falta hoy para cerrar este trato? ($${deal.valor_neto || 0}).
-3) PULSO DEL CLIENTE: Dolores detectados y nivel de urgencia percibida. 
-4) HOJA DE RUTA: 3 acciones críticas para que el vendedor mueva el negocio al siguiente hito.
-
-Utiliza un lenguaje profesional, directo y orientado a resultados.
+Utiliza jerga industrial experta (ej: "SLA", "Continuidad Operacional", "Protocolos de Higiene Técnica") en un tono senior y resolutivo.
 
 Contexto del Negocio:
 Cliente: ${deal.companies?.razon_social || 'Desconocido'}
@@ -137,8 +137,8 @@ El objetivo es empoderar al cliente para que tome la decisión de cierre o agend
 
 CRITERIOS:
 - No uses [placeholders]. Escribe el texto completo, listo para copiar y enviar.
-- Menciona beneficios específicos de limpieza técnica industrial/clínica según el contexto.
-- Propón un "Call to Action" claro pero no presionante.
+- Menciona beneficios específicos de limpieza técnica industrial/clínica según el contexto (SLA, cumplimiento normativo, seguridad de planta).
+- Propón un "Próximo Paso" técnico y resolutivo.
 
 Contexto:
 Cliente: ${deal.companies?.razon_social || 'Prospecto'}
@@ -148,6 +148,12 @@ Etapa del Embudo (1-6): ${deal.stage}
 Última actividad registrada (para guiar el correo): ${activities.length > 0 ? activities[0].notes : 'Ninguna'}`;
      
      callGemini(prompt, 'email', "Redactar borrador de correo");
+  };
+
+  const copyToClipboard = (text: string, index: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   const processVoiceTranscript = async (text: string) => {
@@ -206,7 +212,7 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
       
       // 3. Analizar Riesgo con IA
       import("../lib/ai/AIPredictor").then(({ AIPredictor }) => {
-        AIPredictor.analyzeActivityRisk(deal.id, text);
+        AIPredictor.analyzeFullDealRisk(deal.id);
       });
 
       if (onNewActivity) onNewActivity();
@@ -345,8 +351,16 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
                         : 'bg-primary/5 dark:bg-primary/10 border border-primary/20 text-foreground shadow-sm'
                     }`}>
                       {msg.role === 'assistant' && (
-                        <div className="absolute top-2 right-2 text-[8px] font-black uppercase tracking-widest text-primary/50 bg-primary/10 px-1.5 py-0.5 rounded-full">
-                          {msg.type || 'Gemini'}
+                        <div className="absolute top-2 right-2 flex gap-1 items-center">
+                          <button 
+                            onClick={() => copyToClipboard(msg.content, i)}
+                            className="p-1 rounded-md hover:bg-primary/10 text-primary/50 hover:text-primary transition-colors"
+                          >
+                            {copiedIndex === i ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                          </button>
+                          <div className="text-[8px] font-black uppercase tracking-widest text-primary/30 bg-primary/10 px-1.5 py-0.5 rounded-full">
+                            {msg.type || 'Gemini'}
+                          </div>
                         </div>
                       )}
                       <div className="whitespace-pre-wrap font-medium">{msg.content}</div>

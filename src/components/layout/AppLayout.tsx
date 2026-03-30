@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase/client'
 import { SettingsDialog } from '../SettingsDialog'
 import { NotificationPrompt } from '../NotificationPrompt'
 import { MobileActionSheet } from '../MobileActionSheet'
-import { FloatingAIConsultant } from '../FloatingAIConsultant'
+// Chat flotante removido por decisión de producto
 
 export default function AppLayout() {
   const { signOut, user } = useAuth()
@@ -289,7 +289,6 @@ export default function AppLayout() {
         onClose={() => setShowMobileActionSheet(false)} 
       />
       <NotificationPrompt />
-      <FloatingAIConsultant />
     </div>
   )
 }

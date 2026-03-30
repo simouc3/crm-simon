@@ -21,5 +21,6 @@ export const getGeminiKey = (): string => {
  */
 export const getAIModel = (apiKey: string) => {
   const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: GEMINI_MODEL }, { apiVersion: 'v1' });
+  // Usar default del SDK (v1beta) que es más compatible con Flash modelos nuevos
+  return genAI.getGenerativeModel({ model: GEMINI_MODEL });
 };
