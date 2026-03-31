@@ -122,7 +122,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
           <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-blue-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
             <UserPlus className="h-6 w-6" />
           </div>
-          <span className="text-[10px] font-black tracking-tight text-white bg-black/60 px-2 py-1 rounded-full backdrop-blur-md">Cliente</span>
+          <span className="text-[10px] font-black tracking-tight glass-island px-3 py-1 rounded-full shadow-sm">Cliente</span>
         </button>
 
         {/* Center Button - Mic / IA */}
@@ -133,7 +133,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
            <div className="w-16 h-16 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-purple-600 shadow-xl hover:scale-110 active:scale-95 transition-transform">
             <Mic className="h-7 w-7" />
           </div>
-          <span className="text-[10px] font-black tracking-tight text-white bg-black/60 px-2 py-1 rounded-full backdrop-blur-md">Audio IA</span>
+          <span className="text-[10px] font-black tracking-tight glass-island px-3 py-1 rounded-full shadow-sm">Audio IA</span>
         </button>
 
         {/* Right Button - Camera */}
@@ -144,7 +144,7 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
           <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-emerald-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
             <Camera className="h-6 w-6" />
           </div>
-          <span className="text-[10px] font-black tracking-tight text-white bg-black/60 px-2 py-1 rounded-full backdrop-blur-md">Cámara</span>
+          <span className="text-[10px] font-black tracking-tight glass-island px-3 py-1 rounded-full shadow-sm">Cámara</span>
           <input 
             type="file" accept="image/*" capture="environment" 
             className="hidden" ref={fileInputRef} onChange={handleFileChange}

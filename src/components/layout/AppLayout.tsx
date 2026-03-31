@@ -211,9 +211,7 @@ export default function AppLayout() {
       <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-[#0D0D17]">
         {/* Mobile Header — Floating Island (same style as bottom nav) */}
         <div className="md:hidden shrink-0 px-4 pt-4 pb-2 sticky top-0 z-30">
-          <div
-            className="bg-white/85 dark:bg-[#141420]/90 backdrop-blur-2xl saturate-150 rounded-[28px] shadow-[0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-black/[0.05] dark:border-white/[0.07] flex items-center justify-between px-4 h-[62px]"
-          >
+          <div className="glass-island rounded-[28px] flex items-center justify-between px-4 h-[62px]">
             <div className="flex items-center gap-3" onClick={() => navigate('/')}>
               <div className="w-10 h-10 rounded-[14px] bg-white dark:bg-[#20203A] flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-black/[0.06] dark:border-white/[0.08]">
                  {branding.logo ? (
@@ -259,7 +257,7 @@ export default function AppLayout() {
       {/* ── FLOATING ISLAND NAV — rendered via Portal directly on body ── */}
       {ReactDOM.createPortal(
         <nav className="fixed bottom-5 left-4 right-4 md:hidden z-[9999]">
-          <div className="bg-white/80 dark:bg-[#141420]/88 backdrop-blur-2xl saturate-200 rounded-[30px] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.05)_inset] border border-white/60 dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
+          <div className="glass-island rounded-[30px] flex items-center justify-around px-4 h-[62px] relative">
 
             <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
               {({ isActive }) => (

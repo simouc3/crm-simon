@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
-import { ChevronLeft, ChevronRight, Plus, Phone, Mail, MapPin, Trash2, Calendar as CalendarIcon, MessageSquare, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Phone, Mail, MapPin, Trash2, Calendar as CalendarIcon, MessageSquare, CheckCircle2, CalendarPlus, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { buildGoogleCalendarUrl, generateBulkIcs, downloadIcs, type CalendarEvent } from '../lib/googleCalendar'
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -112,6 +113,25 @@ export default function CalendarPage() {
 
   const [mobileView, setMobileView] = useState<'grid' | 'list'>('grid')
 
+  /** Convert a DB activity to a CalendarEvent object */
+  const toCalEvent = (e: any): CalendarEvent => ({
+    title: e.title || 'Gestión CRM',
+    notes: e.notes,
+    startDate: new Date(e.scheduled_at),
+    endDate: new Date(new Date(e.scheduled_at).getTime() + 60 * 60 * 1000),
+    company: e.companies?.razon_social,
+    location: e.companies?.comuna?.replace(/_/g, ' '),
+  })
+
+  /** Export ALL future events to .ics */
+  const exportAllToIcs = () => {
+    const future = events
+      .filter(e => e.scheduled_at && new Date(e.scheduled_at) >= new Date())
+      .map(toCalEvent)
+    if (future.length === 0) return alert('No hay actividades futuras para exportar.')
+    downloadIcs(generateBulkIcs(future), 'agenda-crm-limpiopspa.ics')
+  }
+
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
 
@@ -140,6 +160,15 @@ export default function CalendarPage() {
               >
                 <Plus size={20} />
                 + Nueva Gestión
+              </button>
+              {/* Export to .ics → works with Google Cal, Apple Cal, Outlook */}
+              <button
+                onClick={exportAllToIcs}
+                className="h-14 px-5 rounded-full border border-black/[0.08] dark:border-white/10 font-black text-sm flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-foreground/70"
+                title="Exportar actividades futuras a Google Calendar / Apple Calendar / Outlook"
+              >
+                <Download size={18} />
+                Exportar .ics
               </button>
             </div>
           </div>
@@ -316,9 +345,23 @@ export default function CalendarPage() {
                         </p>
                         
                         {event.companies?.razon_social && (
-                           <div className="mt-3 pt-3 border-t border-border/50 flex items-center gap-2 text-primary font-bold">
-                              <MapPin size={12} className="opacity-70" />
-                              <span className="text-[11px] truncate">{event.companies.razon_social}</span>
+                           <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
+                             <div className="flex items-center gap-2 text-primary font-bold">
+                               <MapPin size={12} className="opacity-70" />
+                               <span className="text-[11px] truncate">{event.companies.razon_social}</span>
+                             </div>
+                             {/* Google Calendar deep-link button */}
+                             <a
+                               href={buildGoogleCalendarUrl(toCalEvent(event))}
+                               target="_blank"
+                               rel="noreferrer"
+                               onClick={e => e.stopPropagation()}
+                               className="flex items-center gap-1 text-[9px] font-black text-[#4285F4] bg-[#4285F4]/10 hover:bg-[#4285F4]/20 px-2.5 py-1.5 rounded-full transition-colors"
+                               title="Agregar a Google Calendar"
+                             >
+                               <CalendarPlus size={10} />
+                               Google Cal
+                             </a>
                            </div>
                         )}
                      </div>
@@ -403,9 +446,23 @@ export default function CalendarPage() {
                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${selectedEvent.completed ? 'bg-slate-100 dark:bg-[#2C2C2E] text-muted-foreground' : 'bg-primary/10 text-primary border border-primary/20'}`}>
                      {selectedEvent.activity_type === 'LLAMADA' ? <Phone size={24} /> : selectedEvent.activity_type === 'VISITA' ? <MapPin size={24} /> : selectedEvent.activity_type === 'CORREO' ? <Mail size={24} /> : <MessageSquare size={24} />}
                   </div>
-                  <button onClick={() => handleDeleteActivity(selectedEvent.id)} className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-900/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all">
-                     <Trash2 size={16} />
-                  </button>
+                  <div className="flex gap-2">
+                    {/* New: Add to GCal button in detail view */}
+                    {!selectedEvent.completed && (
+                      <a
+                        href={buildGoogleCalendarUrl(toCalEvent(selectedEvent))}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-10 h-10 rounded-full bg-[#4285F4]/10 text-[#4285F4] hover:bg-[#4285F4]/20 flex items-center justify-center transition-all"
+                        title="Agregar a Google Calendar"
+                      >
+                         <CalendarPlus size={18} />
+                      </a>
+                    )}
+                    <button onClick={() => handleDeleteActivity(selectedEvent.id)} className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-900/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all">
+                       <Trash2 size={16} />
+                    </button>
+                  </div>
                </div>
                
                <h2 className={`text-[22px] font-black text-foreground leading-tight mb-2 tracking-tight ${selectedEvent.completed ? 'opacity-60 line-through' : ''}`}>

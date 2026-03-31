@@ -6,13 +6,13 @@ import { Briefcase } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
-  { id: 1, name: 'Prospección', color: '#64748b', bg: 'bg-slate-500/[0.03]', border: 'border-slate-500/10' },
-  { id: 2, name: 'Contacto', color: '#0ea5e9', bg: 'bg-sky-500/[0.04]', border: 'border-sky-500/20' },
-  { id: 3, name: 'Visita', color: '#8b5cf6', bg: 'bg-violet-500/[0.04]', border: 'border-violet-500/20' },
-  { id: 4, name: 'Propuesta', color: '#f59e0b', bg: 'bg-amber-500/[0.04]', border: 'border-amber-500/20' },
-  { id: 5, name: 'Negociación', color: '#f97316', bg: 'bg-orange-500/[0.04]', border: 'border-orange-500/20' },
-  { id: 6, name: 'Ganado', color: '#10b981', bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/30' },
-  { id: 7, name: 'Perdido', color: '#ef4444', bg: 'bg-rose-500/[0.06]', border: 'border-rose-500/30' },
+  { id: 1, name: 'Prospección', color: '#64748b', probability: 0.1, label: 'P10%' },
+  { id: 2, name: 'Contacto', color: '#0ea5e9', probability: 0.2, label: 'C20%' },
+  { id: 3, name: 'Visita', color: '#8b5cf6', probability: 0.4, label: 'V40%' },
+  { id: 4, name: 'Propuesta', color: '#f59e0b', probability: 0.6, label: 'P60%' },
+  { id: 5, name: 'Negociación', color: '#f97316', probability: 0.8, label: 'N80%' },
+  { id: 6, name: 'Ganado', color: '#10b981', probability: 1.0, label: 'G100%' },
+  { id: 7, name: 'Perdido', color: '#ef4444', probability: 0.0, label: 'L0%' },
 ]
 
 const fmtCLP = (n: number) =>
@@ -107,10 +107,18 @@ export default function KanbanBoard() {
   }
 
   const totalPipeline = filteredDeals
-    .filter(d => d.stage >= 1 && d.stage <= 5)
+    .filter(d => d.stage >= 1 && d.stage <= 6) // Include won
     .reduce((sum, d) => sum + (d.valor_neto || 0), 0)
 
-  const totalDeals = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5).length
+  // Smart Forecast: Weighted Value (Probability * Value)
+  const weightedForecast = filteredDeals
+    .filter(d => d.stage >= 1 && d.stage <= 6)
+    .reduce((sum, d) => {
+      const prob = KANBAN_STAGES.find(s => s.id === d.stage)?.probability || 0
+      return sum + ((d.valor_neto || 0) * prob)
+    }, 0)
+
+  const totalDeals = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 6).length
 
   const activeStageDeals = filteredDeals.filter(d => d.stage === activeStageId)
   const activeStageValue = activeStageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
@@ -269,9 +277,14 @@ export default function KanbanBoard() {
           <h1 className="text-[28px] font-black tracking-tighter text-foreground leading-none mb-1">
             Flujo Comercial
           </h1>
-          <p className="text-[11px] text-muted-foreground font-bold opacity-40 mb-4">
-            {totalDeals} oportunidades · {fmtCLP(totalPipeline)}
-          </p>
+          <div className="flex flex-col mb-4">
+             <p className="text-[11px] text-muted-foreground font-bold opacity-40">
+               {totalDeals} oportunidades · {fmtCLP(totalPipeline)} total
+             </p>
+             <p className="text-[10px] text-primary font-black uppercase tracking-widest mt-1">
+               Forecast: {fmtCLP(weightedForecast)} ✨
+             </p>
+          </div>
 
           {/* Period selectors */}
           <div className="flex items-center gap-2">
@@ -301,9 +314,14 @@ export default function KanbanBoard() {
             <h1 className="text-[64px] font-black tracking-tighter text-foreground leading-[0.9] -ml-1">
               Flujo Comercial
             </h1>
-            <p className="text-[14px] text-muted-foreground font-black uppercase tracking-widest opacity-40">
-              {totalDeals} oportunidades en vuelo · {fmtCLP(totalPipeline)} proyectados
-            </p>
+            <div className="space-y-1">
+              <p className="text-[14px] text-muted-foreground font-black uppercase tracking-widest opacity-40">
+                {totalDeals} oportunidades en vuelo · {fmtCLP(totalPipeline)} bruto total
+              </p>
+              <p className="text-[13px] text-primary font-black uppercase tracking-widest">
+                Forecast Ponderado: {fmtCLP(weightedForecast)} (Probabilidad % aplicada)
+              </p>
+            </div>
           </div>
           <div className="flex flex-col md:items-end gap-5 mt-10 md:mt-0">
             <div className="flex items-center gap-3">
@@ -329,6 +347,7 @@ export default function KanbanBoard() {
             {KANBAN_STAGES.map(stage => {
               const count = filteredDeals.filter(d => d.stage === stage.id).length
               const isActive = activeStageId === stage.id
+              const probLabel = stage.id <= 6 ? `(${Math.round(stage.probability * 100)}%)` : ''
               return (
                 <button
                   key={stage.id}
@@ -340,7 +359,10 @@ export default function KanbanBoard() {
                   }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />
-                  <span>{stage.name}</span>
+                  <span className="flex items-center gap-1">
+                    {stage.name}
+                    <span className="opacity-30 text-[9px] font-black">{probLabel}</span>
+                  </span>
                   <span className={`text-[10px] font-black ${isActive ? 'text-background/60' : 'text-muted-foreground/40'}`}>{count}</span>
                 </button>
               )
