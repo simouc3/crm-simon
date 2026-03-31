@@ -257,10 +257,10 @@ Equipo Comercial`)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[32px] p-0 border-none bg-white dark:bg-black shadow-[0_40px_100px_rgba(0,0,0,0.15)]">
+      <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[32px] p-0 border-none bg-white dark:bg-[#0D0D17] shadow-[0_40px_100px_rgba(0,0,0,0.3)]">
         
         {/* ── Compact Header (mobile-first) ── */}
-        <div className="px-5 pt-5 pb-4 md:px-10 md:pt-8 md:pb-6 bg-white dark:bg-black border-b border-black/[0.04] dark:border-white/[0.04] relative">
+        <div className="px-5 pt-5 pb-4 md:px-10 md:pt-8 md:pb-6 bg-white dark:bg-[#141420] border-b border-black/[0.04] dark:border-white/[0.08] relative">
            <div className="relative z-10">
               {/* Top: ID + stage badge */}
               <div className="flex items-center justify-between mb-3">

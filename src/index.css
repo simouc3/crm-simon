@@ -28,26 +28,26 @@
   }
 
   .dark {
-    /* ── Dark Mode: Apple HIG Spec ────────────────────────── */
-    --background: 0 0% 0%;           /* #000000 OLED Black — ahorra batería iPhone */
-    --foreground: 240 9% 95%;        /* #F2F2F7 — blanco suave, sin halation */
-    --card: 240 4% 11%;              /* #1C1C1E — gris oscuro Apple nivel 1 */
+    /* ── Dark Mode: Apple iOS Navy (2026 Reference) ── */
+    --background: 240 20% 6%;           /* #0D0D17 — deep navy, not pure black */
+    --foreground: 240 9% 95%;           /* #F2F2F7 — Apple soft white */
+    --card: 240 15% 10%;                /* #141420 — card surface, blue-navy */
     --card-foreground: 240 9% 95%;
-    --popover: 240 4% 11%;
+    --popover: 240 14% 12%;             /* #171727 — popover slightly lighter */
     --popover-foreground: 240 9% 95%;
-    --primary: 210 100% 56%;      /* #0A84FF — Apple Blue Dark Mode */
+    --primary: 210 100% 56%;            /* #0A84FF — Apple Blue Dark Mode */
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 17%;         /* #2C2C2E — nivel 2 Apple */
+    --secondary: 240 12% 16%;           /* #20202E — level 2 */
     --secondary-foreground: 240 9% 95%;
-    --muted: 240 4% 17%;
-    --muted-foreground: 240 5% 56%;  /* #8E8E93 — gris azulado iOS */
-    --accent: 240 4% 23%;            /* #3A3A3C — nivel 3 Apple */
+    --muted: 240 12% 16%;
+    --muted-foreground: 240 5% 56%;     /* #8E8E93 — iOS secondary text */
+    --accent: 240 10% 20%;              /* #282838 — level 3 */
     --accent-foreground: 240 9% 95%;
-    --destructive: 4 86% 62%;        /* Apple Red Dark #ff453a */
+    --destructive: 4 86% 62%;           /* Apple Red Dark #ff453a */
     --destructive-foreground: 240 9% 95%;
-    --border: 0 0% 100% / 0.1;       /* Borde translúcido blanco 10% */
-    --input: 240 4% 17%;
-    --ring: 210 100% 56%;             /* Apple Blue Dark focus ring */
+    --border: 240 20% 100% / 0.08;      /* Subtle blue-white border 8% */
+    --input: 240 12% 16%;
+    --ring: 210 100% 56%;               /* Apple Blue Dark focus ring */
   }
 }
 

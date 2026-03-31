@@ -104,13 +104,13 @@ export default function AppLayout() {
   ]
 
   return (
-    <div className={`flex h-screen bg-[#F5F5F7] dark:bg-black text-foreground font-sans antialiased ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`flex h-screen bg-[#F5F5F7] dark:bg-[#0D0D17] text-foreground font-sans antialiased ${isDarkMode ? 'dark' : ''}`}>
       {/* Sidebar Desktop */}
-      <aside className="w-[220px] bg-white/70 dark:bg-[#1C1C1E]/90 backdrop-blur-2xl border-r border-border/30 dark:border-transparent hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-none">
+      <aside className="w-[220px] bg-white/70 dark:bg-[#141420]/95 backdrop-blur-2xl border-r border-border/30 dark:border-white/[0.06] hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-[1px_0_0_rgba(255,255,255,0.05)]">
         
         <div className="p-10 pb-8">
           <div className="flex flex-col gap-5 group cursor-pointer transition-all" onClick={() => navigate('/')}>
-            <div className="w-16 h-16 rounded-[22px] bg-white dark:bg-[#2C2C2E] shadow-xl shadow-black/5 flex items-center justify-center overflow-hidden shrink-0 border border-black/[0.03] dark:border-white/[0.05] transition-all group-hover:scale-105 duration-500">
+            <div className="w-16 h-16 rounded-[22px] bg-white dark:bg-[#20203A] shadow-xl shadow-black/5 flex items-center justify-center overflow-hidden shrink-0 border border-black/[0.03] dark:border-white/[0.08] transition-all group-hover:scale-105 duration-500">
               {branding.logo ? (
                 <img src={branding.logo} alt="Logo" className="w-full h-full object-cover" />
               ) : (
@@ -208,9 +208,9 @@ export default function AppLayout() {
       </aside>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-black">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-[#0D0D17]">
         {/* Mobile Header — Apple Clean Slate */}
-        <header className="h-[70px] bg-white/80 dark:bg-[#1C1C1E]/90 backdrop-blur-3xl flex items-center px-6 justify-between md:hidden sticky top-0 z-30 border-b border-black/[0.04] dark:border-white/[0.04]">
+        <header className="h-[70px] bg-white/80 dark:bg-[#141420]/90 backdrop-blur-3xl flex items-center px-6 justify-between md:hidden sticky top-0 z-30 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="flex items-center gap-3" onClick={() => navigate('/')}>
             <div className="w-10 h-10 rounded-[12px] bg-white dark:bg-[#2C2C2E] flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-black/[0.05] dark:border-white/[0.05]">
                {branding.logo ? (
@@ -247,7 +247,7 @@ export default function AppLayout() {
         </header>
 
         {/* Dynamic Outlet Content */}
-        <main className="flex-1 min-h-0 bg-[#F5F5F7] dark:bg-black overflow-y-auto pb-36 md:pb-0 safe-top">
+        <main className="flex-1 min-h-0 bg-[#F5F5F7] dark:bg-[#0D0D17] overflow-y-auto pb-36 md:pb-0 safe-top">
           <Outlet context={{ isDarkMode }} />
         </main>
       </div>
@@ -255,7 +255,7 @@ export default function AppLayout() {
       {/* ── FLOATING ISLAND NAV — rendered via Portal directly on body ── */}
       {ReactDOM.createPortal(
         <nav className="fixed bottom-5 left-4 right-4 md:hidden z-[9999]">
-          <div className="bg-white/92 dark:bg-[#1C1C1E]/96 backdrop-blur-xl rounded-[30px] shadow-[0_8px_40px_rgba(0,0,0,0.20),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-black/[0.05] dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
+          <div className="bg-white/92 dark:bg-[#141420]/96 backdrop-blur-xl rounded-[30px] shadow-[0_8px_40px_rgba(0,0,0,0.20),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-black/[0.05] dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
 
             <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
               {({ isActive }) => (
