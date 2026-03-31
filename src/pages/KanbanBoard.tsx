@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
 import { DealFormDialog } from '../components/DealFormDialog'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { Briefcase, Zap, Search } from 'lucide-react'
+import { Briefcase, Search } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
@@ -270,54 +270,48 @@ export default function KanbanBoard() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#F5F5F7] dark:bg-[#0D0D17]">
-      {/* ── Mobile Header — White card with rounded corners ── */}
+    <div className="flex flex-col bg-[#F5F5F7] dark:bg-[#0D0D17]">
+      {/* ── Mobile Header Area ── */}
       <div className="md:hidden shrink-0 p-4 pb-0">
-        <div className="bg-white dark:bg-[#141420] rounded-[28px] p-5 border border-black/[0.04] dark:border-white/[0.07] shadow-sm">
+        <div className="bg-white dark:bg-[#141420] rounded-[28px] p-4 border border-black/[0.04] dark:border-white/[0.07] shadow-sm">
           
-          {/* Search Bar Mobile Premium */}
-          <div className="relative group mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
-            <input 
-              type="text"
-              placeholder="Buscar por nombre, RUT o contacto..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-14 pl-12 pr-6 rounded-full glass-island border border-border/40 dark:border-white/5 shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold text-sm tracking-tight relative z-0"
-            />
+          {/* Compact Mobile Header (Deeper Density) */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <div className="h-1 w-3 rounded-full bg-primary" />
+                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Pipeline</span>
+              </div>
+              <h1 className="text-[18px] font-black tracking-tighter text-foreground leading-none">
+                Flujo Comercial
+              </h1>
+            </div>
+            <div className="flex flex-col items-end">
+              <span className="text-[8px] font-black uppercase tracking-widest text-primary opacity-60 leading-none mb-1">Cierre Realista</span>
+              <p className="text-[14px] text-primary font-black tracking-tight leading-none">
+                {fmtCLP(weightedForecast)}
+              </p>
+            </div>
           </div>
 
-          {/* Title */}
-          <div className="flex items-center gap-2 mb-1">
-            <div className="h-1.5 w-5 rounded-full bg-primary" />
-            <span className="text-[9px] font-black uppercase tracking-[0.35em] text-muted-foreground opacity-40">Sales Pipeline</span>
-          </div>
-          <h1 className="text-[28px] font-black tracking-tighter text-foreground leading-none mb-1">
-            Flujo Comercial
-          </h1>
-          <div className="flex flex-col mb-4">
-             <p className="text-[11px] text-muted-foreground font-bold opacity-40">
-               {totalDeals} oportunidades · {fmtCLP(totalPipeline)} total
-             </p>
-             <p className="inline-flex items-center gap-1.5 text-[10px] text-primary font-black uppercase tracking-widest mt-1 bg-primary/10 px-3 py-1.5 rounded-full w-fit">
-               <Zap size={10} className="fill-primary" />
-               Forecast: {fmtCLP(weightedForecast)}
-             </p>
-          </div>
-
-          {/* Period selectors */}
-          <div className="flex items-center gap-2">
-            <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="flex-1 bg-slate-50 dark:bg-white/5 rounded-xl px-3 h-9 text-[10px] font-black uppercase tracking-wider text-foreground outline-none border border-black/[0.04] dark:border-white/5">
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-xl px-2 h-8 text-[9px] font-black uppercase tracking-wider text-foreground outline-none border border-black/[0.04] dark:border-white/5">
               {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
             </select>
-            <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-xl px-3 h-9 text-[10px] font-black uppercase tracking-wider text-foreground outline-none border border-black/[0.04] dark:border-white/5">
+            <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-xl px-2 h-8 text-[9px] font-black uppercase tracking-wider text-foreground outline-none border border-black/[0.04] dark:border-white/5">
               {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
 
-          {/* New deal button — below period */}
-          <div className="mt-3">
-            <DealFormDialog onDealCreated={fetchDeals} />
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground opacity-30 group-focus-within:text-primary transition-colors z-10" />
+            <input 
+              type="text"
+              placeholder="Buscar..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-10 pl-9 pr-4 rounded-full bg-slate-50 dark:bg-white/5 border border-border/40 dark:border-white/5 outline-none font-bold text-[11px] tracking-tight"
+            />
           </div>
         </div>
       </div>
@@ -356,12 +350,11 @@ export default function KanbanBoard() {
         </div>
       </div>
 
-
-      {/* ── Mobile: Stage Tabs + List ────────────────── */}
-      <div className="md:hidden flex flex-col flex-1 overflow-hidden">
+      {/* ── Mobile: Stage Picker + Scoped List ─────── */}
+      <div className="md:hidden flex flex-col">
         
-        {/* Stage Tabs */}
-        <div className="shrink-0 px-4 pt-4 pb-2">
+        {/* Sticky Stage Scroller */}
+        <div className="sticky top-[78px] z-20 px-4 py-2 glass-island mt-2 mb-2 shadow-sm">
           <div className="flex overflow-x-auto gap-2 no-scrollbar">
             {KANBAN_STAGES.map(stage => {
               const count = filteredDeals.filter(d => d.stage === stage.id).length
@@ -371,49 +364,54 @@ export default function KanbanBoard() {
                 <button
                   key={stage.id}
                   onClick={() => setActiveStageId(stage.id)}
-                  className={`shrink-0 h-9 px-4 rounded-full flex items-center gap-2 transition-all duration-200 text-[11px] font-bold border border-black/[0.04] dark:border-white/[0.05] ${
+                  className={`shrink-0 h-8 px-4 rounded-full flex items-center gap-2 transition-all duration-200 text-[10px] font-bold border border-black/[0.04] dark:border-white/[0.05] ${
                     isActive 
-                      ? 'bg-foreground text-background shadow-md' 
+                      ? 'bg-foreground text-background shadow-md scale-105' 
                       : 'bg-white/40 dark:bg-white/5 text-muted-foreground backdrop-blur-sm'
                   }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />
                   <span className="flex items-center gap-1">
                     {stage.name}
-                    <span className="opacity-30 text-[9px] font-black">{probLabel}</span>
+                    <span className="opacity-30 text-[8px] font-black">{probLabel}</span>
                   </span>
-                  <span className={`text-[10px] font-black ${isActive ? 'text-background/60' : 'text-muted-foreground/40'}`}>{count}</span>
+                  <span className={`text-[9px] font-black ${isActive ? 'text-background/60' : 'text-muted-foreground/40'}`}>{count}</span>
                 </button>
               )
             })}
           </div>
         </div>
 
-        {/* Active Stage Info */}
-        <div className="shrink-0 px-6 py-3 flex items-center justify-between">
+        {/* Selected Stage Detail Summary */}
+        <div className="px-6 py-2 flex items-center justify-between border-b border-black/[0.02]">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activeStage?.color }} />
-            <span className="text-[11px] font-black text-foreground uppercase tracking-wider">{activeStage?.name}</span>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeStage?.color }} />
+            <span className="text-[10px] font-black text-foreground uppercase tracking-widest leading-none">{activeStage?.name}</span>
           </div>
-          <span className="text-[12px] font-black text-primary tabular-nums">{fmtCLP(activeStageValue)}</span>
+          <p className="text-[11px] font-black text-primary tabular-nums leading-none">
+            {fmtCLP(activeStageValue)} <span className="opacity-30 font-bold ml-1">BRUTO</span>
+          </p>
         </div>
 
-        {/* Deal List */}
-        <div className="flex-1 overflow-y-auto px-4 pb-32">
-          <div className="space-y-2">
-            {activeStageDeals.length > 0 ? (
-              activeStageDeals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} />
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                <Briefcase className="h-8 w-8 mb-3 text-muted-foreground" />
-                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
-                  Sin negocios en {activeStage?.name}
-                </p>
-              </div>
-            )}
-          </div>
+        {/* Deals Feed (Natural Scrolling) */}
+        <div className="px-4 py-4 space-y-3">
+          {activeStageDeals.length > 0 ? (
+            activeStageDeals.map((deal) => (
+              <DealCard key={deal.id} deal={deal} />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 opacity-30">
+              <Briefcase className="h-6 w-6 mb-3 text-muted-foreground" />
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                Sin negocios activos
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Global Action: New Deal (Always at bottom of scrollable area) */}
+        <div className="px-5 pt-4 pb-12">
+           <DealFormDialog onDealCreated={fetchDeals} />
         </div>
       </div>
 
