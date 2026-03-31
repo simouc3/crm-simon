@@ -280,7 +280,7 @@ export default function AppLayout() {
             {/* FAB — rises above pill */}
             <button
               onClick={() => setShowMobileActionSheet(true)}
-              className="-mt-8 h-[52px] w-[52px] rounded-full bg-black dark:bg-white flex items-center justify-center shadow-[0_6px_24px_rgba(0,0,0,0.30)] active:scale-90 transition-transform duration-150 border-[3.5px] border-[#F5F5F7] dark:border-[#000]"
+              className="-mt-8 h-[52px] w-[52px] rounded-full bg-black dark:bg-white flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.30)] active:scale-90 transition-transform duration-150 border-[3px] border-white dark:border-[#0D0D17] relative z-10"
             >
               <Plus className="h-5 w-5 text-white dark:text-black" strokeWidth={2.5} />
             </button>

@@ -371,10 +371,10 @@ export default function KanbanBoard() {
                 <button
                   key={stage.id}
                   onClick={() => setActiveStageId(stage.id)}
-                  className={`shrink-0 h-9 px-4 rounded-full flex items-center gap-2 transition-all duration-200 text-[11px] font-bold ${
+                  className={`shrink-0 h-9 px-4 rounded-full flex items-center gap-2 transition-all duration-200 text-[11px] font-bold border border-black/[0.04] dark:border-white/[0.05] ${
                     isActive 
-                      ? 'bg-foreground text-background' 
-                      : 'bg-white dark:bg-[#1C1C1E] text-muted-foreground'
+                      ? 'bg-foreground text-background shadow-md' 
+                      : 'bg-white/40 dark:bg-white/5 text-muted-foreground backdrop-blur-sm'
                   }`}
                 >
                   <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />

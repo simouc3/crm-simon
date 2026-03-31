@@ -249,7 +249,7 @@ export default function Dashboard() {
     return isRisk ? p * 0.5 : p
   }
   const totalPonderado = filteredDeals
-    .filter(d => d.stage < 6 && d.stage > 0)
+    .filter(d => d.stage >= 1 && d.stage <= 6)
     .reduce((acc, d) => acc + ((d.valor_neto || 0) * (getProbability(d.stage, !!d.is_risk) / 100)), 0)
 
   const rentabilidadM2 = (() => {

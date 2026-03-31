@@ -260,7 +260,7 @@ Equipo Comercial`)
       <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[32px] p-0 border-none bg-white dark:bg-[#0D0D17] shadow-[0_40px_100px_rgba(0,0,0,0.3)]">
         
         {/* ── Compact Header (mobile-first) ── */}
-        <div className="px-5 pt-5 pb-4 md:px-10 md:pt-8 md:pb-6 bg-white dark:bg-[#141420] border-b border-black/[0.04] dark:border-white/[0.08] relative">
+        <div className="px-5 pt-5 pb-4 md:px-10 md:pt-8 md:pb-6 bg-[#F5F5F7] dark:bg-[#141420] border-b border-black/[0.04] dark:border-white/[0.08] relative">
            <div className="relative z-10">
               {/* Top: ID + stage badge */}
               <div className="flex items-center justify-between mb-3">
@@ -286,7 +286,7 @@ Equipo Comercial`)
                   <p className="text-[20px] md:text-[28px] font-black tracking-tighter text-foreground tabular-nums leading-none">
                     {fmtCLP(deal.valor_neto || 0)}
                   </p>
-                  {deal.companies?.lead_score && (
+                  {deal.companies?.lead_score !== undefined && deal.companies?.lead_score !== null && deal.companies?.lead_score > 0 && (
                     <div className="inline-flex items-center gap-1 bg-primary/10 text-primary text-[9px] font-black px-2 py-0.5 rounded-full mt-1">
                       <Zap className="h-2.5 w-2.5 fill-primary" /> {deal.companies.lead_score}pts
                     </div>
