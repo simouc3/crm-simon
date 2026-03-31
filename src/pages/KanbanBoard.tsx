@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
 import { DealFormDialog } from '../components/DealFormDialog'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { Briefcase } from 'lucide-react'
+import { Briefcase, Zap, Search } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
@@ -26,6 +26,7 @@ export default function KanbanBoard() {
   
   const [viewMonth, setViewMonth] = useState(new Date().getMonth())
   const [viewYear, setViewYear] = useState(new Date().getFullYear())
+  const [searchTerm, setSearchTerm] = useState('')
 
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
@@ -41,6 +42,11 @@ export default function KanbanBoard() {
 
   // Filter deals logic: Stages 1-5 are always visible. Stages 6-7 are filtered by month/year.
   const filteredDeals = deals.filter(deal => {
+    // Search filter
+    if (searchTerm && !deal.title.toLowerCase().includes(searchTerm.toLowerCase()) && !deal.companies?.razon_social?.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false
+    }
+
     if (deal.stage < 6) return true
     const dateStr = deal.stage_changed_at || deal.created_at
     const d = new Date(dateStr)
@@ -269,6 +275,18 @@ export default function KanbanBoard() {
       <div className="md:hidden shrink-0 p-4 pb-0">
         <div className="bg-white dark:bg-[#141420] rounded-[28px] p-5 border border-black/[0.04] dark:border-white/[0.07] shadow-sm">
           
+          {/* Search Bar Mobile Premium */}
+          <div className="relative group mb-4">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
+            <input 
+              type="text"
+              placeholder="Buscar por nombre, RUT o contacto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-14 pl-12 pr-6 rounded-full glass-island border border-border/40 dark:border-white/5 shadow-sm focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold text-sm tracking-tight relative z-0"
+            />
+          </div>
+
           {/* Title */}
           <div className="flex items-center gap-2 mb-1">
             <div className="h-1.5 w-5 rounded-full bg-primary" />
@@ -281,8 +299,9 @@ export default function KanbanBoard() {
              <p className="text-[11px] text-muted-foreground font-bold opacity-40">
                {totalDeals} oportunidades · {fmtCLP(totalPipeline)} total
              </p>
-             <p className="text-[10px] text-primary font-black uppercase tracking-widest mt-1">
-               Forecast: {fmtCLP(weightedForecast)} ✨
+             <p className="inline-flex items-center gap-1.5 text-[10px] text-primary font-black uppercase tracking-widest mt-1 bg-primary/10 px-3 py-1.5 rounded-full w-fit">
+               <Zap size={10} className="fill-primary" />
+               Forecast: {fmtCLP(weightedForecast)}
              </p>
           </div>
 

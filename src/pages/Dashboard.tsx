@@ -101,7 +101,7 @@ function BarChart({ data, onSelect, color = '#10b981', prefix = '$' }: { data: {
 function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, variant = 'glass' }: any) {
   const baseStyles = "group relative overflow-hidden rounded-[28px] p-6 transition-all duration-700 cursor-pointer active:scale-[0.98]"
   const variants: any = {
-    glass: "bg-white dark:bg-[#1C1C1E] border border-black/[0.03] dark:border-white/[0.03] shadow-sm hover:shadow-[0_30px_60px_rgba(0,0,0,0.07)] hover:-translate-y-1.5",
+    glass: "glass-island border border-black/[0.03] dark:border-white/[0.03] shadow-sm hover:shadow-[0_30px_60px_rgba(0,0,0,0.07)] hover:-translate-y-1.5",
     primary: "bg-primary text-white shadow-[0_20px_50px_rgba(0,122,255,0.25)] hover:shadow-[0_40px_80px_rgba(0,122,255,0.35)] hover:-translate-y-1.5",
     accent: "bg-black dark:bg-white text-white dark:text-black shadow-2xl hover:-translate-y-1.5"
   }
@@ -234,16 +234,16 @@ export default function Dashboard() {
   const ticketPromedio = ganados.length > 0 ? (ganados.reduce((s, d) => s + (d.valor_neto || 0), 0)) / ganados.length : 0
   const winRate = (ganados.length + perdidos.length) > 0 ? Math.round((ganados.length / (ganados.length + perdidos.length)) * 100) : 0
 
-  // Métricas BI
+  // Métricas BI - Synchronized with KanbanBoard weights
   const getProbability = (stage: number, isRisk: boolean) => {
     let p = 0
     switch(stage) {
-      case 1: p = 10; break
-      case 2: p = 25; break
-      case 3: p = 50; break
-      case 4: p = 70; break
-      case 5: p = 90; break
-      case 6: p = 100; break
+      case 1: p = 10; break // Prospección
+      case 2: p = 20; break // Contacto
+      case 3: p = 40; break // Visita
+      case 4: p = 60; break // Propuesta 
+      case 5: p = 80; break // Negociación
+      case 6: p = 100; break // Ganado
       default: p = 0
     }
     return isRisk ? p * 0.5 : p
@@ -336,36 +336,36 @@ export default function Dashboard() {
             {activeTab === 'OVERVIEW' ? 'Negocios' : 'Analítica BI'}
           </h1>
           
-          <div className="flex gap-10 pt-4">
+          <div className="flex glass-island p-1.5 rounded-full shadow-lg border border-white/5 mt-6 w-fit">
             <button 
               onClick={() => setActiveTab('OVERVIEW')}
-              className={`text-[12px] font-black uppercase tracking-[0.2em] pb-3 border-b-2 transition-all ${activeTab === 'OVERVIEW' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-30 hover:opacity-100'}`}
+              className={`text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all ${activeTab === 'OVERVIEW' ? 'bg-white dark:bg-white/10 text-black dark:text-white shadow-sm' : 'text-muted-foreground hover:text-foreground opacity-40'}`}
             >
               Overview
             </button>
             <button 
               onClick={() => setActiveTab('BI')}
-              className={`text-[12px] font-black uppercase tracking-[0.2em] pb-3 border-b-2 transition-all flex items-center gap-3 ${activeTab === 'BI' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground opacity-30 hover:opacity-100'}`}
+              className={`text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full transition-all flex items-center gap-2 ${activeTab === 'BI' ? 'bg-white dark:bg-white/10 text-black dark:text-white shadow-sm' : 'text-muted-foreground hover:text-foreground opacity-40'}`}
             >
-              Insights <Zap className="h-4 w-4 fill-amber-500 text-amber-500" />
+              Insights <Zap className="h-3 w-3 fill-amber-500 text-amber-500" />
             </button>
           </div>
         </div>
 
         {/* Filters */}
         <div className="flex flex-col md:items-end gap-4 mt-12 md:mt-0">
-          <div className="bg-slate-50 dark:bg-white/5 p-1 rounded-full flex items-center shadow-inner border border-black/[0.03] dark:border-white/5">
+          <div className="glass-island p-1.5 rounded-full flex items-center shadow-lg border border-white/5">
             {[
               { id: 'MONTH', label: 'Mes' },
-              { id: 'QUARTER', label: 'Trimestre' },
+              { id: 'QUARTER', label: 'Trim' },
               { id: 'YEAR', label: 'Año' }
             ].map(item => (
               <button
                 key={item.id}
                 onClick={() => setRange(item.id as TimeRange)}
-                className={`h-9 px-8 rounded-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${
+                className={`h-9 px-6 rounded-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
                   range === item.id 
-                    ? 'bg-white dark:bg-[#3A3A3C] text-black dark:text-white shadow-lg' 
+                    ? 'bg-white dark:bg-white/10 text-black dark:text-white shadow-md' 
                     : 'text-muted-foreground hover:text-foreground opacity-40'
                 }`}
               >
@@ -409,8 +409,9 @@ export default function Dashboard() {
                 label="Cierre Realista AI"
                 value={fmtCLP(totalPonderado)}
                 sub="Basado en scoring de riesgo"
-                icon={Target}
+                icon={Zap}
                 highlight
+                variant="glass"
                 trend={{ val: "IA Forecast", up: true }}
                 onClick={() => setSelectedMetric({ label: 'Cierre Realista AI (Activos)', deals: activos })}
               />
