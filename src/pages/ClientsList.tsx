@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Pencil, Trash2, Mail, Phone, MapPin, Building2, User, Search, MessageSquare } from "lucide-react"
+import { Pencil, Trash2, Search, MessageSquare } from "lucide-react"
 import { type Company } from "../types/database"
 import { ClientFormDialog } from "../components/ClientFormDialog"
 import { ImportClientsDialog } from "../components/ImportClientsDialog"
@@ -110,89 +110,132 @@ export default function ClientsList() {
       </div>
       
       {/* Table Desktop / Cards Mobile */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-3">
         {loading ? (
           <div className="text-center py-20 opacity-40 font-black uppercase tracking-widest text-xs animate-pulse">Sincronizando Clientes...</div>
         ) : filteredClients.length === 0 ? (
           <div className="text-center py-20 opacity-40 font-black text-sm">No se encontraron clientes</div>
         ) : (
-          filteredClients.map((client) => (
-            <div 
-              key={client.id} 
-              onClick={() => openClientDetail(client)}
-              className="bg-white dark:bg-[#1C1C1E] border border-border/40 dark:border-white/5 rounded-[40px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative overflow-hidden group active:scale-95 transition-all duration-300 cursor-pointer"
-            >
-               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
-               
-               <div className="flex justify-between items-start mb-4">
-                 <div className="flex items-center gap-3">
-                   <div className="w-14 h-14 rounded-2xl bg-slate-100/50 dark:bg-white/5 flex items-center justify-center border border-border/20 shadow-inner">
-                     <Building2 className="h-7 w-7 text-primary/60" />
-                   </div>
-                   <div>
-                     <h3 className="font-black text-lg tracking-tighter text-foreground leading-tight">{client.razon_social}</h3>
-                     <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60 tracking-widest">{client.rut || 'Sin RUT'}</span>
-                   </div>
-                 </div>
-                 <Badge className="bg-primary/10 text-primary border-none text-[9px] font-black uppercase">{client.segmento?.replace(/_/g, ' ') || 'S/E'}</Badge>
-               </div>
+          filteredClients.map((client) => {
+            // Segment → color mapping (similar to stage colors in Pipeline)
+            const segColorMap: Record<string, string> = {
+              logistica: '#32ADE6', logística: '#32ADE6',
+              industrial: '#FF9F0A',
+              retail: '#BF5AF2',
+              salud: '#34C759', 'salud clínica': '#34C759', 'salud clinica': '#34C759',
+              educacion: '#007AFF', educación: '#007AFF',
+              construccion: '#FF6B00', construcción: '#FF6B00',
+              mineria: '#8E8E93', minería: '#8E8E93',
+              adquisiciones: '#5AC8FA',
+            }
+            const segKey = (client.segmento || '').toLowerCase().replace(/_/g, ' ')
+            const segHex = segColorMap[segKey] || '#007AFF'
 
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                 <div className="flex flex-col gap-1">
-                   <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Responsable</span>
-                   <div className="flex items-center gap-2">
-                     <User className="h-3 w-3 text-primary opacity-40" />
-                     <span className="text-xs font-bold text-foreground truncate">{client.contact_name || 'Sin asignar'}</span>
-                   </div>
-                 </div>
-                 <div className="flex flex-col gap-1">
-                   <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Ubicación</span>
-                   <div className="flex items-center gap-2">
-                     <MapPin className="h-3 w-3 text-emerald-500 opacity-40" />
-                     <span className="text-xs font-bold text-foreground truncate">{client.comuna?.replace(/_/g, ' ') || 'Sin comuna'}</span>
-                   </div>
-                 </div>
-               </div>
+            return (
+              <div
+                key={client.id}
+                onClick={() => openClientDetail(client)}
+                className="group cursor-pointer select-none bg-white dark:bg-[#141420] rounded-[32px] overflow-hidden border border-black/[0.05] dark:border-white/[0.07] relative transition-all duration-300 shadow-[0_2px_12px_rgba(0,0,0,0.06)] active:scale-[0.98] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)]"
+              >
+                {/* Left colored accent bar */}
+                <div className="absolute left-0 top-0 bottom-0 w-[4px] rounded-l-[32px]" style={{ backgroundColor: segHex }} />
 
-               <div className="flex items-center justify-between pt-4 border-t border-border/40">
-                 <div className="flex items-center gap-2">
-                   {client.contact_phone && (() => {
-                     const digits = client.contact_phone.replace(/\D/g, '');
-                     let waUrl = null;
-                     if (digits.startsWith('569')) waUrl = `https://wa.me/${digits}`;
-                     else if (digits.startsWith('9') && digits.length === 9) waUrl = `https://wa.me/56${digits}`;
-                     
-                     return waUrl ? (
-                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/50 transition-colors" onClick={() => window.open(waUrl, '_blank')} title="WhatsApp">
-                           <MessageSquare className="h-4 w-4 fill-emerald-600" />
-                         </Button>
-                     ) : (
-                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600" onClick={() => window.open(`tel:${client.contact_phone}`)}>
-                           <Phone className="h-4 w-4" />
-                         </Button>
-                     );
-                   })()}
-                   {client.contact_email && (
-                     <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl bg-sky-50 text-sky-600" onClick={() => window.open(`mailto:${client.contact_email}`)}>
-                       <Mail className="h-4 w-4" />
-                     </Button>
-                   )}
-                 </div>
-                 <div className="flex items-center gap-2">
-                   <ClientFormDialog 
-                    clientToEdit={client}
-                    onClientCreated={fetchCompanies}
-                    trigger={
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl text-muted-foreground hover:bg-slate-100 dark:hover:bg-white/10">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    }
-                   />
+                <div className="pl-5 pr-4 pt-4 pb-3">
+
+                  {/* Row 1: Segment badge + RUT */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
+                      style={{ backgroundColor: segHex + '18', color: segHex }}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: segHex }} />
+                      {client.segmento?.replace(/_/g, ' ') || 'Sin segmento'}
+                    </span>
+                    <span className="text-[9px] font-black text-muted-foreground/40 tabular-nums tracking-wide">{client.rut || '—'}</span>
+                  </div>
+
+                  {/* Row 2: Avatar initial + company name */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-[15px] text-white"
+                      style={{ backgroundColor: segHex }}
+                    >
+                      {(client.razon_social || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-black text-[15px] tracking-[-0.02em] leading-tight text-foreground truncate">
+                        {client.razon_social}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground/50 truncate leading-snug mt-0.5">
+                        {client.contact_name || (client.segmento?.replace(/_/g, ' ') || 'Sin contacto')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Row 3: m2 + location */}
+                  <div className="flex items-center justify-between mb-3 pb-3 border-b border-black/[0.05] dark:border-white/[0.05]">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none mb-1">Área</p>
+                      <p className="text-[16px] font-black tracking-[-0.03em] tabular-nums text-foreground leading-none">
+                        {client.m2_estimados ? `${Number(client.m2_estimados).toLocaleString('es-CL')} m²` : '—'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {client.condiciones_pago && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-black bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                          {client.condiciones_pago.replace(/_/g, ' ')}
+                        </span>
+                      )}
+                      {client.comuna && (
+                        <p className="text-[9px] text-muted-foreground/30 font-semibold uppercase tracking-wider mt-0.5 truncate max-w-[110px]">
+                          {client.comuna.replace(/_/g, ' ')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 4: Quick actions */}
+                  <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                    {client.contact_phone && (() => {
+                      const digits = client.contact_phone.replace(/\D/g, '')
+                      const waUrl = digits.startsWith('569') ? `https://wa.me/${digits}` :
+                        digits.startsWith('9') && digits.length === 9 ? `https://wa.me/56${digits}` : null
+                      return waUrl ? (
+                        <a href={waUrl} target="_blank" rel="noreferrer"
+                          className="flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/25 transition-colors flex-shrink-0"
+                          title="WhatsApp">
+                          <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>
+                      ) : (
+                        <a href={`tel:${client.contact_phone}`}
+                          className="flex items-center justify-center h-8 w-8 rounded-xl bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/25 transition-colors flex-shrink-0">
+                          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 9.91a16 16 0 006.72 6.72l1.28-1.34a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                        </a>
+                      )
+                    })()}
+                    {client.contact_email && (
+                      <a href={`mailto:${client.contact_email}`}
+                        className="flex items-center justify-center h-8 w-8 rounded-xl bg-blue-500/15 dark:bg-blue-500/20 text-blue-500 hover:bg-blue-500/25 transition-colors flex-shrink-0">
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+                      </a>
+                    )}
+                    <div className="flex-1" />
+                    {/* Edit */}
+                    <ClientFormDialog
+                      clientToEdit={client}
+                      onClientCreated={fetchCompanies}
+                      trigger={
+                        <button className="flex items-center justify-center h-8 w-8 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-muted-foreground hover:bg-slate-200 dark:hover:bg-white/10 transition-colors flex-shrink-0">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      }
+                    />
+                    {/* Delete */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl text-rose-500 hover:bg-rose-50">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <button className="flex items-center justify-center h-8 w-8 rounded-xl bg-rose-500/12 text-rose-500 hover:bg-rose-500/20 transition-colors flex-shrink-0">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </AlertDialogTrigger>
                       <AlertDialogContent className="rounded-[2.5rem] border-none">
                         <AlertDialogHeader>
@@ -205,10 +248,12 @@ export default function ClientsList() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                 </div>
-               </div>
-            </div>
-          ))
+                  </div>
+
+                </div>
+              </div>
+            )
+          })
         )}
       </div>
 

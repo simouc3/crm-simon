@@ -209,42 +209,46 @@ export default function AppLayout() {
       
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-[#0D0D17]">
-        {/* Mobile Header — Apple Clean Slate */}
-        <header className="h-[70px] bg-white/80 dark:bg-[#141420]/90 backdrop-blur-3xl flex items-center px-6 justify-between md:hidden sticky top-0 z-30 border-b border-black/[0.04] dark:border-white/[0.06]">
-          <div className="flex items-center gap-3" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 rounded-[12px] bg-white dark:bg-[#2C2C2E] flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-black/[0.05] dark:border-white/[0.05]">
-               {branding.logo ? (
-                <img src={branding.logo} alt="Logo" className="w-full h-full object-cover" />
-              ) : (
-                <span className="text-primary font-black text-base tracking-tighter uppercase">{branding.name.charAt(0)}</span>
-              )}
+        {/* Mobile Header — Floating Island (same style as bottom nav) */}
+        <div className="md:hidden shrink-0 px-4 pt-4 pb-2 sticky top-0 z-30">
+          <div
+            className="bg-white/85 dark:bg-[#141420]/90 backdrop-blur-2xl saturate-150 rounded-[28px] shadow-[0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)] border border-black/[0.05] dark:border-white/[0.07] flex items-center justify-between px-4 h-[62px]"
+          >
+            <div className="flex items-center gap-3" onClick={() => navigate('/')}>
+              <div className="w-10 h-10 rounded-[14px] bg-white dark:bg-[#20203A] flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-black/[0.06] dark:border-white/[0.08]">
+                 {branding.logo ? (
+                  <img src={branding.logo} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-primary font-black text-base tracking-tighter uppercase">{branding.name.charAt(0)}</span>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] leading-none opacity-60">Plataforma B2B</span>
+                <div className="font-black text-foreground text-[16px] tracking-tighter leading-none mt-0.5">{branding.name}</div>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] leading-none opacity-60">Plataforma B2B</span>
-              <div className="font-black text-foreground text-[16px] tracking-tighter leading-none mt-0.5">{branding.name}</div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="w-9 h-9 rounded-[14px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center active:scale-90 transition-transform"
+              >
+                {isDarkMode ? <Sun className="h-[16px] w-[16px]" /> : <Moon className="h-[16px] w-[16px]" />}
+              </button>
+              <div 
+                className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/10 border border-black/[0.04] dark:border-white/[0.06] overflow-hidden shadow-sm active:scale-90 transition-transform"
+                onClick={() => navigate('/users?me=true')}
+              >
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-foreground font-black text-xs uppercase">
+                     {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-[#2C2C2E] border border-black/[0.04] dark:border-white/[0.05] flex items-center justify-center active:scale-90 transition-transform"
-            >
-              {isDarkMode ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
-            </button>
-            <div 
-              className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#2C2C2E] border border-black/[0.04] dark:border-white/[0.05] overflow-hidden shadow-md active:scale-90 transition-transform"
-              onClick={() => navigate('/users?me=true')}
-            >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-foreground font-black text-xs uppercase">
-                   {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
+        </div>
 
         {/* Dynamic Outlet Content */}
         <main className="flex-1 min-h-0 bg-[#F5F5F7] dark:bg-[#0D0D17] overflow-y-auto pb-36 md:pb-0 safe-top">
@@ -255,7 +259,7 @@ export default function AppLayout() {
       {/* ── FLOATING ISLAND NAV — rendered via Portal directly on body ── */}
       {ReactDOM.createPortal(
         <nav className="fixed bottom-5 left-4 right-4 md:hidden z-[9999]">
-          <div className="bg-white/92 dark:bg-[#141420]/96 backdrop-blur-xl rounded-[30px] shadow-[0_8px_40px_rgba(0,0,0,0.20),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.7)] border border-black/[0.05] dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
+          <div className="bg-white/80 dark:bg-[#141420]/88 backdrop-blur-2xl saturate-200 rounded-[30px] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.05)_inset] border border-white/60 dark:border-white/[0.08] flex items-center justify-around px-4 h-[62px] relative">
 
             <NavLink to="/" end className={({ isActive }) => `flex flex-col items-center justify-center gap-[3px] px-3 transition-all duration-200 ${isActive ? 'text-[#007AFF]' : 'text-black/30 dark:text-white/30'}`}>
               {({ isActive }) => (
