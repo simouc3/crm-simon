@@ -1,8 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 export const DEFAULT_GEMINI_KEY = "AIzaSyDlkjep9LYBmCbrcfOekAx85RypShBRS2M";
 
-// Modelo estable (pro es más robusto ante errores de ruteo de región)
-export const GEMINI_MODEL = "gemini-pro";
+// Modelo de última generación (más rápido y estable)
+export const GEMINI_MODEL = "gemini-1.5-flash";
 
 /**
  * Obtiene la API Key actual, priorizando localStorage (usuario) 
@@ -30,6 +30,5 @@ export const getGeminiKey = (): string => {
  */
 export const getAIModel = (apiKey: string) => {
   const genAI = new GoogleGenerativeAI(apiKey);
-  // El SDK v0.24.1 maneja internamente la mejor versión (v1)
   return genAI.getGenerativeModel({ model: GEMINI_MODEL });
 };

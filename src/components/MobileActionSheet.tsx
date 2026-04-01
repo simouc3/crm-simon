@@ -113,38 +113,38 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
         onClick={onClose}
       />
       
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
         {/* Left Button - Nuevo Cliente */}
         <button 
           onClick={() => { setShowQuickClient(true); onClose(); }}
-          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-100px] translate-y-[-100px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
+          className={`absolute flex flex-col items-center gap-3 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-100px] translate-y-[-70px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
         >
-          <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-blue-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
+          <div className="w-14 h-14 bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.05] rounded-full flex items-center justify-center text-blue-500 shadow-[0_8px_32px_rgba(0,0,0,0.12)] hover:scale-110 active:scale-95 transition-transform">
             <UserPlus className="h-6 w-6" />
           </div>
-          <span className="text-[10px] font-black tracking-tight glass-island px-3 py-1 rounded-full shadow-sm">Cliente</span>
+          <span className="text-[10px] font-black tracking-widest uppercase glass-island px-3 py-1.5 rounded-xl shadow-lg border border-white/10">Cliente</span>
         </button>
 
         {/* Center Button - Mic / IA */}
         <button 
           onClick={() => { setShowVoiceRecorder(true); onClose(); }}
-          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-75 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-28px] translate-y-[-140px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-[-28px] translate-y-0 scale-50 pointer-events-none'}`}
+          className={`absolute flex flex-col items-center gap-3 transition-all duration-500 delay-75 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[-32px] translate-y-[-140px] scale-105 pointer-events-auto' : 'opacity-0 translate-x-[-32px] translate-y-0 scale-50 pointer-events-none'}`}
         >
-           <div className="w-16 h-16 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-purple-600 shadow-xl hover:scale-110 active:scale-95 transition-transform">
-            <Mic className="h-7 w-7" />
+           <div className="w-16 h-16 bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.05] rounded-full flex items-center justify-center text-purple-600 shadow-[0_12px_48px_rgba(147,51,234,0.15)] hover:scale-110 active:scale-95 transition-transform">
+            <Mic className="h-8 w-8" />
           </div>
-          <span className="text-[10px] font-black tracking-tight glass-island px-3 py-1 rounded-full shadow-sm">Audio IA</span>
+          <span className="text-[10px] font-black tracking-widest uppercase glass-island-heavy px-4 py-1.5 rounded-xl shadow-lg border border-purple-500/20 text-purple-600 dark:text-purple-400">Audio IA</span>
         </button>
 
         {/* Right Button - Camera */}
         <button 
           onClick={handleCameraClick}
-          className={`absolute flex flex-col items-center gap-2 transition-all duration-500 delay-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[44px] translate-y-[-100px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
+          className={`absolute flex flex-col items-center gap-3 transition-all duration-500 delay-150 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isOpen ? 'opacity-100 translate-x-[40px] translate-y-[-70px] scale-100 pointer-events-auto' : 'opacity-0 translate-x-0 translate-y-0 scale-50 pointer-events-none'}`}
         >
-          <div className="w-14 h-14 bg-white dark:bg-[#2C2C2E] border border-border/10 rounded-full flex items-center justify-center text-emerald-500 shadow-xl hover:scale-110 active:scale-95 transition-transform">
+          <div className="w-14 h-14 bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.05] rounded-full flex items-center justify-center text-emerald-500 shadow-[0_8px_32px_rgba(0,0,0,0.12)] hover:scale-110 active:scale-95 transition-transform">
             <Camera className="h-6 w-6" />
           </div>
-          <span className="text-[10px] font-black tracking-tight glass-island px-3 py-1 rounded-full shadow-sm">Cámara</span>
+          <span className="text-[10px] font-black tracking-widest uppercase glass-island px-3 py-1.5 rounded-xl shadow-lg border border-white/10">Cámara</span>
           <input 
             type="file" accept="image/*" capture="environment" 
             className="hidden" ref={fileInputRef} onChange={handleFileChange}
@@ -152,8 +152,15 @@ export function MobileActionSheet({ isOpen, onClose }: MobileActionSheetProps) {
         </button>
       </div>
 
-      <QuickClientFormDialog open={showQuickClient} onOpenChange={setShowQuickClient} />
-      <VoiceRecorderModal open={showVoiceRecorder} onOpenChange={setShowVoiceRecorder} />
+      <QuickClientFormDialog 
+        open={showQuickClient} 
+        onOpenChange={setShowQuickClient} 
+      />
+
+      <VoiceRecorderModal
+        open={showVoiceRecorder}
+        onOpenChange={setShowVoiceRecorder}
+      />
     </>
   );
 }

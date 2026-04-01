@@ -147,9 +147,11 @@ export function ImportClientsDialog({ onImported }: Props) {
         })
 
         const hasName = !!(obj.razon_social?.trim())
+        const tempId = Math.random().toString(36).substring(2, 8).toUpperCase()
+        
         return {
           razon_social: hasName ? obj.razon_social : "EMPRESA SIN NOMBRE",
-          rut: obj.rut || "S/I",
+          rut: obj.rut?.trim() || `RUT-T-${tempId}`,
           contact_name: obj.contact_name || "S/I",
           contact_phone: obj.contact_phone || "S/I",
           contact_email: obj.contact_email || "S/I",
