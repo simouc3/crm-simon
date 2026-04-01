@@ -1,8 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-export const DEFAULT_GEMINI_KEY = "AIzaSyDlkjep9LYBmCbrcfOekAx85RypShBRS2M";
 
-// Modelo de última generación (más rápido y estable)
-export const GEMINI_MODEL = "gemini-1.5-flash";
+// Clave API actualizada (Usuario Simon)
+export const DEFAULT_GEMINI_KEY = "AIzaSyBuwPq8AuKpMbAHOCMYDIHKiVhXMXRiSOM";
+
+// Modelo de última generación (más estable para evitar errores 404 en v1beta)
+export const GEMINI_MODEL = "gemini-1.5-flash-latest";
 
 /**
  * Obtiene la API Key actual, priorizando localStorage (usuario) 
@@ -21,7 +23,7 @@ export const getGeminiKey = (): string => {
     return stored.trim();
   }
   
-  // 3. Fallback Final: Hardcoded (Solo para pruebas rápidas)
+  // 3. Fallback Final: Hardcoded
   return DEFAULT_GEMINI_KEY;
 };
 

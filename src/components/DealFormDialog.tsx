@@ -26,10 +26,18 @@ interface DealFormProps {
   onDealCreated?: () => void
   dealToEdit?: Deal
   trigger?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function DealFormDialog({ onDealCreated, dealToEdit, trigger }: DealFormProps) {
-  const [open, setOpen] = useState(false)
+export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: externalOpen, onOpenChange }: DealFormProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  
+  const open = externalOpen !== undefined ? externalOpen : internalOpen
+  const setOpen = (val: boolean) => {
+    if (onOpenChange) onOpenChange(val)
+    setInternalOpen(val)
+  }
   const [loading, setLoading] = useState(false)
   const [companies, setCompanies] = useState<Company[]>([])
   
