@@ -142,9 +142,11 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ? trigger : <Button>+ Nuevo Negocio</Button>}
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{dealToEdit ? 'Editar Negocio' : 'Crear Nuevo Negocio'}</DialogTitle>
