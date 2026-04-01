@@ -228,9 +228,15 @@ export default function AppLayout() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="w-9 h-9 rounded-[14px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center active:scale-90 transition-transform"
+                className="w-9 h-9 rounded-[14px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center active:scale-90 transition-transform text-foreground"
               >
                 {isDarkMode ? <Sun className="h-[16px] w-[16px]" /> : <Moon className="h-[16px] w-[16px]" />}
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="w-9 h-9 rounded-[14px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center active:scale-90 transition-transform text-foreground"
+              >
+                <SettingsIcon className="h-[16px] w-[16px]" />
               </button>
               <div 
                 className="w-9 h-9 rounded-full bg-slate-100 dark:bg-white/10 border border-black/[0.04] dark:border-white/[0.06] overflow-hidden shadow-sm active:scale-90 transition-transform"

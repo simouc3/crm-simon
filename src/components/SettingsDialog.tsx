@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { supabase } from "../lib/supabase/client"
-import { Upload, User, Save, Bell } from "lucide-react"
+import { Upload, User, Save, Bell, Sparkles } from "lucide-react"
 import { checkNotificationPermission, subscribeToPush, unsubscribeFromPush } from "../lib/push-notifications"
 
 interface SettingsDialogProps {
@@ -22,6 +22,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const [uploading, setUploading] = useState(false)
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushToggling, setPushToggling] = useState(false)
+  const [geminiKey, setGeminiKey] = useState("")
 
   useEffect(() => {
     if (open) {
@@ -59,6 +60,9 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
     const { data: { user } } = await supabase.auth.getUser()
     if (user?.user_metadata?.full_name) setUserName(user.user_metadata.full_name)
     if (user?.user_metadata?.avatar_url) setAvatarUrl(user.user_metadata.avatar_url)
+
+    const savedKey = localStorage.getItem('gemini_api_key')
+    if (savedKey) setGeminiKey(savedKey)
   }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,6 +101,12 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
     await supabase.auth.updateUser({
       data: { full_name: userName, avatar_url: avatarUrl }
     })
+
+    if (geminiKey) {
+      localStorage.setItem('gemini_api_key', geminiKey)
+    } else {
+      localStorage.removeItem('gemini_api_key')
+    }
 
     if (error) {
       alert("Error guardando: " + error.message)
@@ -208,13 +218,36 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
               </Button>
             </div>
           </div>
+
+          {/* Configuración de IA */}
+          <div className="pt-4 border-t border-border/40">
+             <div className="grid gap-2">
+                <div className="flex items-center gap-2 mb-1">
+                   <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600">
+                      <Sparkles className="w-4 h-4" />
+                   </div>
+                   <Label htmlFor="geminiKey" className="text-sm font-bold text-foreground">Gemini API Key</Label>
+                </div>
+                <Input
+                  id="geminiKey"
+                  type="password"
+                  value={geminiKey}
+                  onChange={(e) => setGeminiKey(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="rounded-xl h-10 font-mono text-[11px] bg-slate-50 dark:bg-white/5"
+                />
+                <p className="text-[10px] text-muted-foreground opacity-60 italic pl-1">
+                   Tu clave se guarda localmente en tu dispositivo.
+                </p>
+             </div>
+          </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={loading || uploading}>
+          <Button onClick={handleSave} disabled={loading || uploading} className="rounded-xl">
             {loading ? "Guardando..." : (
               <>
                 <Save className="w-4 h-4 mr-2" />

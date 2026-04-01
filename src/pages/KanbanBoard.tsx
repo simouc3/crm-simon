@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
-import { DealFormDialog } from '../components/DealFormDialog'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
 import { Briefcase, Search } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
@@ -344,7 +343,6 @@ export default function KanbanBoard() {
               <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
                 {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
               </select>
-              <DealFormDialog onDealCreated={fetchDeals} />
             </div>
           </div>
         </div>
@@ -411,7 +409,7 @@ export default function KanbanBoard() {
 
         {/* Global Action: New Deal (Always at bottom of scrollable area) */}
         <div className="px-5 pt-4 pb-12">
-           <DealFormDialog onDealCreated={fetchDeals} />
+           {/* Eliminado para limpieza visual - Se usa el Abanico central */}
         </div>
       </div>
 

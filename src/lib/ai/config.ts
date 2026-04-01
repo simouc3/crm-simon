@@ -3,27 +3,26 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Clave API actualizada (Usuario Simon)
 export const DEFAULT_GEMINI_KEY = "AIzaSyBuwPq8AuKpMbAHOCMYDIHKiVhXMXRiSOM";
 
-// Modelo de última generación (más estable para evitar errores 404 en v1beta)
-export const GEMINI_MODEL = "gemini-1.5-flash-latest";
+// Modelo estable (Solicitado por el usuario tras errores en versiones Flash)
+export const GEMINI_MODEL = "gemini-pro";
 
 /**
- * Obtiene la API Key actual, priorizando localStorage (usuario) 
- * y cayendo en la defaultKey si no hay ninguna.
+ * Obtiene la API Key actual, con prioridad absoluta en localStorage (usuario)
  */
 export const getGeminiKey = (): string => {
-  // 1. Prioridad: Variable de entorno (Segurizada)
-  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (envKey && envKey.trim() !== '') {
-    return envKey.trim();
-  }
-
-  // 2. Fallback: localStorage (Persistencia de usuario)
+  // 1. PRIORIDAD: localStorage (Ajustes manuales del usuario)
   const stored = localStorage.getItem('gemini_api_key');
   if (stored && stored.trim() !== '' && stored !== 'undefined') {
     return stored.trim();
   }
+
+  // 2. FALLBACK: Variable de entorno
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (envKey && envKey.trim() !== '') {
+    return envKey.trim();
+  }
   
-  // 3. Fallback Final: Hardcoded
+  // 3. FALLBACK FINAL: Clave por defecto
   return DEFAULT_GEMINI_KEY;
 };
 
