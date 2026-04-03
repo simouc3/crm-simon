@@ -3,8 +3,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Clave API actualizada (Usuario Simon)
 export const DEFAULT_GEMINI_KEY = "AIzaSyBuwPq8AuKpMbAHOCMYDIHKiVhXMXRiSOM";
 
-// Modelo base para máxima compatibilidad con v1beta
-export const GEMINI_MODEL = "gemini-1.5-flash";
+// Modelo Gemini 2026 (Serie 2.0 - Mayor estabilidad y velocidad)
+export const GEMINI_MODEL = "gemini-2.0-flash";
 
 /**
  * Obtiene la API Key actual, con prioridad absoluta en localStorage (usuario)
