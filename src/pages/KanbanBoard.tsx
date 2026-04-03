@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { Briefcase, Search } from 'lucide-react'
+import { Briefcase, Search, Orbit } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
@@ -171,16 +171,25 @@ export default function KanbanBoard() {
 
           {/* Row 1: Stage badge + risk + score */}
           <div className="flex items-center justify-between mb-3">
-            <span
-              className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
-              style={{
-                backgroundColor: isRisk ? '#FF3B30' + '18' : s.hex + '18',
-                color: isRisk ? '#FF3B30' : s.hex
-              }}
-            >
-              <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }} />
-              {isRisk ? '⚠ Riesgo' : s.label}
-            </span>
+            <div className="flex gap-1.5 flex-wrap">
+              <span
+                className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1 rounded-full"
+                style={{
+                  backgroundColor: isRisk ? '#FF3B30' + '18' : s.hex + '18',
+                  color: isRisk ? '#FF3B30' : s.hex
+                }}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${isRisk ? 'animate-pulse' : ''}`} style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }} />
+                {isRisk ? 'Riesgo IA' : s.label}
+              </span>
+              
+              {deal.ai_probability && (
+                <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                  <Orbit className="h-2.5 w-2.5 animate-spin-slow" />
+                  {deal.ai_probability}%
+                </span>
+              )}
+            </div>
             {deal.companies?.lead_score > 0 && (
               <span className={`text-[9px] font-black px-2 py-0.5 rounded-md tabular-nums ${
                 deal.companies.lead_score >= 80 ? 'text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60' :
@@ -210,24 +219,23 @@ export default function KanbanBoard() {
             </div>
           </div>
 
-          {/* Row 3: Value + location */}
           <div className="flex items-center justify-between mb-3 pb-3 border-b border-black/[0.05] dark:border-white/[0.05]">
             <div>
-              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none mb-1">Inversión</p>
-              <p className="text-[16px] font-black tracking-[-0.03em] tabular-nums text-foreground leading-none">
+              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none mb-1">Inversión Net.</p>
+              <p className={`text-[17px] font-black tracking-[-0.03em] tabular-nums leading-none ${isRisk ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>
                 {fmtCLP(deal.valor_neto || 0)}
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-right flex flex-col items-end gap-1">
               {deal.is_contract ? (
-                <span className="inline-flex items-center gap-1 text-[9px] font-black bg-[#007AFF]/10 text-[#007AFF] px-2.5 py-1 rounded-full">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#007AFF]" />SLA {deal.contract_months}M
+                <span className="inline-flex items-center gap-1 text-[8px] font-black bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                  SLA {deal.contract_months}M
                 </span>
               ) : (
-                <span className="text-[11px] font-semibold text-muted-foreground/40">Spot</span>
+                <span className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-widest">Spot</span>
               )}
               {deal.companies?.comuna && (
-                <p className="text-[9px] text-muted-foreground/30 font-semibold uppercase tracking-wider mt-0.5 truncate max-w-[100px]">
+                <p className="text-[9px] text-muted-foreground/30 font-black uppercase tracking-wider truncate max-w-[100px]">
                   {deal.companies.comuna.replace(/_/g, ' ')}
                 </p>
               )}

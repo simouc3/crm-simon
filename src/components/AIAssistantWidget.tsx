@@ -5,6 +5,96 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '../lib/supabase/client';
 import { getGeminiKey, getAIModel } from '../lib/ai/config';
 
+// --- Componente de Renderizado de Mensajes (Markdown Simple) ---
+function MessageRenderer({ content, isError }: { content: string, isError?: boolean }) {
+  const lines = content.split('\n');
+  
+  // Robust parser for multiline AI responses (Harmonized with Dashboard)
+  const sections: {emoji: string, title: string, body: string, isPlain: boolean}[] = [];
+  let currentSection: {emoji: string, title: string, body: string, isPlain: boolean} | null = null;
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    // Detect new section
+    const match = trimmed.match(/^(?:\d\.\s+)?(📈|⚠️|🎯|🚀)\s*(.*)/);
+    if (match) {
+      if (currentSection) sections.push(currentSection);
+      const [titleRaw, ...bodyParts] = match[2].split(':');
+      currentSection = {
+        emoji: match[1],
+        title: titleRaw.replace(/\*\*/g, '').trim(),
+        body: bodyParts.join(':').trim(),
+        isPlain: false
+      };
+    } else {
+      if (!currentSection) {
+        currentSection = { emoji: '✨', title: '', body: '', isPlain: true };
+      }
+      currentSection.body += (currentSection.body ? '\n' : '') + trimmed;
+    }
+  });
+  if (currentSection) sections.push(currentSection);
+
+  return (
+    <div className={`space-y-4 ${isError ? 'text-rose-500 font-bold' : ''}`}>
+      {sections.map((sec, i) => {
+        if (sec.isPlain) {
+          return (
+            <div key={i} className="space-y-2">
+              {sec.body.split('\n').map((l, j) => (
+                <p key={j} className="text-[13px] font-medium leading-relaxed opacity-80">{processText(l)}</p>
+              ))}
+            </div>
+          );
+        }
+
+        const styles: Record<string, string> = {
+          '📈': 'border-blue-500/20 bg-blue-500/[0.03] text-blue-700 dark:text-blue-300',
+          '⚠️': 'border-amber-500/20 bg-amber-500/[0.03] text-amber-700 dark:text-amber-300',
+          '🎯': 'border-indigo-500/20 bg-indigo-500/[0.03] text-indigo-700 dark:text-indigo-300',
+          '🚀': 'border-emerald-500/20 bg-emerald-500/[0.03] text-emerald-700 dark:text-emerald-300'
+        };
+
+        const tagStyles: Record<string, string> = {
+          '📈': 'bg-blue-500/10 text-blue-600',
+          '⚠️': 'bg-amber-500/10 text-amber-600',
+          '🎯': 'bg-indigo-500/10 text-indigo-600',
+          '🚀': 'bg-emerald-500/10 text-emerald-600'
+        };
+
+        return (
+          <div key={i} className={`p-5 rounded-[32px] border ${styles[sec.emoji] || 'border-border/20'} animate-in fade-in slide-in-from-left-4 duration-500`}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${tagStyles[sec.emoji]}`}>
+                {sec.emoji} {sec.title}
+              </span>
+            </div>
+            <div className="text-[14px] font-medium leading-relaxed opacity-90 space-y-2">
+               {(sec.body || sec.title).split('\n').map((l, j) => (
+                 <p key={j}>{processText(l)}</p>
+               ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function processText(text: string) {
+  if (!text) return '';
+  // Strong cleanup for AI artifacts but allowing intended bolding
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-black text-foreground">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 export function AIAssistantWidget({ deal, onNewActivity }: { deal: any, onNewActivity?: () => void }) {
   const [apiKey, setApiKey] = useState('');
   const [hasKey, setHasKey] = useState(false);
@@ -312,60 +402,75 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-3">
-               <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    onClick={handleSummarize} 
-                    disabled={loadingType !== null}
-                    className="w-full rounded-[24px] bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-foreground border border-black/[0.05] dark:border-white/[0.05] h-auto py-5 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
-                  >
-                    {loadingType === 'summary' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Activity className="h-5 w-5 text-primary" />}
-                    <span className="font-black text-[10px] uppercase tracking-wider">Análisis CORE</span>
-                  </Button>
-                  
-                  <Button 
-                    onClick={handleEmailDraft} 
-                    disabled={loadingType !== null || isRecording}
-                    className="w-full rounded-[24px] bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-foreground border border-black/[0.05] dark:border-white/[0.05] h-auto py-5 flex flex-col items-center justify-center gap-2 transition-all shadow-none"
-                  >
-                    {loadingType === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5 text-primary" />}
-                    <span className="font-black text-[10px] uppercase tracking-wider">Borrador Email</span>
-                  </Button>
-               </div>
-               
-               <Button 
-                onClick={handleVoiceNote} 
-                disabled={loadingType !== null || isRecording}
-                className={`w-full rounded-full border h-14 flex items-center justify-center gap-4 transition-all shadow-none ${isRecording ? 'bg-rose-500 text-white animate-pulse border-rose-600' : 'bg-primary text-white hover:bg-primary/90 border-transparent shadow-xl shadow-primary/20'}`}
-               >
-                 {loadingType === 'voice' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mic className={`h-5 w-5 ${isRecording ? 'animate-bounce' : ''}`} />}
-                 <span className="font-black text-[11px] uppercase tracking-[0.2em]">{isRecording ? 'Escuchando Voz...' : 'Grabar Nota Técnica'}</span>
-               </Button>
-            </div>
+             <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                   <Button 
+                     onClick={handleSummarize} 
+                     disabled={loadingType !== null}
+                     className="w-full rounded-[32px] bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] text-foreground border border-black/[0.05] dark:border-white/[0.08] h-auto py-6 flex flex-col items-center justify-center gap-3 transition-all shadow-[0_4px_20px_-8px_rgba(0,0,0,0.05)] active:scale-95 group/btn"
+                   >
+                     <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
+                        {loadingType === 'summary' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Activity className="h-5 w-5 text-primary" />}
+                     </div>
+                     <span className="font-black text-[10px] uppercase tracking-[0.2em] opacity-60 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">Análisis Core</span>
+                   </Button>
+                   
+                   <Button 
+                     onClick={handleEmailDraft} 
+                     disabled={loadingType !== null || isRecording}
+                     className="w-full rounded-[32px] bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] text-foreground border border-black/[0.05] dark:border-white/[0.08] h-auto py-6 flex flex-col items-center justify-center gap-3 transition-all shadow-[0_4px_20px_-8px_rgba(0,0,0,0.05)] active:scale-95 group/btn"
+                   >
+                     <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
+                        {loadingType === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5 text-primary" />}
+                     </div>
+                     <span className="font-black text-[10px] uppercase tracking-[0.2em] opacity-60 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">Borrador Email</span>
+                   </Button>
+                </div>
+                
+                <Button 
+                 onClick={handleVoiceNote} 
+                 disabled={loadingType !== null || isRecording}
+                 className={`w-full rounded-[32px] border h-16 flex items-center justify-center gap-4 transition-all active:scale-95 ${isRecording ? 'bg-rose-500 text-white animate-pulse border-rose-600' : 'bg-primary text-white hover:bg-primary/90 border-transparent shadow-2xl shadow-primary/30'}`}
+                >
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isRecording ? 'bg-rose-600' : 'bg-white/20'}`}>
+                    {loadingType === 'voice' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className={`h-4 w-4 ${isRecording ? 'animate-bounce' : ''}`} />}
+                  </div>
+                  <span className="font-black text-[11px] uppercase tracking-[0.25em]">{isRecording ? 'Escuchando Voz...' : 'Grabar Nota Técnica'}</span>
+                </Button>
+             </div>
 
             {chatHistory.length > 0 && (
               <div className="space-y-4 animate-in slide-in-from-bottom-2 fade-in duration-500 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
                 {chatHistory.map((msg, i) => (
-                  <div key={i} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    <div className={`p-4 rounded-2xl text-[13px] leading-relaxed relative max-w-[90%] ${
+                  <div key={i} className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end' : 'items-start'} group/msg relative`}>
+                    <div className={`p-4 rounded-[28px] text-[13px] leading-relaxed relative max-w-[95%] transition-all ${
                       msg.role === 'user' 
-                        ? 'bg-slate-100 dark:bg-white/5 border border-border/20 text-muted-foreground italic' 
-                        : 'bg-primary/5 dark:bg-primary/10 border border-primary/20 text-foreground shadow-sm'
+                        ? 'bg-slate-100 dark:bg-white/5 border border-border/10 text-muted-foreground italic rounded-tr-[4px]' 
+                        : 'bg-white dark:bg-white/[0.03] backdrop-blur-xl border border-primary/20 text-foreground shadow-sm rounded-tl-[4px]'
                     }`}>
                       {msg.role === 'assistant' && (
-                        <div className="absolute top-2 right-2 flex gap-1 items-center">
+                        <div className="absolute -top-3 -right-3 flex gap-1 opacity-0 group-hover/msg:opacity-100 transition-all scale-75 group-hover/msg:scale-100">
                           <button 
                             onClick={() => copyToClipboard(msg.content, i)}
-                            className="p-1 rounded-md hover:bg-primary/10 text-primary/50 hover:text-primary transition-colors"
+                            className="p-2 rounded-full bg-white dark:bg-slate-800 shadow-xl border border-border/20 text-primary hover:scale-110 transition-transform"
                           >
-                            {copiedIndex === i ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                            {copiedIndex === i ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                           </button>
-                          <div className="text-[8px] font-black uppercase tracking-widest text-primary/30 bg-primary/10 px-1.5 py-0.5 rounded-full">
-                            {msg.type || 'Gemini'}
-                          </div>
                         </div>
                       )}
-                      <div className="whitespace-pre-wrap font-medium">{msg.content}</div>
+                      
+                      <MessageRenderer content={msg.content} isError={msg.type === 'error'} />
+                      
+                      {msg.role === 'assistant' && msg.type !== 'error' && (
+                        <div className="mt-3 pt-3 border-t border-border/10 flex items-center justify-between">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-primary/40">Sincronización {msg.type || 'Física'}</span>
+                            <div className="flex gap-1">
+                               <div className="w-1 h-1 rounded-full bg-primary/20" />
+                               <div className="w-1 h-1 rounded-full bg-primary/20" />
+                               <div className="w-1 h-1 rounded-full bg-primary/20" />
+                            </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

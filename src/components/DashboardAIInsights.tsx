@@ -10,8 +10,13 @@ import {
   Check,
   ArrowRight,
   Orbit,
-  Cpu
+  Cpu,
+  Maximize2
 } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent 
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { getGeminiKey, getAIModel } from '../lib/ai/config';
 
@@ -31,6 +36,7 @@ export function DashboardAIInsights({ deals, metrics }: DashboardAIInsightsProps
   const [insight, setInsight] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [selectedInsight, setSelectedInsight] = useState<{title: string, body: string, emoji: string} | null>(null);
 
   const generateInsights = async () => {
     setLoading(true);
@@ -215,56 +221,109 @@ INSTRUCCIONES DE ESTILO:
              <div className="relative z-10 flex flex-col gap-10">
                 <div className="flex items-center gap-4 border-b border-border/10 pb-8">
                   <div className="h-10 w-1 rounded-full bg-primary" />
-                  <h4 className="text-2xl font-black tracking-tight text-foreground">Análisis de Generación Cuántica</h4>
+                  <h4 className="text-2xl font-black tracking-tight text-foreground">Análisis de Generación</h4>
                 </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {insight.split('\n').filter(line => line.match(/^\d\.|📈|⚠️|🎯|🚀/)).map((item, idx) => {
-                    const [header, ...content] = item.replace(/^\d\.\s+/, '').split(':');
-                    const emoji = header.match(/📈|⚠️|🎯|🚀/)?.[0] || '✨';
-                    const title = header.replace(/📈|⚠️|🎯|🚀/, '').trim();
-                    const body = content.join(':').trim();
+                  {(() => {
+                    // Robust parser for multiline AI responses
+                    const sections: {emoji: string, title: string, body: string}[] = [];
+                    let currentSection: {emoji: string, title: string, body: string} | null = null;
 
-                    // Dynamic styling based on type
-                    const cardStyles: Record<string, string> = {
-                      '📈': 'border-blue-500/10 bg-blue-500/[0.02]',
-                      '⚠️': 'border-amber-500/10 bg-amber-500/[0.02]',
-                      '🎯': 'border-indigo-500/10 bg-indigo-500/[0.02]',
-                      '🚀': 'border-emerald-500/10 bg-emerald-500/[0.02]'
-                    };
+                    insight.split('\n').forEach(line => {
+                      const trimmed = line.trim();
+                      if (!trimmed) return;
 
-                    const tagColors: Record<string, string> = {
-                      '📈': 'text-blue-600 dark:text-blue-400 bg-blue-500/10',
-                      '⚠️': 'text-amber-600 dark:text-amber-400 bg-amber-500/10',
-                      '🎯': 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10',
-                      '🚀': 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
-                    };
+                      const match = trimmed.match(/^(?:\d\.\s+)?(📈|⚠️|🎯|🚀)\s*(.*)/);
+                      if (match) {
+                        if (currentSection) sections.push(currentSection);
+                        const [titleRaw, ...bodyParts] = match[2].split(':');
+                        currentSection = {
+                          emoji: match[1],
+                          title: titleRaw.replace(/\*\*/g, '').trim(),
+                          body: bodyParts.join(':').trim()
+                        };
+                      } else if (currentSection) {
+                        currentSection.body += (currentSection.body ? ' ' : '') + trimmed.replace(/\*\*/g, '');
+                      }
+                    });
+                    if (currentSection) sections.push(currentSection);
 
-                    return (
-                      <div 
-                        key={idx} 
-                        className={`p-1 w-full rounded-[40px] border ${cardStyles[emoji] || 'border-border/30'} flex flex-col group hover:shadow-2xl transition-all duration-700`}
-                        style={{ animationDelay: `${idx * 200}ms` }}
-                      >
-                         <div className="bg-white dark:bg-[#232326] rounded-[38px] p-8 h-full flex flex-col gap-6">
-                            <div className="flex items-center justify-between">
-                              <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] ${tagColors[emoji]}`}>
-                                {emoji} {title}
-                              </span>
-                              <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                    return sections.map((sec, idx) => {
+                      const emoji = sec.emoji;
+                      const title = sec.title;
+                      const body = sec.body || title; // Fallback if no body found
+
+                      const cardStyles: Record<string, string> = {
+                        '📈': 'border-blue-500/10 bg-blue-500/[0.02] hover:border-blue-500/30',
+                        '⚠️': 'border-amber-500/10 bg-amber-500/[0.02] hover:border-amber-500/30',
+                        '🎯': 'border-indigo-500/10 bg-indigo-500/[0.02] hover:border-indigo-500/30',
+                        '🚀': 'border-emerald-500/10 bg-emerald-500/[0.02] hover:border-emerald-500/30'
+                      };
+
+                      const tagColors: Record<string, string> = {
+                        '📈': 'text-blue-600 dark:text-blue-400 bg-blue-500/10',
+                        '⚠️': 'text-amber-600 dark:text-amber-400 bg-amber-500/10',
+                        '🎯': 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10',
+                        '🚀': 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+                      };
+
+                      return (
+                        <div 
+                          key={idx} 
+                          onClick={() => setSelectedInsight({title, body, emoji})}
+                          className={`p-1 w-full rounded-[40px] border cursor-pointer group hover:shadow-2xl transition-all duration-700 ${cardStyles[emoji] || 'border-border/30'}`}
+                          style={{ animationDelay: `${idx * 200}ms` }}
+                        >
+                           <div className="bg-white dark:bg-[#232326] rounded-[38px] p-8 h-full flex flex-col gap-6 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <Maximize2 className="h-4 w-4 text-muted-foreground/40" />
                               </div>
-                            </div>
-                            <div className="text-[14px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                               {body.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} className="font-black text-foreground">{part}</strong> : part)}
-                            </div>
-                         </div>
-                      </div>
-                    );
-                  })}
+                              <div className="flex items-center justify-between">
+                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] ${tagColors[emoji]}`}>
+                                  {emoji} {title}
+                                </span>
+                                <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
+                                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                                </div>
+                              </div>
+                              <div className="text-[14px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                                 {body}
+                              </div>
+                           </div>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
              </div>
           </div>
+
+          {/* Deep Insight Dialog */}
+          <Dialog open={!!selectedInsight} onOpenChange={(open) => !open && setSelectedInsight(null)}>
+            <DialogContent className="max-w-2xl rounded-[48px] p-10 border-none bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-2xl">
+              {selectedInsight && (
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-3xl shadow-xl shadow-primary/20">
+                      {selectedInsight.emoji}
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black tracking-tight uppercase">{selectedInsight.title}</h2>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Desglose Detallado de Inteligencia</p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-8 rounded-[32px] bg-slate-50 dark:bg-white/[0.03] border border-border/20 text-[16px] leading-relaxed font-medium text-slate-600 dark:text-slate-300">
+                    {selectedInsight.body.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} className="font-black text-primary">{part}</strong> : part)}
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <Button onClick={() => setSelectedInsight(null)} className="rounded-full px-10 h-12 font-black uppercase tracking-widest text-[10px]">Entendido</Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
 
           <div className="mt-8 p-8 bg-slate-50 dark:bg-white/[0.02] rounded-[40px] border border-border/40 flex flex-col md:flex-row md:items-center gap-8">
              <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-2xl shadow-primary/30">
