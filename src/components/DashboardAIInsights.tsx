@@ -43,7 +43,7 @@ export function DashboardAIInsights({ deals, metrics }: DashboardAIInsightsProps
       const model = getAIModel(apiKey);
 
       const prompt = `Actúa como un Consultor de Estrategia de Negocios Senior especializado en Servicios Industriales B2B. 
-Analiza los siguientes datos de rendimiento de mi empresa de limpieza industrial y genera un REPORTE ESTRATÉGICO EJECUTIVO.
+Analiza los siguientes datos de rendimiento de mi empresa de limpieza industrial y genera un REPORTE ESTRATÉGICO EJECUTIVO de alto impacto.
 
 DATOS DEL PERIODO:
 - Ingresos Proyectados: $${metrics.ingresos.toLocaleString('es-CL')}
@@ -56,13 +56,16 @@ CONTEXTO DE TRANSACCIONES:
 ${deals.slice(0, 10).map(d => `- ${d.companies?.razon_social || 'Negocio'}: $${(d.valor_neto || 0).toLocaleString('es-CL')} (Etapa: ${d.stage})`).join('\n')}
 
 TU MISIÓN:
-Genera un análisis en 4 puntos clave, usando un tono directo, corporativo y motivador:
-1. 📈 DIAGNÓSTICO DE SALUD: Análisis del Win Rate y el Ratio LTV:CAC.
-2. ⚠️ ALERTA DE CONTINUIDAD: Fugas en el embudo.
-3. 🎯 FOCO ESTRATÉGICO: Segmentos de alta rentabilidad.
-4. 🚀 KPI PRIORITARIO: Una acción táctica obligatoria para esta semana.
+Genera un análisis en 4 puntos clave estricta y únicamente con este formato (incluye el emoji al inicio):
+1. 📈 DIAGNÓSTICO DE SALUD: [Análisis profundo del Win Rate y LTV:CAC]
+2. ⚠️ ALERTA DE CONTINUIDAD: [Identifica fugas o riesgos en el funnel]
+3. 🎯 FOCO ESTRATÉGICO: [Segmentos o acciones de alta rentabilidad]
+4. 🚀 KPI PRIORITARIO: [La acción táctica número 1 para esta semana]
 
-Estructura tu respuesta con Markdown y usa emojis. Mantén el contenido ejecutivo y de alto nivel.`;
+INSTRUCCIONES DE ESTILO:
+- No uses introducciones largas. Ve al grano.
+- Usa lenguaje corporativo de "C-Level".
+- Usa negritas (**) para destacar cifras o conceptos críticos.`;
 
       const result = await model.generateContent(prompt);
       const text = result.response.text();
@@ -200,31 +203,66 @@ Estructura tu respuesta con Markdown y usa emojis. Mantén el contenido ejecutiv
         </div>
       )}
 
-      {/* Insight Result */}
+       {/* Insight Result */}
       {insight && (
-        <div className="animate-in fade-in zoom-in-95 duration-700 font-sans">
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-[48px] p-10 border border-border/40 shadow-xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
-                <Orbit className="h-64 w-64 text-primary" />
+        <div className="animate-in fade-in zoom-in-95 duration-1000 font-sans">
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-[60px] p-8 md:p-14 border border-black/[0.03] dark:border-white/[0.03] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] relative overflow-hidden">
+             {/* Decorative Background Elements */}
+             <div className="absolute top-0 right-0 w-full h-full opacity-[0.03] pointer-events-none overflow-hidden">
+                <Orbit className="absolute -top-20 -right-20 h-[500px] w-[500px] text-primary" />
              </div>
              
-             <div className="relative z-10 space-y-8 prose prose-indigo dark:prose-invert max-w-none">
-                {insight.split('\n\n').map((paragraph: string, idx: number) => {
-                  const headerMatch = paragraph.match(/^(\d\.|📈|⚠️|🎯|🚀)\s+(.*)/);
-                  if (headerMatch) {
+             <div className="relative z-10 flex flex-col gap-10">
+                <div className="flex items-center gap-4 border-b border-border/10 pb-8">
+                  <div className="h-10 w-1 rounded-full bg-primary" />
+                  <h4 className="text-2xl font-black tracking-tight text-foreground">Análisis de Generación Cuántica</h4>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {insight.split('\n').filter(line => line.match(/^\d\.|📈|⚠️|🎯|🚀/)).map((item, idx) => {
+                    const [header, ...content] = item.replace(/^\d\.\s+/, '').split(':');
+                    const emoji = header.match(/📈|⚠️|🎯|🚀/)?.[0] || '✨';
+                    const title = header.replace(/📈|⚠️|🎯|🚀/, '').trim();
+                    const body = content.join(':').trim();
+
+                    // Dynamic styling based on type
+                    const cardStyles: Record<string, string> = {
+                      '📈': 'border-blue-500/10 bg-blue-500/[0.02]',
+                      '⚠️': 'border-amber-500/10 bg-amber-500/[0.02]',
+                      '🎯': 'border-indigo-500/10 bg-indigo-500/[0.02]',
+                      '🚀': 'border-emerald-500/10 bg-emerald-500/[0.02]'
+                    };
+
+                    const tagColors: Record<string, string> = {
+                      '📈': 'text-blue-600 dark:text-blue-400 bg-blue-500/10',
+                      '⚠️': 'text-amber-600 dark:text-amber-400 bg-amber-500/10',
+                      '🎯': 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10',
+                      '🚀': 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+                    };
+
                     return (
-                      <div key={idx} className="bg-slate-50 dark:bg-white/[0.02] p-8 rounded-[32px] border border-border/40 group/card transition-all hover:border-indigo-500/30 shadow-sm">
-                         <h4 className="text-[15px] font-black uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400 mb-4 flex items-center gap-3">
-                           <span className="text-xl">{headerMatch[1]}</span> {headerMatch[2]}
-                         </h4>
-                         <div className="text-[14px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                           {paragraph.replace(/^\d\.|📈|⚠️|🎯|🚀.*?\n/, '')}
+                      <div 
+                        key={idx} 
+                        className={`p-1 w-full rounded-[40px] border ${cardStyles[emoji] || 'border-border/30'} flex flex-col group hover:shadow-2xl transition-all duration-700`}
+                        style={{ animationDelay: `${idx * 200}ms` }}
+                      >
+                         <div className="bg-white dark:bg-[#232326] rounded-[38px] p-8 h-full flex flex-col gap-6">
+                            <div className="flex items-center justify-between">
+                              <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] ${tagColors[emoji]}`}>
+                                {emoji} {title}
+                              </span>
+                              <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                              </div>
+                            </div>
+                            <div className="text-[14px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                               {body.split('**').map((part, i) => i % 2 === 1 ? <strong key={i} className="font-black text-foreground">{part}</strong> : part)}
+                            </div>
                          </div>
                       </div>
                     );
-                  }
-                  return <p key={idx} className="text-sm font-bold leading-relaxed opacity-80">{paragraph}</p>;
-                })}
+                  })}
+                </div>
              </div>
           </div>
 

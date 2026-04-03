@@ -1,15 +1,58 @@
 import { useState, useRef, useEffect } from 'react'
-import { Send, X, Bot, Loader2, Lock, Key, Brain } from 'lucide-react'
+import { Send, X, Bot, Lock, Key, Brain, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { getGeminiKey, getAIModel } from '../lib/ai/config'
+
+// --- Componente de Renderizado de Mensajes (Markdown Simple) ---
+function MessageRenderer({ content }: { content: string }) {
+  // Procesamiento básico de Markdown
+  const lines = content.split('\n');
+  
+  return (
+    <div className="space-y-2">
+      {lines.map((line, i) => {
+        // Horizontall Rule
+        if (line.trim() === '---') return <hr key={i} className="my-4 border-border/30" />;
+        
+        // List Item
+        if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
+          return (
+            <div key={i} className="flex gap-2 items-start pl-1">
+              <div className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
+              <span>{processText(line.replace(/^(\*|-)\s+/, ''))}</span>
+            </div>
+          );
+        }
+
+        // Title/Header (Simple)
+        if (line.trim().startsWith('### ')) {
+          return <h4 key={i} className="font-black text-xs uppercase tracking-wider text-primary pt-2">{processText(line.replace('### ', ''))}</h4>;
+        }
+
+        return <p key={i} className="text-inherit">{processText(line)}</p>;
+      })}
+    </div>
+  );
+}
+
+function processText(text: string) {
+  // Bold: **text**
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-black text-indigo-500/90 dark:text-indigo-400">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
 
 export function FloatingAIConsultant() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>(() => {
     const saved = localStorage.getItem('floating_ai_history')
     return saved ? JSON.parse(saved) : [
-      { role: 'assistant', content: '¡Hola! Soy tu Consultor Estratégico IA. Puedo ayudarte con tácticas de venta, análisis de tu funnel o redactar pitches ganadores basados en tus datos. ¿En qué puedo apoyarte hoy?' }
+      { role: 'assistant', content: '¡Hola! Soy tu **Consultor Estratégico CORE AI**. \n\nPuedo ayudarte con:\n*   **Análisis de Funnel**: Identificar cuellos de botella.\n*   **Estrategia de Ventas**: Redactar pitches de alto impacto.\n*   **Auditoría Industrial**: Sugerencias basadas en tus datos reales.\n\n¿En qué nos enfocaremos hoy?' }
     ]
   })
   const [input, setInput] = useState('')
@@ -61,11 +104,11 @@ ESTADÍSTICAS ACTUALES DEL CRM:
 - Top 5 Negocios: ${JSON.stringify(stats.negocios_top)}
 - Actividades recientes: ${JSON.stringify(stats.actividades_recientes)}
 
-INSTRUCCIONES:
-1. Responde preguntas sobre estrategia de ventas, pitches de elevador, redacción de correos o análisis de datos.
-2. Sé profesional, motivador y extremadamente estratégico.
-3. Si el usuario te pide un pitch, alinéalo con servicios de limpieza industrial técnica y los datos del CRM si son relevantes.
-4. Mantén tus respuestas concisas pero de alto impacto.
+INSTRUCCIONES DE FORMATO:
+1. Usa Markdown estándar (**negritas**, *cursivas*, listas con *, líneas horizontales ---).
+2. Estructura tus respuestas con títulos cortos si es necesario.
+3. Sé profesional, estratégico y utiliza terminología de alto nivel.
+4. Si sugieres un pitch, utiliza una estructura clara.
 
 Historial de conversación:
 ${messages.map(m => `${m.role === 'user' ? 'Usuario' : 'Asistente'}: ${m.content}`).join('\n')}
@@ -152,21 +195,41 @@ Asistente:`;
             ) : (
               <>
                 {messages.map((m, i) => (
-                  <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed ${
+                  <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} gap-1.5`}>
+                    <div className={`max-w-[90%] p-4 rounded-[28px] text-[13.5px] leading-relaxed relative group/msg transition-all duration-300 ${
                       m.role === 'user' 
-                        ? 'bg-primary text-primary-foreground font-medium rounded-tr-none shadow-lg shadow-primary/10' 
-                        : 'bg-white dark:bg-white/[0.05] text-foreground font-medium rounded-tl-none border border-border/20 shadow-sm'
+                        ? 'bg-gradient-to-br from-primary to-indigo-600 text-white rounded-tr-[4px] shadow-[0_10px_25px_-5px_rgba(var(--primary),0.3)]' 
+                        : 'bg-white dark:bg-white/[0.04] backdrop-blur-xl text-foreground rounded-tl-[4px] border border-border/20 shadow-[0_5px_15px_-5px_rgba(0,0,0,0.05)]'
                     }`}>
-                      {m.content}
+                      <MessageRenderer content={m.content} />
+                      
+                      {m.role === 'assistant' && (
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(m.content);
+                            // Podríamos añadir un toast aquí si existiera
+                          }}
+                          className="absolute -right-10 top-0 opacity-0 group-hover/msg:opacity-100 transition-opacity p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full"
+                          title="Copiar respuesta"
+                        >
+                          <Copy className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      )}
                     </div>
+                    <span className="text-[9px] font-black uppercase opacity-20 px-2 tracking-tighter">
+                      {m.role === 'user' ? 'Tú' : 'Kernel AI'}
+                    </span>
                   </div>
                 ))}
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="bg-white dark:bg-white/[0.05] p-4 rounded-3xl rounded-tl-none border border-border/20 flex items-center gap-3 shadow-sm">
-                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                      <span className="text-xs font-bold text-muted-foreground animate-pulse leading-none">Analizando CRM...</span>
+                    <div className="bg-white/50 dark:bg-white/[0.04] backdrop-blur-xl p-4 rounded-[28px] rounded-tl-[4px] border border-border/20 flex items-center gap-3 shadow-sm animate-pulse">
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
+                      </div>
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none">Analizando Kernel...</span>
                     </div>
                   </div>
                 )}
