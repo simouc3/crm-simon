@@ -149,14 +149,14 @@ export default function KanbanBoard() {
         onClick={() => openDeal(deal)}
         className={`
           group cursor-pointer select-none
-          bg-white dark:bg-[#1C1C1E]
+          bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl
           rounded-[22px] overflow-hidden
-          border border-black/[0.04] dark:border-white/[0.06]
+          border border-black/[0.05] dark:border-white/[0.06]
           relative
-          transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]
+          transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]
           ${isDragging
             ? 'scale-[1.04] shadow-[0_30px_60px_rgba(0,0,0,0.15)] z-50 ring-1 ring-primary/30'
-            : 'shadow-[0_4px_12px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.06)] active:scale-[0.98] hover:-translate-y-1'
+            : 'shadow-[0_4px_12px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.06)] active:scale-[0.96] active:bg-slate-50 dark:active:bg-[#2C2C2E] hover:-translate-y-1'
           }
         `}
       >
@@ -253,8 +253,8 @@ export default function KanbanBoard() {
   return (
     <div className="flex flex-col bg-[#F5F5F7] dark:bg-[#0D0D17]">
       {/* ── Mobile Header Area ── */}
-      <div className="md:hidden shrink-0 p-4 pb-0">
-        <div className="bg-white dark:bg-[#141420] rounded-[28px] p-4 border border-black/[0.04] dark:border-white/[0.07] shadow-sm">
+      <div className="md:hidden shrink-0 p-4 pb-0 sticky top-0 z-40 backdrop-blur-xl bg-[#F5F5F7]/80 dark:bg-[#0D0D17]/80">
+        <div className="bg-white/90 dark:bg-[#141420]/90 backdrop-blur-md rounded-[28px] p-4 border border-black/[0.05] dark:border-white/[0.07] shadow-sm">
           
           {/* Compact Mobile Header (Deeper Density) */}
           <div className="flex items-center justify-between mb-3">
@@ -298,8 +298,8 @@ export default function KanbanBoard() {
       </div>
 
       {/* ── Desktop Header (Refined B2B Slate) ── */}
-      <div className="hidden md:block shrink-0 px-6 md:px-12 pt-8 pb-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between max-w-[1600px] mx-auto border-b border-black/[0.04] dark:border-white/[0.04] pb-6">
+      <div className="hidden md:block shrink-0 px-6 md:px-12 pt-8 pb-4 sticky top-0 z-40 backdrop-blur-xl bg-[#F5F5F7]/90 dark:bg-[#0D0D17]/90 border-b border-black/[0.04] dark:border-white/[0.04]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between max-w-[1600px] mx-auto pb-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2 mb-2">
               <div className="h-1.5 w-6 rounded-full bg-primary" />
@@ -401,9 +401,12 @@ export default function KanbanBoard() {
                         {provided.placeholder}
                         
                         {stageDeals.length === 0 && !snapshot.isDraggingOver && (
-                          <div className="flex-1 flex items-center justify-center opacity-20 py-10">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center">
-                              Arrastra aquí
+                          <div className="flex-1 flex flex-col items-center justify-center opacity-40 py-12 gap-3 grayscale animate-in fade-in duration-500">
+                            <div className="w-10 h-10 rounded-full border border-dashed border-foreground/30 flex items-center justify-center bg-black/[0.02] dark:bg-white/[0.02]">
+                              <span className="text-[9px] uppercase font-black tracking-widest text-foreground/50">Vacío</span>
+                            </div>
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] text-center max-w-[140px] leading-relaxed">
+                              Sin negocios en esta etapa
                             </p>
                           </div>
                         )}
