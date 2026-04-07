@@ -62,6 +62,8 @@ create policy "Companies update policy" on companies for update using (auth.role
 create policy "Companies delete policy" on companies for delete
   using (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'));
 
+create type proposal_status as enum ('DRAFT', 'SENT', 'VIEWED', 'ACCEPTED', 'REJECTED');
+
 -- 4. Create Deals Table (Pipeline)
 create table public.deals (
     id uuid default uuid_generate_v4() primary key,
@@ -72,6 +74,15 @@ create table public.deals (
     valor_neto numeric default 0,
     valor_total numeric default 0,
     motivo_perdida text,
+    -- Campos Web Proposal & Magic Link
+    public_token uuid default uuid_generate_v4() unique not null,
+    proposal_status proposal_status default 'DRAFT',
+    proposal_view_count integer default 0,
+    last_viewed_at timestamp with time zone,
+    signature_ip text,
+    signature_ua text,
+    signature_date timestamp with time zone,
+    
     stage_updated_at timestamp with time zone default timezone('utc'::text, now()),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -107,6 +118,112 @@ create policy "Deals insert policy" on deals for insert with check (auth.role() 
 create policy "Deals update policy" on deals for update using (auth.role() = 'authenticated');
 create policy "Deals delete policy" on deals for delete
   using (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'));
+
+-- Permitir lectura anónima de deals mediante public_token usando una Función Protegida (RPC)
+-- No usaremos RLS público directo para prevenir recolección de datos. En su lugar,
+-- usaremos la función `get_deal_by_token` (abajo).
+
+-- =========================================================================
+-- FUNCIONES RPC PARA MAGIC LINKS & APROBACIÓN 1-CLIC (SECURITY DEFINER)
+-- =========================================================================
+
+-- 4.a Obtener datos públicos del Deal por Token
+create or replace function get_deal_by_token(p_token uuid)
+returns table (
+  id uuid,
+  title text,
+  valor_neto numeric,
+  valor_total numeric,
+  proposal_status proposal_status,
+  public_token uuid,
+  company_name text,
+  company_rut text,
+  seller_name text
+)
+language plpgsql
+security definer -- Se ejecuta con permisos de creador (omite RLS para leer esta fila exacta)
+as $$
+begin
+  return query
+  select 
+    d.id, d.title, d.valor_neto, d.valor_total, d.proposal_status, d.public_token,
+    c.razon_social as company_name, c.rut as company_rut,
+    p.full_name as seller_name
+  from deals d
+  join companies c on d.company_id = c.id
+  left join profiles p on d.user_id = p.id
+  where d.public_token = p_token;
+end;
+$$;
+
+-- 4.b Registrar una vista del cliente (Telemetría Push)
+create or replace function log_proposal_view(p_token uuid)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  update deals
+  set 
+    proposal_view_count = coalesce(proposal_view_count, 0) + 1,
+    last_viewed_at = now(),
+    proposal_status = case when proposal_status = 'DRAFT' or proposal_status = 'SENT' then 'VIEWED'::proposal_status else proposal_status end,
+    updated_at = now()
+  where public_token = p_token;
+  
+  -- Nota: El Webhook de Telegram/Push se puede configurar en Supabase "Database Webhooks"
+  -- escuchando los UPDATEs en la tabla `deals` donde `last_viewed_at` cambia.
+end;
+$$;
+
+-- 4.c Aprobación 1-Clic por parte del cliente
+create or replace function approve_deal(p_token uuid, p_ip text, p_ua text)
+returns boolean
+language plpgsql
+security definer
+as $$
+declare
+  v_deal_id uuid;
+  v_company_id uuid;
+  v_user_id uuid;
+begin
+  -- Seleccionamos el trato asegurando que exista y no esté ya aceptado/rechazado (opcional)
+  select id, company_id, user_id
+  into v_deal_id, v_company_id, v_user_id
+  from deals
+  where public_token = p_token and proposal_status != 'ACCEPTED';
+
+  if v_deal_id is null then
+    return false; -- Ya fue aprobado o no existe
+  end if;
+
+  -- Actualizar el Deal con la Firma Simple y cambiar etapa a GANADO (6)
+  update deals
+  set 
+    proposal_status = 'ACCEPTED',
+    stage = 6,
+    signature_ip = p_ip,
+    signature_ua = p_ua,
+    signature_date = now(),
+    stage_updated_at = now(),
+    updated_at = now()
+  where id = v_deal_id;
+
+  -- Automatizar orden al equipo operativo (Calendario Operativo)
+  insert into activities (company_id, user_id, title, activity_type, notes, scheduled_at, completed)
+  values (
+    v_company_id, 
+    v_user_id, 
+    '[AUTOMÁTICO] Iniciar Onboarding Operativo', 
+    'REUNION', 
+    'Cotización y Acuerdo aceptado digitalmente por el cliente (Firma Simple 1-Clic). Contactar para inicio de operación.', 
+    now() + interval '1 day',
+    false
+  );
+
+  return true;
+end;
+$$;
 
 -- 5. Trigger for new user profile
 create or replace function public.handle_new_user()

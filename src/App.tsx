@@ -25,11 +25,17 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+import PublicProposal from './pages/PublicProposal'
+
 function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        {/* Ruta Pública (Magic Link Evaluator) */}
+        <Route path="/p/:token" element={<PublicProposal />} />
+        
+        {/* Rutas Privadas del CRM */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/pipeline" element={<KanbanBoard />} />
@@ -41,5 +47,6 @@ function App() {
     </AuthProvider>
   )
 }
+
 
 export default App

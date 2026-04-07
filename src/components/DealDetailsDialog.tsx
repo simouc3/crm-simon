@@ -639,10 +639,36 @@ Equipo Comercial`)
                            <div className="space-y-4">
                               <Input type="number" placeholder="Monto Neto Ofertado ($)..." value={valorNetoCotizado} onChange={(e) => setValorNetoCotizado(e.target.value)} className="h-14 rounded-full font-black text-lg px-8 border-amber-500/10 dark:bg-black/20" />
                               <Textarea placeholder="Desglose de servicios y alcances técnicos..." value={cotizacionDetalles} onChange={(e) => setCotizacionDetalles(e.target.value)} className="rounded-[32px] min-h-[120px] font-bold text-[14px] p-6 border-amber-500/10 dark:bg-black/20" />
-                              <Button className="w-full h-14 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20" onClick={saveCotizacion}>
+                               <Button className="w-full h-14 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20" onClick={saveCotizacion}>
                                  Fijar Propuesta Final
-                              </Button>
-                           </div>
+                               </Button>
+
+                               {/* Magic Link Section */}
+                               {deal.public_token && (
+                                 <div className="pt-4 mt-2 border-t border-amber-500/10 space-y-3">
+                                   <div className="flex items-center justify-between">
+                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 opacity-60">Magic Link B2B</p>
+                                     <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full">
+                                       {deal.proposal_status === 'ACCEPTED' ? '✅ APROBADO' : deal.proposal_status === 'VIEWED' ? '👀 VISTO' : deal.proposal_status || 'DRAFT'}
+                                     </span>
+                                   </div>
+                                   <Button
+                                     variant="outline"
+                                     onClick={() => {
+                                       const url = `${window.location.origin}/p/${deal.public_token}`
+                                       navigator.clipboard.writeText(url)
+                                       alert('Magic Link copiado al portapapeles.')
+                                     }}
+                                     className="w-full h-12 rounded-full border-amber-500/20 hover:bg-amber-500/10 text-amber-700 dark:text-amber-500 font-bold text-[11px] uppercase tracking-widest"
+                                   >
+                                     Copiar Enlace para Cliente
+                                   </Button>
+                                   <p className="text-center text-[10px] font-black text-amber-600/50 uppercase tracking-[0.2em]">
+                                     Aperturas detectadas: {deal.proposal_view_count || 0}
+                                   </p>
+                                 </div>
+                               )}
+                            </div>
                         </div>
                      )}
                      
