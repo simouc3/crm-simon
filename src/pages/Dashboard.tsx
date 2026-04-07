@@ -109,7 +109,6 @@ function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, var
   }
 
   const isDarkForeground = variant === 'accent'
-  const isVibrant = ['primary', 'ocean', 'sunrise', 'purp'].includes(variant)
 
   return (
     <div onClick={onClick} className={`${baseStyles} ${variants[variant]} ${highlight ? 'ring-2 ring-primary/20' : ''}`}>

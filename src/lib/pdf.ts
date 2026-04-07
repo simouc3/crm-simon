@@ -12,7 +12,6 @@ export async function generateQuotePDF(deal: any, companyData: any) {
     .single()
 
   const miEmpresa = settings || {}
-  const miLogo = miEmpresa.company_logo_url
   
   // ── HEADER ──
   // Si hay logo, idealmente se cargaría, por ahora usamos texto si falla
