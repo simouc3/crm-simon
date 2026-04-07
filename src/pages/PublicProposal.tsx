@@ -186,20 +186,30 @@ export default function PublicProposal() {
           </p>
         </div>
 
-        {/* Floating Action Button (1-Click Approve) */}
+        {/* Floating Action Button (1-Click Approve / Modify) */}
         {!accepted ? (
           <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent z-40 pb-safe pointer-events-none flex justify-center">
-            <button
-              onClick={handleApprove}
-              disabled={accepting}
-              className="pointer-events-auto h-16 w-full max-w-md rounded-2xl bg-slate-900 text-white font-bold text-[16px] tracking-tight hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.4)] disabled:opacity-50 disabled:scale-100 hover:bg-black"
-            >
-              {accepting ? (
-                <><Activity className="h-5 w-5 animate-spin" /> Procesando Firma Electrónica...</>
-              ) : (
-                <>Aceptar Propuesta Comercial <ChevronRight className="w-5 h-5 opacity-60" /></>
-              )}
-            </button>
+            <div className="w-full max-w-md flex flex-col gap-3">
+              <button
+                onClick={handleApprove}
+                disabled={accepting}
+                className="pointer-events-auto h-16 w-full rounded-2xl bg-slate-900 text-white font-bold text-[16px] tracking-tight hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.4)] disabled:opacity-50 disabled:scale-100 hover:bg-black"
+              >
+                {accepting ? (
+                  <><Activity className="h-5 w-5 animate-spin" /> Procesando Firma Electrónica...</>
+                ) : (
+                  <>Aceptar Propuesta Comercial <ChevronRight className="w-5 h-5 opacity-60" /></>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  window.location.href = `mailto:contacto@asesor.com?subject=Revisión Propuesta: ${deal.title}&body=Hola, por favor revisemos algunos puntos técnicos de la propuesta...`
+                }}
+                className="pointer-events-auto h-12 w-full rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 active:scale-[0.98] transition-all flex items-center justify-center shadow-sm"
+              >
+                Necesito solicitar modificaciones
+              </button>
+            </div>
           </div>
         ) : (
           <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent z-40 pb-safe pointer-events-none flex justify-center">
