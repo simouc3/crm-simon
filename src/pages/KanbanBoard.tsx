@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { Search } from 'lucide-react'
+import { DealFormDialog } from '../components/DealFormDialog'
+import { Search, Plus } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
@@ -296,35 +297,46 @@ export default function KanbanBoard() {
         </div>
       </div>
 
-      {/* ── Desktop Header (Clean Slate) ── */}
-      <div className="hidden md:block shrink-0 p-12 pb-0">
-        <div className="flex flex-col md:flex-row md:items-end justify-between max-w-[1600px] mx-auto py-10 border-b border-black/[0.03] dark:border-white/[0.03]">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-1.5 w-8 rounded-full bg-primary" />
-              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40">Sales Pipeline</span>
+      {/* ── Desktop Header (Refined B2B Slate) ── */}
+      <div className="hidden md:block shrink-0 px-6 md:px-12 pt-8 pb-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between max-w-[1600px] mx-auto border-b border-black/[0.04] dark:border-white/[0.04] pb-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-1.5 w-6 rounded-full bg-primary" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60">Sales Pipeline</span>
             </div>
-            <h1 className="text-[64px] font-black tracking-tighter text-foreground leading-[0.9] -ml-1">
-              Flujo Comercial
+            <h1 className="text-4xl font-black tracking-tight text-foreground leading-none">
+              Pipeline de Ventas
             </h1>
-            <div className="space-y-1">
-              <p className="text-[14px] text-muted-foreground font-black uppercase tracking-widest opacity-40">
-                {totalDeals} oportunidades en vuelo · {fmtCLP(totalPipeline)} bruto total
-              </p>
-              <p className="text-[13px] text-primary font-black uppercase tracking-widest">
-                Forecast Ponderado: {fmtCLP(weightedForecast)} (Probabilidad % aplicada)
-              </p>
+            <div className="flex flex-wrap items-center gap-3 md:gap-4 text-[12px] font-bold text-muted-foreground pt-2">
+              <span className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 md:px-2.5 px-2 py-1 flex-shrink-0 rounded-full text-foreground/80 whitespace-nowrap">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {totalDeals} Activos
+              </span>
+              <span className="whitespace-nowrap">Bruto: {fmtCLP(totalPipeline)}</span>
+              <span className="opacity-40 hidden md:inline">|</span>
+              <span className="text-primary font-black whitespace-nowrap">Forecast: {fmtCLP(weightedForecast)}</span>
             </div>
           </div>
-          <div className="flex flex-col md:items-end gap-5 mt-10 md:mt-0">
-            <div className="flex items-center gap-3">
-              <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
+          
+          <div className="flex items-center gap-4 mt-6 md:mt-0 relative z-10">
+            <div className="flex bg-slate-50 dark:bg-white/5 rounded-full border border-black/[0.04] dark:border-white/5 shadow-sm">
+              <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-transparent text-[11px] font-bold uppercase tracking-widest text-foreground outline-none cursor-pointer pl-4 pr-3 py-2.5">
                 {monthNames.map((m, i) => <option key={i} value={i}>{m}</option>)}
               </select>
-              <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-slate-50 dark:bg-white/5 rounded-full px-5 h-11 text-[10px] font-black uppercase tracking-widest text-foreground outline-none cursor-pointer border border-black/[0.03] dark:border-white/5 shadow-sm">
+              <div className="w-px bg-black/[0.08] dark:bg-white/[0.08] my-1.5" />
+              <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-transparent text-[11px] font-bold uppercase tracking-widest text-foreground outline-none cursor-pointer pr-4 pl-3 py-2.5">
                 {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
+            
+            <DealFormDialog 
+              onDealCreated={fetchDeals}
+              trigger={
+                <button className="h-[38px] px-5 rounded-full bg-foreground text-background font-bold text-[11px] uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shrink-0">
+                  <Plus className="w-4 h-4" /> Nuevo Negocio
+                </button>
+              }
+            />
           </div>
         </div>
       </div>
