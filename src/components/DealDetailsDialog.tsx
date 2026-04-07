@@ -53,9 +53,14 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
   const [visitaRealizada, setVisitaRealizada] = useState(false)
   const [currentStage, setCurrentStage] = useState<number>(1)
   
-  // States for Stage 4 (Cotizacion)
+  // Cotizacion
   const [cotizacionDetalles, setCotizacionDetalles] = useState("")
   const [valorNetoCotizado, setValorNetoCotizado] = useState("")
+  
+  // Términos Comerciales Avanzados
+  const [contractDuration, setContractDuration] = useState("")
+  const [paymentTerms, setPaymentTerms] = useState("")
+  const [offerValidity, setOfferValidity] = useState("")
   
   // States for Images/Files
   const [files, setFiles] = useState<any[]>([])
@@ -88,6 +93,12 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
       setMotivoPerdida(deal.motivo_perdida || "")
       setIsContract(deal.is_contract || false)
       setContractMonths(deal.contract_months ? String(deal.contract_months) : "")
+      
+      // Load commercial terms
+      setContractDuration(deal.contract_duration || "")
+      setPaymentTerms(deal.payment_terms || "")
+      setOfferValidity(deal.offer_validity || "")
+      
       fetchFiles()
     }
   }, [deal])
@@ -97,7 +108,9 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
     const { error } = await supabase.from('deals').update({ motivo_perdida: motivo }).eq('id', deal.id)
     if (error) {
       alert("Error actualizando motivo: " + error.message)
-      setMotivoPerdida(deal.motivo_perdida || "")
+      if (deal.motivo_perdida) {
+        setMotivoPerdida(deal.motivo_perdida || "")
+      }
     } else {
       if (onDealUpdated) onDealUpdated()
     }
@@ -242,12 +255,15 @@ Equipo Comercial`)
     const { error } = await supabase.from('deals').update({ 
       cotizacion_detalles: cotizacionDetalles,
       valor_neto: neto,
-      valor_total: neto * 1.19
+      valor_total: neto * 1.19,
+      contract_duration: contractDuration,
+      payment_terms: paymentTerms,
+      offer_validity: offerValidity
     }).eq('id', deal.id)
     
     if (!error) {
       if (onDealUpdated) onDealUpdated()
-      alert("Cotización guardada exitosamente.")
+      alert("Cotización y Términos Comerciales guardados exitosamente.")
     } else {
       alert("Error guardando cotización: " + error.message)
     }
@@ -639,8 +655,24 @@ Equipo Comercial`)
                            <div className="space-y-4">
                               <Input type="number" placeholder="Monto Neto Ofertado ($)..." value={valorNetoCotizado} onChange={(e) => setValorNetoCotizado(e.target.value)} className="h-14 rounded-full font-black text-lg px-8 border-amber-500/10 dark:bg-black/20" />
                               <Textarea placeholder="Desglose de servicios y alcances técnicos..." value={cotizacionDetalles} onChange={(e) => setCotizacionDetalles(e.target.value)} className="rounded-[32px] min-h-[120px] font-bold text-[14px] p-6 border-amber-500/10 dark:bg-black/20" />
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div className="space-y-1">
+                                   <label className="text-[10px] font-black uppercase text-amber-600/70 ml-2">Duración (Meses)</label>
+                                   <Input type="text" placeholder="Ej: 12 meses" value={contractDuration} onChange={(e) => setContractDuration(e.target.value)} className="h-12 rounded-2xl font-bold px-4 border-amber-500/10 dark:bg-black/20" />
+                                </div>
+                                <div className="space-y-1">
+                                   <label className="text-[10px] font-black uppercase text-amber-600/70 ml-2">Forma de Pago</label>
+                                   <Input type="text" placeholder="Ej: 30 Días" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} className="h-12 rounded-2xl font-bold px-4 border-amber-500/10 dark:bg-black/20" />
+                                </div>
+                                <div className="space-y-1">
+                                   <label className="text-[10px] font-black uppercase text-amber-600/70 ml-2">Validez</label>
+                                   <Input type="text" placeholder="Ej: 15 Días" value={offerValidity} onChange={(e) => setOfferValidity(e.target.value)} className="h-12 rounded-2xl font-bold px-4 border-amber-500/10 dark:bg-black/20" />
+                                </div>
+                              </div>
+
                                <Button className="w-full h-14 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20" onClick={saveCotizacion}>
-                                 Fijar Propuesta Final
+                                 Fijar Propuesta y Términos B2B
                                </Button>
 
                                {/* Magic Link Section */}

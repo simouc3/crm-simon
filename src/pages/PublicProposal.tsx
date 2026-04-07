@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
-import { CheckCircle2, ChevronRight, Lock, Activity, FileText, ShieldCheck, Building2, UserCircle } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Lock, Activity, FileText, ShieldCheck, Building2, UserCircle, Zap } from 'lucide-react'
 
 const fmtCLP = (n: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
@@ -187,6 +187,35 @@ export default function PublicProposal() {
             </div>
           </div>
         </div>
+
+        {/* Commercial Terms Grid */}
+        {(deal.contract_duration || deal.payment_terms || deal.offer_validity) && (
+          <div className="mb-12 animate-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-900 mb-6 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-slate-400" /> Términos Estructurales
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {deal.contract_duration && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:border-slate-300 transition-colors">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Plazo / Duración</p>
+                  <p className="text-[16px] font-black tracking-tight text-slate-900">{deal.contract_duration}</p>
+                </div>
+              )}
+              {deal.payment_terms && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:border-slate-300 transition-colors">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Condición de Pago</p>
+                  <p className="text-[16px] font-black tracking-tight text-slate-900">{deal.payment_terms}</p>
+                </div>
+              )}
+              {deal.offer_validity && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:border-slate-300 transition-colors">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Validez de la Oferta</p>
+                  <p className="text-[16px] font-black tracking-tight text-slate-900">{deal.offer_validity}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Technical/Scope Details */}
         <div className="mb-16">
