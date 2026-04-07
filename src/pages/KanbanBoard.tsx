@@ -140,111 +140,117 @@ export default function KanbanBoard() {
   }
 
   // ── Deal Card — Apple 2026 Minimal Execution ────────────────────
+  // ── Deal Card — B2B Contextual ────────────────────
   const DealCard = ({ deal, isDragging = false }: { deal: any; isDragging?: boolean }) => {
     const s = stageMap[deal.stage] || stageMap[1]
     const isRisk = deal.is_risk
+    const stg = deal.stage
+    
+    // Prioridad inferida temporalmente por valor financiero
+    const priorityColor = (deal.valor_neto || 0) > 3000000 ? '#ef4444' : (deal.valor_neto || 0) < 500000 ? '#0ea5e9' : '#10b981'
 
     return (
       <div
         onClick={() => openDeal(deal)}
         className={`
           group cursor-pointer select-none
-          bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl
-          rounded-[22px] overflow-hidden
-          border border-black/[0.05] dark:border-white/[0.06]
+          bg-slate-50 dark:bg-[#14141A]
+          rounded-[18px] overflow-hidden
           relative
           transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]
           ${isDragging
-            ? 'scale-[1.04] shadow-[0_30px_60px_rgba(0,0,0,0.15)] z-50 ring-1 ring-primary/30'
-            : 'shadow-[0_4px_12px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.06)] active:scale-[0.96] active:bg-slate-50 dark:active:bg-[#2C2C2E] hover:-translate-y-1'
+            ? 'scale-[1.02] shadow-2xl z-50 ring-1 ring-primary/30'
+            : 'shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.08)] active:scale-[0.98] hover:-translate-y-0.5'
           }
         `}
       >
-        {/* Subtle top indicator — Apple Dynamic Style */}
-        <div 
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] rounded-b-full opacity-60"
-          style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }}
-        />
+        {/* Priority Dot */}
+        <div className="absolute top-3 left-3 w-2 h-2 rounded-full shadow-sm" style={{ backgroundColor: priorityColor }} />
 
-        <div className="px-5 py-5 relative z-10">
-          {/* Row 1: Badges (Refined Glass) */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex gap-1.5 flex-wrap">
-              <span
-                className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-tight px-2.5 py-1 rounded-full bg-slate-50 dark:bg-white/5 text-slate-500 border border-slate-100 dark:border-white/5"
-              >
-                <span className={`h-1.5 w-1.5 rounded-full ${isRisk ? 'animate-pulse' : ''}`} style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex }} />
-                {isRisk ? 'Alerta' : s.label}
-              </span>
-              
-              {deal.ai_probability && (
-                <span className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-tight px-2.5 py-1 rounded-full bg-indigo-50/50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 backdrop-blur-sm">
-                  {deal.ai_probability}%
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Row 2: Header (Squircle + Info) */}
-          <div className="flex items-center gap-3.5 mb-5">
+        <div className="p-4 relative z-10">
+          
+          {/* Header Layout for all stages */}
+          <div className="flex items-center gap-3 mb-3 ml-4">
             <div
-              className="w-11 h-11 rounded-[12px] flex items-center justify-center flex-shrink-0 font-bold text-base text-white shadow-sm ring-1 ring-black/[0.03]"
-              style={{ backgroundColor: isRisk ? '#FF3B30' : s.hex + 'CC' }}
+              className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 font-black text-[13px] text-white shadow-sm"
+              style={{ backgroundColor: s.hex }}
             >
               {(deal.companies?.razon_social || '?').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-[15px] tracking-tight text-slate-900 dark:text-white truncate leading-none mb-1">
-                {deal.companies?.razon_social || 'Empresa Sin Nombre'}
+              <h4 className="font-bold text-[14px] tracking-tight text-slate-900 dark:text-white truncate leading-none mb-1">
+                {deal.companies?.razon_social || 'Desconocido'}
               </h4>
-              <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 truncate leading-none">
-                {deal.companies?.contact_name || 'Sin contacto'}
+              <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate leading-none">
+                {deal.title}
               </p>
             </div>
           </div>
 
-          {/* Row 3: Metrics (Seamless, No island box) */}
-          <div className="mb-5 pt-4 border-t border-slate-50 dark:border-white/5">
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 opacity-50">Inversión</p>
-                <p className={`text-[19px] font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none`}>
-                  {fmtCLP(deal.valor_neto || 0)}
-                </p>
-              </div>
-              <div className="text-right">
-                {deal.is_contract ? (
-                  <span className="text-[9px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                    SLA {deal.contract_months}M
-                  </span>
-                ) : (
-                  <span className="text-[9px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">Spot</span>
+          {/* ── CONTEXTUAL UI ── */}
+          
+          {/* Etapas 1, 2, 3: Foco en Contacto */}
+          {stg <= 3 && (
+            <div className="flex items-center justify-between pt-2 border-t border-black/[0.03] dark:border-white/[0.03]">
+              <div className="flex gap-1">
+                {deal.companies?.contact_phone && (
+                  <a href={`https://wa.me/${deal.companies.contact_phone.replace(/\D/g,'')}`} onClick={e => e.stopPropagation()} className="flex items-center justify-center h-7 w-7 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-emerald-500 transition-colors">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.125-.397-.179-.974-.435-1.906-1.259-1.258-1.115-2.087-2.367-2.329-2.692-.243-.323-.586-.749-.585-1.396.002-.638.337-.96.468-1.109.117-.132.259-.168.347-.168.087 0 .178-.002.256-.002.091 0 .215-.034.341.272.13.315.441 1.077.48 1.157.04.08.056.176.012.261-.044.085-.067.136-.134.215-.068.079-.144.17-.203.238-.065.074-.131.154-.055.285.074.13.332.551.71.887 1.488.423 1.093.045 1.439.117 1.543.071.106.311.085.426.024.116-.06.508-.595.637-.698.13-.102.247-.087.34-.05z"/></svg>
+                  </a>
+                )}
+                {deal.companies?.contact_email && (
+                  <a href={`mailto:${deal.companies.contact_email}`} onClick={e => e.stopPropagation()} className="flex items-center justify-center h-7 w-7 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-blue-500 transition-colors">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  </a>
                 )}
               </div>
+              {deal.companies?.comuna && (
+                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded-md">
+                   <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                   {deal.companies.comuna}
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* Row 4: Actions (Integrated & Subtle) */}
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-              {deal.companies?.contact_phone && (
-                <a href={`tel:${deal.companies.contact_phone}`}
-                  className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-emerald-500 transition-all">
-                  <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 9.91a16 16 0 006.72 6.72l1.28-1.34a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-                </a>
-              )}
-              {deal.companies?.contact_email && (
-                <a href={`mailto:${deal.companies.contact_email}`}
-                  className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-blue-500 transition-all">
-                  <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
-                </a>
-              )}
+          {/* Etapas 4, 5: Foco Financiero e IA */}
+          {(stg === 4 || stg === 5) && (
+            <div className="pt-3 border-t border-black/[0.03] dark:border-white/[0.03]">
+               <div className="flex justify-between items-end mb-2">
+                 <p className="text-[22px] font-black tracking-tighter text-slate-900 dark:text-white leading-none">
+                   {fmtCLP(deal.valor_neto || 0)}
+                 </p>
+                 {deal.proposal_status && (
+                   <span className="text-[8px] font-black uppercase text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-sm">Visto</span>
+                 )}
+               </div>
+               
+               {isRisk && (
+                 <div className="flex items-center gap-1 text-[9px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded-md mt-1">
+                   ⚠️ IA: Riesgo de Deserción
+                 </div>
+               )}
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-tighter group-hover:text-primary transition-colors">
-              Gestionar
-              <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+          )}
+
+          {/* Etapa 6: Ganado y Operativo */}
+          {stg === 6 && (
+            <div className="pt-3 border-t border-black/[0.03] dark:border-white/[0.03]">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pago acordado</span>
+                <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-md">
+                  {deal.companies?.condiciones_pago?.replace('_', ' ') || 'CONTADO'}
+                </span>
+              </div>
+              <button 
+                onClick={e => { e.stopPropagation(); alert('Se enviará notificación PUSH al departamento.'); }}
+                className="w-full mt-1 bg-slate-900 dark:bg-white text-white dark:text-black py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-transform"
+              >
+                Notificar Despliegue
+              </button>
             </div>
-          </div>
+          )}
+
         </div>
       </div>
     )
@@ -342,15 +348,16 @@ export default function KanbanBoard() {
       </div>
 
       {/* ── Kanban Columns (Unified Desktop & Mobile Snap-X) ──────────────────── */}
-      <div className="flex-1 overflow-x-auto px-4 md:px-6 py-6 snap-x snap-mandatory scroll-smooth hide-scrollbar min-h-screen">
-        <div className="flex gap-4 md:gap-5 items-start min-h-[600px] max-w-[1600px] mx-auto pb-32">
+      <div className="flex-1 overflow-x-auto px-0 md:px-6 py-6 snap-x snap-mandatory scroll-smooth hide-scrollbar min-h-screen">
+        {/* En móvil quitamos el gap de Flex y usamos paddings en los hijos para que el Snap tome la pantalla completa sin desfasarse por el flex-gap */}
+        <div className="flex md:gap-5 items-start min-h-[600px] max-w-[1600px] md:mx-auto pb-32">
           <DragDropContext onDragEnd={onDragEnd}>
             {KANBAN_STAGES.map(stage => {
               const stageDeals = filteredDeals.filter(d => d.stage === stage.id)
               const stageValue = stageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
               
               return (
-                <div key={stage.id} className="flex flex-col w-[85vw] md:w-[280px] shrink-0 snap-center">
+                <div key={stage.id} className="flex flex-col w-[85vw] md:w-[280px] px-4 md:px-0 shrink-0 snap-center snap-always">
                   {/* Column Header */}
                   <div className="flex items-end justify-between mb-4 md:mb-6 px-1 md:px-3">
                     <div className="space-y-1">
