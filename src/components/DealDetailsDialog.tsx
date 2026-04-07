@@ -630,7 +630,7 @@ Equipo Comercial`)
                         </div>
                      )}
 
-                     {currentStage === 4 && (
+                     {(currentStage === 4 || currentStage === 5) && (
                         <div className="p-8 rounded-[40px] bg-amber-500/5 border border-amber-500/20 space-y-6">
                            <div className="flex items-center gap-3">
                               <div className="h-2 w-2 rounded-full bg-amber-500" />

@@ -138,7 +138,8 @@ returns table (
   public_token uuid,
   company_name text,
   company_rut text,
-  seller_name text
+  seller_name text,
+  cotizacion_detalles text
 )
 language plpgsql
 security definer -- Se ejecuta con permisos de creador (omite RLS para leer esta fila exacta)
@@ -148,7 +149,7 @@ begin
   select 
     d.id, d.title, d.valor_neto, d.valor_total, d.proposal_status, d.public_token,
     c.razon_social as company_name, c.rut as company_rut,
-    p.full_name as seller_name
+    p.full_name as seller_name, d.cotizacion_detalles
   from deals d
   join companies c on d.company_id = c.id
   left join profiles p on d.user_id = p.id
@@ -186,12 +187,14 @@ declare
   v_deal_id uuid;
   v_company_id uuid;
   v_user_id uuid;
+  v_company_creator uuid;
 begin
-  -- Seleccionamos el trato asegurando que exista y no esté ya aceptado/rechazado (opcional)
-  select id, company_id, user_id
-  into v_deal_id, v_company_id, v_user_id
-  from deals
-  where public_token = p_token and proposal_status != 'ACCEPTED';
+  -- Seleccionamos el trato y el creador de la empresa como respaldo
+  select d.id, d.company_id, d.user_id, c.created_by
+  into v_deal_id, v_company_id, v_user_id, v_company_creator
+  from deals d
+  join companies c on d.company_id = c.id
+  where d.public_token = p_token and d.proposal_status != 'ACCEPTED';
 
   if v_deal_id is null then
     return false; -- Ya fue aprobado o no existe
@@ -210,10 +213,11 @@ begin
   where id = v_deal_id;
 
   -- Automatizar orden al equipo operativo (Calendario Operativo)
+  -- Si el trato no tiene user_id asignado, caemos al creador de la empresa para evitar null constraint fail
   insert into activities (company_id, user_id, title, activity_type, notes, scheduled_at, completed)
   values (
     v_company_id, 
-    v_user_id, 
+    coalesce(v_user_id, v_company_creator, auth.uid()), 
     '[AUTOMÁTICO] Iniciar Onboarding Operativo', 
     'REUNION', 
     'Cotización y Acuerdo aceptado digitalmente por el cliente (Firma Simple 1-Clic). Contactar para inicio de operación.', 
