@@ -28,20 +28,20 @@ export default function PublicProposal() {
 
       const { data, error } = await supabase.rpc('get_deal_by_token', { p_token: token })
       
-      if (error || !data || data.length === 0) {
+      // La nueva función retorna directamente un objeto JSON, no un arreglo
+      if (error || !data) {
         console.error('Error fetching deal:', error)
         setLoading(false)
         return
       }
 
-      const currentDeal = data[0]
-      setDeal(currentDeal)
+      setDeal(data)
       
-      if (currentDeal.proposal_status === 'ACCEPTED') {
+      if (data.proposal_status === 'ACCEPTED') {
         setAccepted(true)
       }
 
-      if (currentDeal.proposal_status !== 'ACCEPTED') {
+      if (data.proposal_status !== 'ACCEPTED') {
         await supabase.rpc('log_proposal_view', { p_token: token })
       }
 
