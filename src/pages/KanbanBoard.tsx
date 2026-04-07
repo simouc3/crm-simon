@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
-import { Briefcase, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
@@ -21,7 +21,7 @@ export default function KanbanBoard() {
   const [deals, setDeals] = useState<any[]>([])
   const [selectedDeal, setSelectedDeal] = useState<any>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-  const [activeStageId, setActiveStageId] = useState(1)
+
   
   const [viewMonth, setViewMonth] = useState(new Date().getMonth())
   const [viewYear, setViewYear] = useState(new Date().getFullYear())
@@ -125,9 +125,7 @@ export default function KanbanBoard() {
 
   const totalDeals = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 6).length
 
-  const activeStageDeals = filteredDeals.filter(d => d.stage === activeStageId)
-  const activeStageValue = activeStageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
-  const activeStage = KANBAN_STAGES.find(s => s.id === activeStageId)
+
 
   // ── Stage Palette — Apple System Precise ──────────
   const stageMap: Record<number, { hex: string; label: string }> = {
@@ -331,83 +329,18 @@ export default function KanbanBoard() {
         </div>
       </div>
 
-      {/* ── Mobile: Stage Picker + Scoped List ─────── */}
-      <div className="md:hidden flex flex-col">
-        
-        {/* Sticky Stage Scroller */}
-        <div className="sticky top-[78px] z-20 px-4 py-2 glass-island mt-2 mb-2 shadow-sm">
-          <div className="flex overflow-x-auto gap-2 no-scrollbar">
-            {KANBAN_STAGES.map(stage => {
-              const count = filteredDeals.filter(d => d.stage === stage.id).length
-              const isActive = activeStageId === stage.id
-              const probLabel = stage.id <= 6 ? `(${Math.round(stage.probability * 100)}%)` : ''
-              return (
-                <button
-                  key={stage.id}
-                  onClick={() => setActiveStageId(stage.id)}
-                  className={`shrink-0 h-8 px-4 rounded-full flex items-center gap-2 transition-all duration-200 text-[10px] font-bold border border-black/[0.04] dark:border-white/[0.05] ${
-                    isActive 
-                      ? 'bg-foreground text-background shadow-md scale-105' 
-                      : 'bg-white/40 dark:bg-white/5 text-muted-foreground backdrop-blur-sm'
-                  }`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />
-                  <span className="flex items-center gap-1">
-                    {stage.name}
-                    <span className="opacity-30 text-[8px] font-black">{probLabel}</span>
-                  </span>
-                  <span className={`text-[9px] font-black ${isActive ? 'text-background/60' : 'text-muted-foreground/40'}`}>{count}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Selected Stage Detail Summary */}
-        <div className="px-6 py-2 flex items-center justify-between border-b border-black/[0.02]">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: activeStage?.color }} />
-            <span className="text-[10px] font-black text-foreground uppercase tracking-widest leading-none">{activeStage?.name}</span>
-          </div>
-          <p className="text-[11px] font-black text-primary tabular-nums leading-none">
-            {fmtCLP(activeStageValue)} <span className="opacity-30 font-bold ml-1">BRUTO</span>
-          </p>
-        </div>
-
-        {/* Deals Feed (Natural Scrolling) */}
-        <div className="px-4 py-4 space-y-3">
-          {activeStageDeals.length > 0 ? (
-            activeStageDeals.map((deal) => (
-              <DealCard key={deal.id} deal={deal} />
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center py-20 opacity-30">
-              <Briefcase className="h-6 w-6 mb-3 text-muted-foreground" />
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                Sin negocios activos
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Global Action: New Deal (Always at bottom of scrollable area) */}
-        <div className="px-5 pt-4 pb-12">
-           {/* Eliminado para limpieza visual - Se usa el Abanico central */}
-        </div>
-      </div>
-
-      {/* ── Desktop: Kanban Columns ──────────────────── */}
-      <div className="hidden md:block flex-1 overflow-x-auto px-6 py-6">
-        <div className="flex gap-5 items-start min-h-[600px] max-w-[1600px] mx-auto">
+      {/* ── Kanban Columns (Unified Desktop & Mobile Snap-X) ──────────────────── */}
+      <div className="flex-1 overflow-x-auto px-4 md:px-6 py-6 snap-x snap-mandatory scroll-smooth hide-scrollbar min-h-screen">
+        <div className="flex gap-4 md:gap-5 items-start min-h-[600px] max-w-[1600px] mx-auto pb-32">
           <DragDropContext onDragEnd={onDragEnd}>
             {KANBAN_STAGES.map(stage => {
               const stageDeals = filteredDeals.filter(d => d.stage === stage.id)
               const stageValue = stageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
               
               return (
-                <div key={stage.id} className="flex flex-col w-[280px] shrink-0">
+                <div key={stage.id} className="flex flex-col w-[85vw] md:w-[280px] shrink-0 snap-center">
                   {/* Column Header */}
-                  <div className="flex items-end justify-between mb-6 px-3">
+                  <div className="flex items-end justify-between mb-4 md:mb-6 px-1 md:px-3">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />
@@ -431,7 +364,7 @@ export default function KanbanBoard() {
                       <div
                         {...provided.droppableProps}
                         ref={provided.innerRef}
-                        className={`flex flex-col gap-2.5 p-3 rounded-2xl min-h-[500px] transition-colors duration-200 ${
+                        className={`flex flex-col gap-2.5 p-2 md:p-3 rounded-2xl min-h-[70vh] md:min-h-[500px] transition-colors duration-200 ${
                           snapshot.isDraggingOver 
                             ? 'bg-primary/[0.05] ring-1 ring-primary/20 ring-inset' 
                             : 'bg-black/[0.02] dark:bg-white/[0.02]'
@@ -456,7 +389,7 @@ export default function KanbanBoard() {
                         {provided.placeholder}
                         
                         {stageDeals.length === 0 && !snapshot.isDraggingOver && (
-                          <div className="flex-1 flex items-center justify-center opacity-20">
+                          <div className="flex-1 flex items-center justify-center opacity-20 py-10">
                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center">
                               Arrastra aquí
                             </p>
