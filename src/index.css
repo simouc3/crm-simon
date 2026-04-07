@@ -28,26 +28,26 @@
   }
 
   .dark {
-    /* ── Dark Mode: Apple iOS Navy (2026 Reference) ── */
-    --background: 240 20% 6%;           /* #0D0D17 — deep navy, not pure black */
-    --foreground: 240 9% 95%;           /* #F2F2F7 — Apple soft white */
-    --card: 240 15% 10%;                /* #141420 — card surface, blue-navy */
+    /* ── Dark Mode: Apple iOS Abyss VIP ── */
+    --background: 240 20% 4%;           /* #06060B — Absolute Abyss / Deep Space */
+    --foreground: 240 9% 98%;           /* #FAFAFC — Crystal white */
+    --card: 240 15% 7%;                 /* #0F0F14 — Deep card surface */
     --card-foreground: 240 9% 95%;
-    --popover: 240 14% 12%;             /* #171727 — popover slightly lighter */
+    --popover: 240 15% 9%;             
     --popover-foreground: 240 9% 95%;
-    --primary: 210 100% 56%;            /* #0A84FF — Apple Blue Dark Mode */
+    --primary: 216 100% 55%;            /* Neon Blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 12% 16%;           /* #20202E — level 2 */
+    --secondary: 240 12% 16%;           
     --secondary-foreground: 240 9% 95%;
-    --muted: 240 12% 16%;
-    --muted-foreground: 240 5% 56%;     /* #8E8E93 — iOS secondary text */
-    --accent: 240 10% 20%;              /* #282838 — level 3 */
+    --muted: 240 12% 12%;               /* Very subtle muted background */
+    --muted-foreground: 240 5% 65%;     /* More readable secondary text */
+    --accent: 240 10% 20%;              
     --accent-foreground: 240 9% 95%;
-    --destructive: 4 86% 62%;           /* Apple Red Dark #ff453a */
+    --destructive: 4 86% 62%;           
     --destructive-foreground: 240 9% 95%;
-    --border: 240 20% 100% / 0.08;      /* Subtle blue-white border 8% */
+    --border: 240 20% 100% / 0.08;      
     --input: 240 12% 16%;
-    --ring: 210 100% 56%;               /* Apple Blue Dark focus ring */
+    --ring: 216 100% 55%;               
   }
 }
 

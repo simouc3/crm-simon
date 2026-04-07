@@ -104,7 +104,7 @@ export default function AppLayout() {
   ]
 
   return (
-    <div className={`flex h-screen bg-[#F5F5F7] dark:bg-[#0D0D17] text-foreground font-sans antialiased ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`flex h-screen bg-[#F5F5F7] dark:bg-[#06060B] text-foreground font-sans antialiased ${isDarkMode ? 'dark' : ''}`}>
       {/* Sidebar Desktop */}
       <aside className="w-[220px] bg-white/70 dark:bg-[#141420]/95 backdrop-blur-2xl border-r border-border/30 dark:border-white/[0.06] hidden md:flex flex-col relative z-20 shadow-[10px_0_40px_-20px_rgba(0,0,0,0.05)] dark:shadow-[1px_0_0_rgba(255,255,255,0.05)]">
         
@@ -208,9 +208,14 @@ export default function AppLayout() {
       </aside>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-[#0D0D17]">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F5F5F7] dark:bg-[#06060B] relative overflow-hidden">
+        
+        {/* ── Dark Mode Ambient Glow Orbs ── */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vh] bg-blue-600/20 mix-blend-screen blur-[120px] rounded-full pointer-events-none hidden dark:block z-0" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[60vh] bg-purple-600/15 mix-blend-screen blur-[140px] rounded-full pointer-events-none hidden dark:block z-0" />
+
         {/* Mobile Header — Floating Island (same style as bottom nav) */}
-        <div className="md:hidden shrink-0 px-4 pt-4 pb-2 sticky top-0 z-30">
+        <div className="md:hidden shrink-0 px-4 pt-4 pb-2 sticky top-0 z-30 relative">
           <div className="glass-island rounded-[28px] flex items-center justify-between px-4 h-[62px]">
             <div className="flex items-center gap-3" onClick={() => navigate('/')}>
               <div className="w-10 h-10 rounded-[14px] bg-white dark:bg-[#20203A] flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-black/[0.06] dark:border-white/[0.08]">

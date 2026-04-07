@@ -248,6 +248,11 @@ create table public.app_settings (
     id uuid default '00000000-0000-0000-0000-000000000001'::uuid primary key,
     company_name text not null default 'Mi Empresa CRM',
     company_logo_url text,
+    company_rut text,
+    company_giro text,
+    company_address text,
+    company_phone text,
+    company_website text,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

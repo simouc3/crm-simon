@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
-import { CheckCircle2, ChevronRight, Lock, Activity, FileText, ShieldCheck, Building2, UserCircle, Zap } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Lock, Activity, FileText, ShieldCheck, Building2, UserCircle, Zap, Download } from 'lucide-react'
 
 const fmtCLP = (n: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
@@ -93,6 +93,19 @@ export default function PublicProposal() {
     setSendingMod(false)
   }
 
+  const [downloadingPDF, setDownloadingPDF] = useState(false)
+  const handleDownloadPDF = async () => {
+    setDownloadingPDF(true)
+    try {
+      const { generateQuotePDF } = await import('../lib/pdf')
+      await generateQuotePDF(deal, { razon_social: deal.company_name })
+    } catch (e) {
+      console.error(e)
+      alert('Error descargando el PDF.')
+    }
+    setDownloadingPDF(false)
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -135,8 +148,18 @@ export default function PublicProposal() {
         
         {/* Deal Title & Counterpart Info */}
         <div className="mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 border border-slate-200 rounded-full mb-6 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-            <FileText className="w-3.5 h-3.5" /> ID Referencia: {deal.id.split('-')[0]}
+          <div className="flex items-center justify-between mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 border border-slate-200 rounded-full text-[11px] font-bold uppercase tracking-widest text-slate-500">
+              <FileText className="w-3.5 h-3.5" /> ID Referencia: {deal.id.split('-')[0]}
+            </div>
+            <button 
+              onClick={handleDownloadPDF}
+              disabled={downloadingPDF}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full text-xs font-bold shadow-md hover:bg-slate-800 transition-colors disabled:opacity-50"
+            >
+              {downloadingPDF ? <Activity className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              {downloadingPDF ? 'Generando...' : 'Descargar PDF'}
+            </button>
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-[1.1] mb-6">
             {deal.title}

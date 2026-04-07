@@ -97,27 +97,32 @@ function BarChart({ data, onSelect, color = '#10b981', prefix = '$' }: { data: {
   )
 }
 
-// ── KPI Card Widget ───────────────────────────────────────────────────
 function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, variant = 'glass' }: any) {
   const baseStyles = "group relative overflow-hidden rounded-[28px] p-6 transition-all duration-700 cursor-pointer active:scale-[0.98]"
   const variants: any = {
     glass: "glass-island border border-black/[0.03] dark:border-white/[0.03] shadow-sm hover:shadow-[0_30px_60px_rgba(0,0,0,0.07)] hover:-translate-y-1.5",
     primary: "bg-primary text-white shadow-[0_20px_50px_rgba(0,122,255,0.25)] hover:shadow-[0_40px_80px_rgba(0,122,255,0.35)] hover:-translate-y-1.5",
-    accent: "bg-black dark:bg-white text-white dark:text-black shadow-2xl hover:-translate-y-1.5"
+    accent: "bg-black dark:bg-white text-white dark:text-black shadow-2xl hover:-translate-y-1.5",
+    ocean: "bg-gradient-to-br from-blue-500 to-cyan-400 text-white shadow-[0_20px_50px_rgba(0,180,255,0.3)] hover:shadow-[0_40px_80px_rgba(0,180,255,0.4)] hover:-translate-y-1.5",
+    sunrise: "bg-gradient-to-br from-rose-500 to-orange-400 text-white shadow-[0_20px_50px_rgba(244,63,94,0.3)] hover:shadow-[0_40px_80px_rgba(244,63,94,0.4)] hover:-translate-y-1.5",
+    purp: "bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-[0_20px_50px_rgba(99,102,241,0.3)] hover:shadow-[0_40px_80px_rgba(99,102,241,0.4)] hover:-translate-y-1.5"
   }
+
+  const isDarkForeground = variant === 'accent'
+  const isVibrant = ['primary', 'ocean', 'sunrise', 'purp'].includes(variant)
 
   return (
     <div onClick={onClick} className={`${baseStyles} ${variants[variant]} ${highlight ? 'ring-2 ring-primary/20' : ''}`}>
       {/* Icon + Trend row */}
       <div className="flex items-center justify-between mb-6">
-        <div className={`p-3 rounded-2xl ${variant === 'glass' ? 'bg-slate-50 dark:bg-white/5 border border-black/[0.03] dark:border-white/5' : 'bg-white/10 border border-white/10'}`}>
-          <Icon className={`h-5 w-5 ${variant === 'glass' ? 'text-primary' : 'text-white dark:text-black'}`} strokeWidth={2.5} />
+        <div className={`p-3 rounded-2xl ${variant === 'glass' ? 'bg-slate-50 dark:bg-white/5 border border-black/[0.03] dark:border-white/5' : 'bg-white/20 border border-white/10 backdrop-blur-md'}`}>
+          <Icon className={`h-5 w-5 ${variant === 'glass' ? 'text-primary' : isDarkForeground ? 'text-white dark:text-black' : 'text-white'}`} strokeWidth={2.5} />
         </div>
         {trend && (
           <div className={`flex items-center gap-1 text-[10px] font-black px-3 py-1.5 rounded-full border ${
-            variant !== 'glass'
-              ? 'bg-white/10 border-white/10 text-white'
-              : trend.up ? 'text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800' : 'text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-800'
+            variant === 'glass'
+              ? trend.up ? 'text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800' : 'text-rose-600 bg-rose-50 border-rose-100 dark:bg-rose-950/20 dark:border-rose-800'
+              : 'bg-white/20 border-white/20 text-white backdrop-blur-md'
           }`}>
             {trend.up ? <ArrowUpRight className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
             {trend.val}
@@ -127,12 +132,12 @@ function KpiCard({ label, value, sub, icon: Icon, trend, onClick, highlight, var
       
       {/* Value block */}
       <div className="space-y-1 min-w-0">
-        <span className={`text-[10px] font-black uppercase tracking-[0.3em] leading-none block mb-3 ${variant === 'glass' ? 'text-muted-foreground opacity-40' : 'opacity-60'}`}>{label}</span>
+        <span className={`text-[10px] font-black uppercase tracking-[0.3em] leading-none block mb-3 ${variant === 'glass' ? 'text-muted-foreground opacity-40' : 'text-white/70'}`}>{label}</span>
         <div className="text-[28px] font-black tracking-tighter leading-none tabular-nums truncate">
           {value}
         </div>
         {sub && (
-          <p className={`text-[12px] font-bold tracking-tight mt-3 truncate ${variant === 'glass' ? 'text-muted-foreground' : 'opacity-70'}`}>
+          <p className={`text-[12px] font-bold tracking-tight mt-3 truncate ${variant === 'glass' ? 'text-muted-foreground' : 'text-white/80'}`}>
             {sub}
           </p>
         )}
@@ -402,8 +407,16 @@ export default function Dashboard() {
                 value={fmtCLP(ingresosMes)}
                 sub={`${ganados.length} Cierres Exitosos`}
                 icon={DollarSign}
-                variant="primary"
+                variant="ocean"
                 onClick={() => setSelectedMetric({ label: 'Cierres (Ganados)', deals: ganados })}
+              />
+              <KpiCard
+                label="Pipeline Activo"
+                value={fmtCLP(pipelineForecast)}
+                sub={`${propuestas.length} Negociaciones`}
+                icon={Briefcase}
+                variant="purp"
+                onClick={() => setSelectedMetric({ label: 'Pipeline Activo', deals: propuestas })}
               />
               <KpiCard
                 label="Cierre Realista AI"
@@ -416,17 +429,11 @@ export default function Dashboard() {
                 onClick={() => setSelectedMetric({ label: 'Cierre Realista AI (Activos)', deals: activos })}
               />
               <KpiCard
-                label="Pipeline Activo"
-                value={fmtCLP(pipelineForecast)}
-                sub={`${propuestas.length} Negociaciones`}
-                icon={Briefcase}
-                onClick={() => setSelectedMetric({ label: 'Pipeline Activo', deals: propuestas })}
-              />
-              <KpiCard
                 label="Win Rate"
                 value={`${winRate}%`}
                 sub="Conversión Comercial"
                 icon={TrendingUp}
+                variant="sunrise"
                 trend={{ val: "Saludable", up: winRate > 30 }}
               />
             </div>
