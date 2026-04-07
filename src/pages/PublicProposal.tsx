@@ -12,6 +12,12 @@ export default function PublicProposal() {
   const [loading, setLoading] = useState(true)
   const [accepting, setAccepting] = useState(false)
   const [accepted, setAccepted] = useState(false)
+  
+  // Modification State
+  const [showModModal, setShowModModal] = useState(false)
+  const [modMessage, setModMessage] = useState('')
+  const [sendingMod, setSendingMod] = useState(false)
+  const [modSent, setModSent] = useState(false)
 
   useEffect(() => {
     const fetchDealAndLogView = async () => {
@@ -65,6 +71,26 @@ export default function PublicProposal() {
       alert('Hubo un problema al aprobar. Por favor, asegúrate de que el enlace sea el correcto o contacta a tu asesor.')
     }
     setAccepting(false)
+  }
+
+  const handleRequestMods = async () => {
+    if (!token || !modMessage.trim()) return
+    setSendingMod(true)
+    
+    // Llamar al nuevo RPC de modificaciones
+    const { error } = await supabase.rpc('request_proposal_changes', {
+      p_token: token,
+      p_message: modMessage
+    })
+
+    if (!error) {
+      setModSent(true)
+      setShowModModal(false)
+    } else {
+      console.error('Error sending modifications request', error)
+      alert('Hubo un error al enviar tu solicitud. Por favor intenta vía correo electrónico.')
+    }
+    setSendingMod(false)
   }
 
   if (loading) {
@@ -192,7 +218,7 @@ export default function PublicProposal() {
             <div className="w-full max-w-md flex flex-col gap-3">
               <button
                 onClick={handleApprove}
-                disabled={accepting}
+                disabled={accepting || modSent}
                 className="pointer-events-auto h-16 w-full rounded-2xl bg-slate-900 text-white font-bold text-[16px] tracking-tight hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.4)] disabled:opacity-50 disabled:scale-100 hover:bg-black"
               >
                 {accepting ? (
@@ -201,14 +227,19 @@ export default function PublicProposal() {
                   <>Aceptar Propuesta Comercial <ChevronRight className="w-5 h-5 opacity-60" /></>
                 )}
               </button>
-              <button
-                onClick={() => {
-                  window.location.href = `mailto:contacto@asesor.com?subject=Revisión Propuesta: ${deal.title}&body=Hola, por favor revisemos algunos puntos técnicos de la propuesta...`
-                }}
-                className="pointer-events-auto h-12 w-full rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 active:scale-[0.98] transition-all flex items-center justify-center shadow-sm"
-              >
-                Necesito solicitar modificaciones
-              </button>
+              
+              {!modSent ? (
+                <button
+                  onClick={() => setShowModModal(true)}
+                  className="pointer-events-auto h-12 w-full rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-[13px] hover:bg-slate-50 active:scale-[0.98] transition-all flex items-center justify-center shadow-sm"
+                >
+                  Necesito solicitar modificaciones
+                </button>
+              ) : (
+                <div className="pointer-events-auto h-12 w-full rounded-xl bg-blue-50 border border-blue-200 text-blue-700 font-bold text-[13px] flex items-center justify-center shadow-sm">
+                  ✓ Tu solicitud ha sido notificada al equipo.
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -219,6 +250,40 @@ export default function PublicProposal() {
           </div>
         )}
       </div>
+
+      {/* Modification Modal Overlay */}
+      {showModModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm pointer-events-auto">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h3 className="text-lg font-black text-slate-900 mb-2">Solicitar Ajustes</h3>
+            <p className="text-sm text-slate-500 font-medium mb-4">
+              Escribe tus comentarios o modificaciones estructurales. Nuestra gerencia comercial será alertada instantáneamente.
+            </p>
+            <textarea 
+              autoFocus
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-[14px] font-medium outline-none min-h-[120px] mb-4 text-slate-900"
+              placeholder="Ej: Necesitamos que el plazo de pago sea a 60 días..."
+              value={modMessage}
+              onChange={(e) => setModMessage(e.target.value)}
+            />
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowModModal(false)}
+                className="flex-1 h-12 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                disabled={sendingMod || !modMessage.trim()}
+                onClick={handleRequestMods}
+                className="flex-1 h-12 rounded-xl font-bold text-white bg-blue-600 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {sendingMod ? <Activity className="w-4 h-4 animate-spin" /> : 'Enviar Alerta'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="h-32"></div>
     </div>
