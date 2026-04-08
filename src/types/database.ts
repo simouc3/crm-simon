@@ -52,3 +52,15 @@ export interface Deal {
   stage_updated_at?: string
   created_at?: string
 }
+
+export interface AppSettings {
+  id: string
+  company_name: string
+  company_logo_url?: string
+  company_rut?: string
+  company_giro?: string
+  company_address?: string
+  company_phone?: string
+  company_website?: string
+  updated_at?: string
+}

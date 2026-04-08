@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { supabase } from "../lib/supabase/client"
-import { Upload, User, Save, Bell, Sparkles } from "lucide-react"
+import { Upload, User, Save, Bell, Sparkles, Building2 } from "lucide-react"
 import { checkNotificationPermission, subscribeToPush, unsubscribeFromPush } from "../lib/push-notifications"
 
 interface SettingsDialogProps {
@@ -29,6 +29,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const [pushEnabled, setPushEnabled] = useState(false)
   const [pushToggling, setPushToggling] = useState(false)
   const [geminiKey, setGeminiKey] = useState("")
+  const [companyLogoUrl, setCompanyLogoUrl] = useState("")
 
   useEffect(() => {
     if (open) {
@@ -57,7 +58,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const fetchSettings = async () => {
     const { data } = await supabase
       .from('app_settings')
-      .select('company_name, company_rut, company_giro, company_address, company_phone, company_website')
+      .select('company_name, company_rut, company_giro, company_address, company_phone, company_website, company_logo_url')
       .eq('id', '00000000-0000-0000-0000-000000000001')
       .single()
 
@@ -68,6 +69,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
       if (data.company_address) setCompanyAddress(data.company_address)
       if (data.company_phone) setCompanyPhone(data.company_phone)
       if (data.company_website) setCompanyWebsite(data.company_website)
+      if (data.company_logo_url) setCompanyLogoUrl(data.company_logo_url)
     }
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -101,6 +103,28 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
     e.target.value = ''
   }
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return
+    setUploading(true)
+    const file = e.target.files[0]
+    const fileExt = file.name.split('.').pop()
+    const fileName = `logo-${Date.now()}.${fileExt}`
+    const filePath = `public/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(filePath, file, { upsert: true, contentType: file.type })
+
+    if (uploadError) {
+      alert("Error subiendo logo: " + uploadError.message)
+    } else {
+      const { data: urlData } = supabase.storage.from('logos').getPublicUrl(filePath)
+      setCompanyLogoUrl(`${urlData.publicUrl}?t=${Date.now()}`)
+    }
+    setUploading(false)
+    e.target.value = ''
+  }
+
   const handleSave = async () => {
     setLoading(true)
     const { error } = await supabase
@@ -113,6 +137,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
         company_address: companyAddress,
         company_phone: companyPhone,
         company_website: companyWebsite,
+        company_logo_url: companyLogoUrl,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' })
 
@@ -298,6 +323,36 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
                   <div className="grid gap-2">
                      <Label htmlFor="companyWebsite">Sitio Web</Label>
                      <Input id="companyWebsite" value={companyWebsite} onChange={e => setCompanyWebsite(e.target.value)} placeholder="www.tuempresa.cl" className="rounded-xl h-10" />
+                  </div>
+                </div>
+
+                {/* Logo Upload Section */}
+                <div className="pt-4 border-t border-border/40">
+                  <Label className="text-sm font-bold mb-3 block text-foreground">Identidad de Marca (Logo)</Label>
+                  <div className="flex gap-4 items-center p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-border/60">
+                    <div className="w-20 h-20 rounded-xl bg-white dark:bg-[#1C1C2E] border border-border/40 flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative group">
+                      {companyLogoUrl ? (
+                        <img src={companyLogoUrl} alt="Logo Empresa" className="w-full h-full object-contain p-2" />
+                      ) : (
+                        <Building2 className="w-8 h-8 text-muted-foreground/20" />
+                      )}
+                      <Label htmlFor="logo-upload" className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <Upload className="w-4 h-4 text-white" />
+                        <Input
+                          id="logo-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleLogoUpload}
+                          disabled={uploading}
+                        />
+                      </Label>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[11px] font-bold text-foreground">Subir Logo Corporativo</span>
+                      <span className="text-[10px] text-muted-foreground leading-tight">PNG o JPG con fondo transparente preferiblemente.</span>
+                      {uploading && <span className="text-[10px] font-bold text-primary animate-pulse mt-1">Subiendo...</span>}
+                    </div>
                   </div>
                 </div>
               </div>

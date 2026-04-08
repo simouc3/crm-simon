@@ -132,7 +132,14 @@ export default function AppLayout() {
     { name: 'Pipeline', path: '/pipeline', icon: Columns3 },
     { name: 'Clientes', path: '/clients', icon: Users },
     { name: 'Agenda', path: '/calendar', icon: CalendarDays },
-    ...(isAdmin ? [{ name: 'Usuarios', path: '/users', icon: Users }] : []),
+    ...(isAdmin ? [
+      { name: 'Usuarios', path: '/users', icon: Users },
+      { name: 'Configuración', path: '#settings', icon: SettingsIcon, onClick: () => {
+        setShowSettings(true);
+        // Dispatching a custom event if the dialog needs to switch tabs, 
+        // but for now just opening it is enough.
+      } }
+    ] : []),
   ]
 
   return (
@@ -166,9 +173,15 @@ export default function AppLayout() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={(e) => {
+                if (item.onClick) {
+                  e.preventDefault();
+                  item.onClick();
+                }
+              }}
               className={({ isActive }) =>
                 `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
-                  isActive 
+                  isActive && item.path !== '#settings'
                     ? 'bg-foreground text-background shadow-xl translate-x-1' 
                     : 'text-muted-foreground hover:bg-slate-100/50 dark:hover:bg-white/5 hover:text-foreground hover:translate-x-1'
                 }`

@@ -21,6 +21,7 @@ const fmtCLP = (n: number) =>
 export default function PublicProposal() {
   const { token } = useParams()
   const [deal, setDeal] = useState<any>(null)
+  const [branding, setBranding] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [accepting, setAccepting] = useState(false)
   const [accepted, setAccepted] = useState(false)
@@ -50,6 +51,15 @@ export default function PublicProposal() {
       if (data.proposal_status === 'ACCEPTED') {
         setAccepted(true)
       }
+
+      // Fetch Branding
+      const { data: settings } = await supabase
+        .from('app_settings')
+        .select('*')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .single()
+      
+      setBranding(settings)
 
       if (data.proposal_status !== 'ACCEPTED') {
         await supabase.rpc('log_proposal_view', { p_token: token })
@@ -150,12 +160,16 @@ export default function PublicProposal() {
         {/* ── HEADER ── */}
         <header className="px-8 sm:px-12 py-8 border-b border-[#F5F5F7] flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-9 h-9 bg-[#1C1C1E] text-white rounded-[10px] flex items-center justify-center shadow-lg">
-              <Building2 className="h-4 w-4" />
+            <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shadow-sm overflow-hidden border border-black/[0.05] ${!branding?.company_logo_url ? 'bg-[#1C1C1E] text-white' : 'bg-white'}`}>
+              {branding?.company_logo_url ? (
+                <img src={branding.company_logo_url} alt="Logo" className="w-full h-full object-contain p-1.5" />
+              ) : (
+                <Building2 className="h-4 w-4" />
+              )}
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-black/40 leading-none mb-1">Cotización Corporativa</p>
-              <h2 className="font-semibold text-sm leading-none">{deal.company_name}</h2>
+              <h2 className="font-semibold text-sm leading-none">{branding?.company_name || 'Servicios Industriales'}</h2>
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#F5F5F7] rounded-full text-[10px] font-bold tracking-tight text-black/50">
@@ -198,7 +212,7 @@ export default function PublicProposal() {
               </div>
               <div className="flex items-center gap-6 mt-4">
                 <p className="text-[13px] font-medium text-black/40">
-                  Total con IVA: <span className="text-black/80 font-bold">{fmtCLP(deal.valor_total || deal.valor_neto * 1.19)}</span>
+                  Total con IVA: <span className="text-black/80 font-bold">{fmtCLP((deal.valor_neto || 0) * 1.19)}</span>
                 </p>
                 <div className="h-4 w-px bg-black/5" />
                 <p className={`text-[11px] font-bold flex items-center gap-1.5 ${accepted ? 'text-[#34C759]' : 'text-[#007AFF]'}`}>
