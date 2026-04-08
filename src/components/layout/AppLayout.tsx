@@ -89,12 +89,17 @@ export default function AppLayout() {
               .eq('id', payload.new.id)
               .single()
             
-            if (data && Notification.permission === "granted") {
+            const dealWithCompany = data as any;
+            
+            if (dealWithCompany && Notification.permission === "granted") {
+              const companyName = Array.isArray(dealWithCompany.companies) 
+                ? dealWithCompany.companies[0]?.razon_social 
+                : dealWithCompany.companies?.razon_social;
+
               new Notification("Propuesta en Revisión", {
-                body: `El prospecto ${data.companies?.razon_social || 'Desconocido'} está revisando la propuesta: ${data.title}`,
+                body: `El prospecto ${companyName || 'Desconocido'} está revisando la propuesta: ${dealWithCompany.title}`,
                 icon: "/pwa-192x192.png"
               })
-              // Also show a simplified toast or alert logic if needed
             }
           }
         }

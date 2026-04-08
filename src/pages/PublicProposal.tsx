@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
-import { CheckCircle2, ChevronRight, Lock, Activity, FileText, ShieldCheck, Building2, UserCircle, Zap, Download, Sparkles, Target, ClipboardCheck } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Lock, Activity, FileText, ShieldCheck, Building2, Zap, Download, Target, ClipboardCheck } from 'lucide-react'
 
 const fmtCLP = (n: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
@@ -125,11 +125,9 @@ export default function PublicProposal() {
     )
   }
 
-  const report = deal.ia_proposal_report || {
-    title: deal.title,
-    pain_points: ["Necesidad de optimización técnica", "Mejora operativa", "Eficiencia de costos"],
-    technical_scope: deal.cotizacion_detalles || "Servicio integral diseñado para cubrir las necesidades operativas de la organización."
-  }
+  const report = deal.ia_proposal_report || null;
+  const fallbackTitle = deal.title;
+  const fallbackScope = deal.cotizacion_detalles || "Servicio integral diseñado para cubrir las necesidades operativas de la organización.";
 
   return (
     <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans selection:bg-black selection:text-white pb-32 overflow-x-hidden">
@@ -164,7 +162,7 @@ export default function PublicProposal() {
             <FileText className="w-3.5 h-3.5" /> ID: {deal.id.split('-')[0].toUpperCase()}
           </div>
           <h1 className="text-[44px] md:text-[64px] font-black tracking-tighter leading-[0.95] mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-             {report.title}
+             {report ? report.title : fallbackTitle}
           </h1>
           
           <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-16 pt-8 border-t border-black/[0.08]">
@@ -212,36 +210,38 @@ export default function PublicProposal() {
         </div>
 
         {/* ── INTELLIGENCE INSIGHTS (PAIN POINTS) ── */}
-        <div className="mb-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-             <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                <Target className="w-3 h-3" /> Foco de la Solución
-             </div>
-             <h3 className="text-2xl font-black tracking-tight leading-none mb-4">Análisis de Necesidades</h3>
-             <p className="text-sm font-medium text-black/40 leading-relaxed">
-                Este reporte resume los puntos críticos detectados por nuestro consultor durante el diagnóstico inicial.
-             </p>
-          </div>
-          <div className="md:col-span-2 grid gap-3">
-             {report.pain_points.map((point: string, i: number) => (
-                <div key={i} className="flex gap-4 p-6 bg-white rounded-[24px] border border-black/[0.03] shadow-sm animate-in fade-in slide-in-from-right-4 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
-                   <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                      <span className="font-black text-xs opacity-20">0{i+1}</span>
+        {report && report.pain_points && (
+          <div className="mb-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+               <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+                  <Target className="w-3 h-3" /> Foco de la Solución
+               </div>
+               <h3 className="text-2xl font-black tracking-tight leading-none mb-4">Análisis de Necesidades</h3>
+               <p className="text-sm font-medium text-black/40 leading-relaxed">
+                  Este reporte resume los puntos críticos detectados por nuestro consultor durante el diagnóstico inicial.
+               </p>
+            </div>
+            <div className="md:col-span-2 grid gap-3">
+               {report.pain_points.map((point: string, i: number) => (
+                  <div key={i} className="flex gap-4 p-6 bg-white rounded-[24px] border border-black/[0.03] shadow-sm animate-in fade-in slide-in-from-right-4 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+                     <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
+                        <span className="font-black text-xs opacity-20">0{i+1}</span>
+                      </div>
+                      <p className="font-bold text-[16px] tracking-tight text-black/70 py-2">{point}</p>
                    </div>
-                   <p className="font-bold text-[16px] tracking-tight text-black/70 py-2">{point}</p>
-                </div>
-             ))}
+                ))}
+             </div>
           </div>
-        </div>
+        )}
 
-        {/* ── TECHNICAL SCOPE (REPLACING GENERIC TEXT) ── */}
+        {/* ── TECHNICAL SCOPE ── */}
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-8">
              <div className="w-2 h-8 bg-black rounded-full" />
              <h3 className="text-[28px] font-black tracking-tight uppercase">Alcance Técnico del Servicio</h3>
           </div>
           <div className="bg-white rounded-[40px] p-10 md:p-14 border border-black/[0.04] shadow-sm text-[18px] md:text-[20px] font-medium leading-relaxed text-black/80 space-y-6">
-             <p className="whitespace-pre-wrap">{report.technical_scope}</p>
+             <p className="whitespace-pre-wrap">{report ? report.technical_scope : fallbackScope}</p>
              
              <div className="pt-10 grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
                 <div className="flex gap-4">
