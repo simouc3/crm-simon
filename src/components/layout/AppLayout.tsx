@@ -72,6 +72,33 @@ export default function AppLayout() {
           })
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'deals',
+        },
+        async (payload) => {
+          // Monitor for Proposal View events
+          if (payload.new.proposal_status === 'VIEWED' && payload.old.proposal_status !== 'VIEWED') {
+            // Get deal title and company name for the alert
+            const { data } = await supabase
+              .from('deals')
+              .select('title, companies(razon_social)')
+              .eq('id', payload.new.id)
+              .single()
+            
+            if (data && Notification.permission === "granted") {
+              new Notification("Propuesta en Revisión", {
+                body: `El prospecto ${data.companies?.razon_social || 'Desconocido'} está revisando la propuesta: ${data.title}`,
+                icon: "/pwa-192x192.png"
+              })
+              // Also show a simplified toast or alert logic if needed
+            }
+          }
+        }
+      )
       .subscribe()
 
     return () => {

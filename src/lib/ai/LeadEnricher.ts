@@ -46,5 +46,38 @@ Responde ÚNICAMENTE en formato JSON array.`;
     } catch (err) {
       return ['Contactar cliente', 'Agendar visita técnica', 'Revisar requisitos'];
     }
+  },
+  
+  /**
+   * Quantum Block Parser: Genera el reporte de inteligencia para la propuesta
+   */
+  async generateQuantumProposal(notaTecnica: string): Promise<{ title: string; pain_points: string[]; technical_scope: string }> {
+    try {
+      const apiKey = getGeminiKey();
+      const model = getAIModel(apiKey);
+
+      const systemPrompt = `Eres un Asistente Comercial B2B experto en servicios industriales. 
+Analiza la siguiente 'Nota Técnica' grabada en terreno y genera un 'Intelligence Report' corporativo de alto nivel.
+
+La salida debe ser estrictamente un objeto JSON con:
+1. "title": Un título comercial dinámico, corto y corporativo (ej: "Optimización de Climatización Clínica Alemana").
+2. "pain_points": Un array de máximo 3 viñetas breves que resuman el dolor principal del cliente.
+3. "technical_scope": Un desglose detallado (unas 5-10 líneas) de los servicios y alcances técnicos propuestos.
+
+Nota Técnica: "${notaTecnica}"
+
+Responde ÚNICAMENTE en formato JSON.`;
+
+      const result = await model.generateContent(systemPrompt);
+      const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(text);
+    } catch (err) {
+      console.error('Error in Quantum Parser:', err);
+      return {
+        title: "Propuesta de Servicio Industrial",
+        pain_points: ["Necesidad de mantención técnica", "Optimización de procesos", "Cumplimiento normativo"],
+        technical_scope: "Servicio integral basado en requerimientos detectados en terreno."
+      };
+    }
   }
 };

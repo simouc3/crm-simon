@@ -79,9 +79,11 @@ create table public.deals (
     proposal_status proposal_status default 'DRAFT',
     proposal_view_count integer default 0,
     last_viewed_at timestamp with time zone,
-    signature_ip text,
-    signature_ua text,
     signature_date timestamp with time zone,
+    m2_limpieza numeric,
+    nota_tecnica text,
+    ia_proposal_report jsonb,
+    cotizacion_detalles text,
     
     stage_updated_at timestamp with time zone default timezone('utc'::text, now()),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
@@ -139,7 +141,8 @@ returns table (
   company_name text,
   company_rut text,
   seller_name text,
-  cotizacion_detalles text
+  cotizacion_detalles text,
+  ia_proposal_report jsonb
 )
 language plpgsql
 security definer -- Se ejecuta con permisos de creador (omite RLS para leer esta fila exacta)
@@ -149,7 +152,7 @@ begin
   select 
     d.id, d.title, d.valor_neto, d.valor_total, d.proposal_status, d.public_token,
     c.razon_social as company_name, c.rut as company_rut,
-    p.full_name as seller_name, d.cotizacion_detalles
+    p.full_name as seller_name, d.cotizacion_detalles, d.ia_proposal_report
   from deals d
   join companies c on d.company_id = c.id
   left join profiles p on d.user_id = p.id
@@ -298,4 +301,24 @@ create policy "Activities delete policy" on activities for delete
     exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN')
     or user_id = auth.uid()
   );
+
+-- 8. Solicitud de cambios por parte del cliente
+create or replace function request_proposal_changes(p_token uuid, p_message text)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  update deals
+  set 
+    proposal_status = 'SENT',
+    updated_at = now()
+  where public_token = p_token;
+
+  insert into activities (company_id, user_id, title, activity_type, notes, scheduled_at, completed)
+  select company_id, user_id, '[SOLICITUD] Cambios en Propuesta', 'LLAMADA', 
+         'El cliente ha solicitado modificaciones: ' || p_message, now(), false
+  from deals where public_token = p_token;
+end;
+$$;
 

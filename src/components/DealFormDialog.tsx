@@ -45,7 +45,8 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
     title: '',
     company_id: '',
     valor_neto: '',
-    stage: '1'
+    stage: '1',
+    m2_limpieza: ''
   })
 
   useEffect(() => {
@@ -64,11 +65,12 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
         title: dealToEdit.title || '',
         company_id: dealToEdit.company_id || '',
         valor_neto: dealToEdit.valor_neto ? String(dealToEdit.valor_neto) : '',
-        stage: dealToEdit.stage ? String(dealToEdit.stage) : '1'
+        stage: dealToEdit.stage ? String(dealToEdit.stage) : '1',
+        m2_limpieza: dealToEdit.m2_limpieza ? String(dealToEdit.m2_limpieza) : ''
       })
     } else if (open && !dealToEdit) {
       setFormData({
-        title: '', company_id: '', valor_neto: '', stage: '1'
+        title: '', company_id: '', valor_neto: '', stage: '1', m2_limpieza: ''
       })
     }
   }, [open, dealToEdit])
@@ -87,7 +89,8 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
       company_id: formData.company_id,
       valor_neto: neto,
       valor_total: neto + iva,
-      stage: parseInt(formData.stage)
+      stage: parseInt(formData.stage),
+      m2_limpieza: formData.m2_limpieza ? parseFloat(formData.m2_limpieza) : null
     }
 
     let error;
@@ -192,6 +195,10 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
                 <SelectItem value="7">7. Cierre Perdido</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="m2" className="text-right text-xs">Área (m²)</Label>
+            <Input id="m2" type="number" value={formData.m2_limpieza} onChange={(e) => setFormData({...formData, m2_limpieza: e.target.value})} className="col-span-3" placeholder="Ej: 500" />
           </div>
         </div>
         <DialogFooter>

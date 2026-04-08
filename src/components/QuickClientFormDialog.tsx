@@ -15,7 +15,8 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
     razon_social: '', 
     contact_name: '', 
     contact_phone: '',
-    segmento: 'LOGISTICA' // Valor por defecto válido en el enum actual
+    segmento: 'LOGISTICA',
+    m2: ''
   })
 
   if (!open) return null;
@@ -39,7 +40,7 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
       segmento: formData.segmento,
       comuna: "OTRO",
       condiciones_pago: "CONTADO",
-      m2_estimados: 0,
+      m2_estimados: formData.m2 ? parseInt(formData.m2) : 0,
       requisitos_legales: [],
       created_by: user?.id
     };
@@ -61,7 +62,8 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
         razon_social: '', 
         contact_name: '', 
         contact_phone: '',
-        segmento: 'LOGISTICA'
+        segmento: 'LOGISTICA',
+        m2: ''
       });
       setLoading(false);
       onOpenChange(false);
@@ -105,6 +107,17 @@ export function QuickClientFormDialog({ open, onOpenChange }: { open: boolean, o
                   <SelectItem value="INDUSTRIAL">Industrial / Otros</SelectItem>
                 </SelectContent>
              </Select>
+          </div>
+
+          <div className="relative">
+             <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+             <input 
+               type="number" 
+               placeholder="Área Estimada (m²)" 
+               value={formData.m2} 
+               onChange={e => setFormData({...formData, m2: e.target.value})} 
+               className="w-full h-14 pl-12 pr-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold placeholder:font-medium text-sm focus:ring-2 focus:ring-primary outline-none" 
+             />
           </div>
         </div>
 

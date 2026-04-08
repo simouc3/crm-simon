@@ -4,6 +4,8 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog"
+import { LeadEnricher } from "../lib/ai/LeadEnricher"
+import { Sparkles, Copy, ExternalLink, Globe, Activity } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -13,7 +15,6 @@ import {
   MapPin, 
   Phone, 
   Mail, 
-  ChevronRight, 
   Zap, 
   ShieldCheck, 
   FileText,
@@ -76,6 +77,14 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
   const [isContract, setIsContract] = useState(false)
   const [contractMonths, setContractMonths] = useState("")
 
+  const [notaTecnica, setNotaTecnica] = useState("")
+  const [showNotaField, setShowNotaField] = useState(false)
+
+  const [m2Limpieza, setM2Limpieza] = useState("")
+  const [isEditingM2, setIsEditingM2] = useState(false)
+
+  const [generatingIA, setGeneratingIA] = useState(false)
+
   const fetchFiles = async () => {
     if (!deal) return
     const { data } = await supabase.from('deal_files').select('*').eq('deal_id', deal.id).order('created_at', { ascending: false })
@@ -86,6 +95,7 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
     if (deal) {
       setVisitaRealizada(deal.visita_realizada || false)
       setCotizacionDetalles(deal.cotizacion_detalles || "")
+      setNotaTecnica(deal.nota_tecnica || "")
       setValorNetoCotizado(deal.valor_neto ? String(deal.valor_neto) : "")
       setCurrentStage(deal.stage || 1)
       setUltimoCorreoAt(deal.ultimo_correo_at || null)
@@ -93,6 +103,7 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
       setMotivoPerdida(deal.motivo_perdida || "")
       setIsContract(deal.is_contract || false)
       setContractMonths(deal.contract_months ? String(deal.contract_months) : "")
+      setM2Limpieza(deal.m2_limpieza ? String(deal.m2_limpieza) : "")
       
       // Load commercial terms
       setContractDuration(deal.contract_duration || "")
@@ -102,6 +113,54 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
       fetchFiles()
     }
   }, [deal])
+
+  const saveNotaTecnica = async () => {
+    const { error } = await supabase.from('deals').update({ nota_tecnica: notaTecnica }).eq('id', deal.id)
+    if (!error) {
+      if (onDealUpdated) onDealUpdated()
+      setShowNotaField(false)
+    } else {
+      // Fallback if column doesn't exist yet: use cotizacion_detalles or just show success locally
+      console.error("Error saving technical note:", error)
+      alert("Error guardando nota técnica. Verifique conexión.")
+    }
+  }
+
+  const saveM2Limpieza = async () => {
+    const value = m2Limpieza ? parseFloat(m2Limpieza) : null
+    const { error } = await supabase.from('deals').update({ m2_limpieza: value }).eq('id', deal.id)
+    if (!error) {
+      if (onDealUpdated) onDealUpdated()
+      setIsEditingM2(false)
+    } else {
+      alert("Error guardando m²: " + error.message)
+    }
+  }
+
+  const generateIAProposal = async () => {
+    if (!deal.nota_tecnica) {
+      alert("Debes tener una Nota Técnica registrada para generar la propuesta con IA.")
+      return
+    }
+    setGeneratingIA(true)
+    try {
+      const report = await LeadEnricher.generateQuantumProposal(deal.nota_tecnica)
+      const { error } = await supabase.from('deals').update({ 
+        ia_proposal_report: report,
+        proposal_status: 'DRAFT'
+      }).eq('id', deal.id)
+      
+      if (!error) {
+        if (onDealUpdated) onDealUpdated()
+      } else {
+        alert("Error guardando propuesta IA: " + error.message)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setGeneratingIA(false)
+    }
+  }
 
   const updateMotivoPerdida = async (motivo: string) => {
     setMotivoPerdida(motivo)
@@ -315,34 +374,31 @@ Equipo Comercial`)
         <div className="p-4 md:p-8 space-y-4 md:space-y-8">
           
           {/* ── Status Bar (Apple iOS Cards Style) ── */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-
-            {/* Pipeline Stage — wide card */}
-            <div className="md:col-span-5 relative overflow-hidden rounded-2xl p-4 bg-white dark:bg-[#1C1C1E] border border-black/[0.04] dark:border-white/[0.04] shadow-sm flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Etapa Actual</p>
-                <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <BarChart4 className="h-3.5 w-3.5 text-primary" />
-                </div>
+          {/* ── Unified Status Bar (Apple System Style) ── */}
+          <div className="grid grid-cols-1 md:grid-cols-3 bg-slate-50 dark:bg-white/[0.02] rounded-[24px] border border-black/[0.04] dark:border-white/[0.04] divide-y md:divide-y-0 md:divide-x divide-black/[0.04] dark:divide-white/[0.04] shadow-sm mb-6">
+            
+            {/* Sector 1: Selector de Etapa */}
+            <div className="p-5 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart4 className="h-4 w-4 text-primary opacity-60" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-50">Etapa Actual</p>
               </div>
-
               <Select value={String(currentStage)} onValueChange={(val) => changeStage(parseInt(val))}>
-                <SelectTrigger className="h-11 rounded-xl bg-slate-50 dark:bg-black/30 border border-black/[0.04] dark:border-white/[0.04] font-bold text-[13px] px-4 shadow-none focus:ring-2 focus:ring-primary/20">
+                <SelectTrigger className="h-10 rounded-xl bg-white dark:bg-[#1C1C1E] border border-black/[0.05] dark:border-white/[0.05] font-black text-[13px] px-4 shadow-sm focus:ring-2 focus:ring-primary/20">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-none shadow-2xl p-2 backdrop-blur-xl">
+                <SelectContent className="rounded-2xl border-none shadow-xl p-2 backdrop-blur-xl">
                   {STAGES.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)} className="rounded-xl my-0.5 focus:bg-primary focus:text-white font-bold px-4">
+                    <SelectItem key={s.id} value={String(s.id)} className="rounded-xl my-0.5 focus:bg-primary focus:text-white font-bold px-3">
                       {s.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-
               {currentStage === 7 && (
-                <div className="animate-in slide-in-from-top-2 duration-300">
+                <div className="mt-2 animate-in slide-in-from-top-2 duration-300">
                   <Select value={motivoPerdida} onValueChange={updateMotivoPerdida}>
-                    <SelectTrigger className="h-11 rounded-xl bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200/50 font-bold text-sm">
+                    <SelectTrigger className="h-10 rounded-xl bg-rose-50 dark:bg-rose-950/20 text-rose-600 border border-rose-200/50 font-bold text-[12px]">
                       <SelectValue placeholder="¿Por qué se perdió?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -356,94 +412,65 @@ Equipo Comercial`)
               )}
             </div>
 
-            {/* Tempo en Etapa */}
-            <div className="md:col-span-3 relative overflow-hidden rounded-2xl p-4 bg-[#1C1C1E] dark:bg-white/5 text-white flex flex-col justify-between">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Días en Etapa</p>
-              <div className="mt-2">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[36px] font-black tracking-tighter tabular-nums leading-none">
-                    {deal.stage_changed_at ? Math.floor((Date.now() - new Date(deal.stage_changed_at).getTime()) / (1000 * 60 * 60 * 24)) : 0}
-                  </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30 pb-0.5">días</span>
-                </div>
-                <p className="text-[9px] text-white/30 font-bold mt-1 uppercase tracking-widest">
-                  {currentStage === 6 ? 'Contrato cerrado' : 'Sin cambio'}
-                </p>
+            {/* Sector 2: Permanencia */}
+            <div className="p-5 flex flex-col justify-center">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-50 mb-1">Días en Etapa</p>
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-[32px] font-black tracking-tighter tabular-nums leading-none text-foreground">
+                  {deal.stage_changed_at ? Math.floor((Date.now() - new Date(deal.stage_changed_at).getTime()) / (1000 * 60 * 60 * 24)) : 0}
+                </span>
+                <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest pb-0.5">días</span>
               </div>
+              <p className="text-[9px] text-muted-foreground/50 font-bold mt-1.5 uppercase tracking-widest">
+                {currentStage === 6 ? 'Contrato Asegurado' : 'Moviéndose'}
+              </p>
             </div>
 
-            {/* Contrato */}
-            <div className={`md:col-span-4 relative overflow-hidden rounded-2xl p-4 flex flex-col justify-between transition-all duration-700 ${
-              isContract 
-                ? 'bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white shadow-[0_20px_60px_rgba(59,130,246,0.35)]' 
-                : 'bg-white dark:bg-[#1C1C1E] border border-black/[0.04] dark:border-white/[0.04]'
+            {/* Sector 3: Contrato */}
+            <div className={`p-5 flex flex-col justify-center transition-colors rounded-r-[24px] ${
+              isContract ? 'bg-indigo-50/50 dark:bg-indigo-500/5' : ''
             }`}>
-              {/* Background decoration */}
-              {isContract && (
-                <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-              )}
-
-              <div className="flex items-center justify-between relative z-10">
-                <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${isContract ? 'text-white/60' : 'text-muted-foreground opacity-40'}`}>
-                  Contrato SLA
+              <div className="flex items-center justify-between mb-3">
+                <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isContract ? 'text-indigo-600/70 dark:text-indigo-400/70' : 'text-muted-foreground opacity-50'}`}>
+                  SLA Activo
                 </p>
-                {/* Apple-style toggle */}
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={isContract}
-                    onChange={(e) => setIsContract(e.target.checked)}
-                  />
-                  <div className={`relative w-12 h-7 rounded-full transition-all duration-500 ${isContract ? 'bg-white/30' : 'bg-slate-200 dark:bg-white/10'}`}>
-                    <div className={`absolute top-1 h-5 w-5 rounded-full shadow-md transition-all duration-500 ${
-                      isContract ? 'left-[26px] bg-white' : 'left-1 bg-white dark:bg-slate-400'
+                  <input type="checkbox" className="sr-only peer" checked={isContract} onChange={(e) => setIsContract(e.target.checked)} />
+                  <div className={`relative w-10 h-6 rounded-full transition-colors ${isContract ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-white/10'}`}>
+                    <div className={`absolute top-1 h-4 w-4 rounded-full shadow-sm bg-white transition-all ${
+                      isContract ? 'left-[22px]' : 'left-1'
                     }`} />
                   </div>
                 </label>
               </div>
-
-              <div className="relative z-10 mt-4 space-y-3">
-                {isContract ? (
-                  <>
-                    <p className={`text-[10px] font-black uppercase tracking-widest ${isContract ? 'text-white/50' : 'text-muted-foreground/40'}`}>
-                      Duración (meses)
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="number"
-                        min="1"
-                        max="60"
-                        value={contractMonths}
-                        onChange={(e) => setContractMonths(e.target.value)}
-                        placeholder="0"
-                        className="w-24 h-12 rounded-2xl bg-white/20 border border-white/20 text-white font-black text-[22px] text-center placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/40 tabular-nums"
-                      />
-                      <span className="text-white/70 font-black text-[13px] uppercase tracking-widest">meses</span>
-                    </div>
-                    <button
-                      onClick={async () => {
-                        const months = parseInt(contractMonths) || 0
-                        const { error } = await supabase.from('deals').update({
-                          is_contract: true,
-                          contract_months: months
-                        }).eq('id', deal.id)
-                        if (!error && onDealUpdated) onDealUpdated()
-                      }}
-                      className="w-full h-10 rounded-2xl bg-white/20 hover:bg-white/30 border border-white/20 text-white font-black text-[11px] uppercase tracking-widest transition-all duration-300"
-                    >
-                      Guardar SLA
-                    </button>
-                  </>
-                ) : (
-                  <div>
-                    <p className="text-2xl font-black tracking-tight text-muted-foreground/30">Spot</p>
-                    <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest mt-1">Sin compromiso fijo</p>
-                  </div>
-                )}
-              </div>
+              {isContract ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={contractMonths}
+                    onChange={(e) => setContractMonths(e.target.value)}
+                    placeholder="0"
+                    className="w-16 h-10 rounded-xl bg-white dark:bg-[#1C1C1E] border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-400 font-black text-[16px] text-center outline-none focus:ring-2 focus:ring-indigo-500/20 tabular-nums shadow-sm"
+                  />
+                  <span className="text-indigo-600/70 dark:text-indigo-400/70 font-black text-[9px] uppercase tracking-widest">meses</span>
+                  <button onClick={async () => {
+                      const months = parseInt(contractMonths) || 0
+                      const { error } = await supabase.from('deals').update({ is_contract: true, contract_months: months }).eq('id', deal.id)
+                      if (!error && onDealUpdated) onDealUpdated()
+                    }}
+                    className="ml-auto px-3 h-8 rounded-lg bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-black text-[9px] uppercase tracking-widest transition-colors"
+                  >
+                    Guardar
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-1">
+                  <p className="text-[18px] font-black tracking-tight text-foreground/40">Spot</p>
+                </div>
+              )}
             </div>
-
           </div>
 
           {/* Main Grid: compact */}
@@ -453,67 +480,65 @@ Equipo Comercial`)
             <div className="space-y-8">
                
                {/* Risk & Indicators */}
+               {/* Risk & Indicators (Translucent Banner) */}
                {deal.is_risk ? (
-                 <div className="bg-rose-500 p-5 rounded-2xl text-white shadow-xl shadow-rose-500/20 relative overflow-hidden">
-                    <div className="relative z-10 space-y-2">
-                       <div className="flex items-center gap-2">
-                          <Zap className="h-4 w-4 fill-white animate-pulse" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.25em]">Alerta de Riesgo</span>
-                       </div>
-                       <h4 className="text-[15px] font-black tracking-tight leading-tight">"{deal.risk_reason}"</h4>
+                 <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl text-rose-600 dark:text-rose-400 relative">
+                    <div className="flex items-center gap-2 mb-1">
+                       <Zap className="h-4 w-4 animate-pulse" />
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em]">Alerta de Fricción</span>
                     </div>
+                    <h4 className="text-[14px] font-bold leading-tight">"{deal.risk_reason}"</h4>
                  </div>
                ) : (
-                 <div className="bg-indigo-600 p-5 rounded-2xl text-white shadow-lg relative overflow-hidden">
-                    <div className="relative z-10">
-                       <div className="flex items-center gap-2 mb-1">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          <span className="text-[9px] font-black uppercase tracking-widest opacity-80">Salud del Negocio</span>
-                       </div>
-                       <p className="text-[15px] font-black tracking-tight">Oportunidad Estable</p>
-                       <p className="text-[11px] font-semibold opacity-60 mt-0.5">Sin desviaciones detectadas.</p>
+                 <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl text-indigo-600 dark:text-indigo-400 relative">
+                    <div className="flex items-center gap-2 mb-1">
+                       <CheckCircle2 className="h-4 w-4" />
+                       <span className="text-[10px] font-black uppercase tracking-[0.2em]">Salud del Negocio</span>
                     </div>
+                    <p className="text-[14px] font-bold leading-tight">Oportunidad Estable. Sin desviaciones detectadas.</p>
                  </div>
                )}
 
-               <div className="bg-slate-50 dark:bg-white/[0.02] rounded-2xl p-1.5 border border-black/[0.03] dark:border-white/[0.03]">
-                  <AIAssistantWidget deal={deal} onNewActivity={onDealUpdated} />
-               </div>
+               <div className={`transition-all duration-500 ${currentStage === 6 ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+                 <div className="bg-slate-50 dark:bg-white/[0.02] rounded-2xl p-1.5 border border-black/[0.03] dark:border-white/[0.03] mb-8">
+                    <AIAssistantWidget deal={deal} onNewActivity={onDealUpdated} />
+                 </div>
 
-               {/* Communication Tracking */}
-               <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                     <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Registro de Contacto</h4>
-                     <History className="h-4 w-4 text-muted-foreground opacity-20" />
-                  </div>
+                 {/* Communication Tracking */}
+                 <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-4">
+                    <div className="flex items-center justify-between">
+                       <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">Registro de Contacto</h4>
+                       <History className="h-4 w-4 text-muted-foreground opacity-20" />
+                    </div>
 
-                  <div className="space-y-3">
-                     <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-black/40 border border-black/[0.03]">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ultimoCorreoAt ? 'bg-primary text-white' : 'bg-slate-200 text-slate-400'}`}>
-                           <Mail className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 leading-none mb-0.5">Último Contacto</p>
-                           <p className="text-[13px] font-black tracking-tight truncate">
-                             {ultimoCorreoAt ? new Date(ultimoCorreoAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long' }) : 'Pendiente'}
-                           </p>
-                        </div>
-                        {!correoRespondido && ultimoCorreoAt && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-rose-500 animate-pulse" />
-                        )}
-                     </div>
+                    <div className="space-y-3">
+                       <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-black/40 border border-black/[0.03]">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ultimoCorreoAt ? 'bg-primary text-white' : 'bg-slate-200 text-slate-400'}`}>
+                             <Mail className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 leading-none mb-0.5">Último Contacto</p>
+                             <p className="text-[13px] font-black tracking-tight truncate">
+                               {ultimoCorreoAt ? new Date(ultimoCorreoAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'long' }) : 'Pendiente'}
+                             </p>
+                          </div>
+                          {!correoRespondido && ultimoCorreoAt && (
+                            <div className="h-2.5 w-2.5 rounded-full bg-rose-500 animate-pulse" />
+                          )}
+                       </div>
 
-                     <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" className="h-10 rounded-full font-black text-[10px] uppercase tracking-widest" onClick={registerCorreo}>
-                           Registrar Envío
-                        </Button>
-                        {!correoRespondido && ultimoCorreoAt && (
-                          <Button className="h-10 rounded-full font-black text-[10px] uppercase tracking-widest bg-primary text-white" onClick={markRespondido}>
-                             Respuesta
+                       <div className="grid grid-cols-2 gap-2">
+                          <Button variant="outline" className="h-10 rounded-full font-black text-[10px] uppercase tracking-widest" onClick={registerCorreo}>
+                             Registrar Envío
                           </Button>
-                        )}
-                     </div>
-                  </div>
+                          {!correoRespondido && ultimoCorreoAt && (
+                            <Button className="h-10 rounded-full font-black text-[10px] uppercase tracking-widest bg-primary text-white" onClick={markRespondido}>
+                               Respuesta
+                            </Button>
+                          )}
+                       </div>
+                    </div>
+                 </div>
                </div>
             </div>
 
@@ -549,52 +574,27 @@ Equipo Comercial`)
                               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 mt-0.5">{deal.companies?.cargo || 'Key Decision Maker'}</p>
                            </div>
                         </div>
-
-                        <div className="grid grid-cols-1 gap-2">
-                           <Button asChild variant="outline" className="h-10 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-4 text-[13px]">
-                              <a href={`tel:${deal.companies?.contact_phone}`} className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-3">
-                                  <Phone className="h-4 w-4 text-primary" />
-                                  <span className="text-[13px] font-bold tracking-tight">{deal.companies?.contact_phone || 'Registrar Número'}</span>
-                                </div>
-                                <ChevronRight className="h-3.5 w-3.5 opacity-40" />
+                         {/* Quick Actions (iOS Circular Style) */}
+                         <div className="flex items-center gap-3 pt-2">
+                            {deal.companies?.contact_phone && (
+                              <a href={`tel:${deal.companies.contact_phone}`} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-white/10 transition-colors border border-black/[0.03] dark:border-white/5">
+                                <Phone className="h-4 w-4" />
                               </a>
-                           </Button>
-                           <Button asChild variant="outline" className="h-10 rounded-full border-black/[0.1] dark:border-white/[0.1] group px-4">
-                              <a href={`mailto:${deal.companies?.contact_email}`} className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-3">
-                                  <Mail className="h-4 w-4 text-primary" />
-                                  <span className="text-[13px] font-bold tracking-tight truncate max-w-[180px]">{deal.companies?.contact_email || 'Enviar Invitación'}</span>
-                                </div>
-                                <ChevronRight className="h-3.5 w-3.5 opacity-40" />
+                            )}
+                            {deal.companies?.contact_email && (
+                              <a href={`mailto:${deal.companies.contact_email}`} className="w-10 h-10 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-white/10 transition-colors border border-black/[0.03] dark:border-white/5" title={deal.companies.contact_email}>
+                                <Mail className="h-4 w-4" />
                               </a>
-                           </Button>
-                        </div>
-                     </div>
-
-                     {/* Strategic Map Link */}
-                     {(deal.companies?.direccion || deal.companies?.comuna) && (
-                        <Button asChild className="h-16 w-full rounded-[24px] bg-slate-50 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05] hover:bg-slate-100 group transition-all px-6 text-foreground shadow-none">
-                           <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([deal.companies?.direccion, deal.companies?.comuna?.replace(/_/g, ' '), 'Chile'].filter(Boolean).join(', '))}`}
-                              target="_blank"
-                              className="flex items-center justify-between w-full"
-                           >
-                              <div className="flex items-center gap-4">
-                                 <div className="w-10 h-10 rounded-xl bg-white dark:bg-black flex items-center justify-center shadow-sm">
-                                    <MapPin className="h-5 w-5 text-primary" />
-                                 </div>
-                                 <div className="flex-1 min-w-0 text-left">
-                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40 leading-none mb-1">Geolocalización</p>
-                                    <p className="text-[13px] font-black tracking-tight truncate">{deal.companies?.direccion || deal.companies?.comuna?.replace(/_/g, ' ')}</p>
-                                 </div>
-                              </div>
-                              <ChevronRight className="h-4 w-4 opacity-20 group-hover:translate-x-1 transition-transform" />
-                           </a>
-                        </Button>
-                     )}
-                  </div>
-               </div>
+                            )}
+                            {(deal.companies?.direccion || deal.companies?.comuna) && (
+                              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([deal.companies.direccion, deal.companies.comuna?.replace(/_/g, ' ')].filter(Boolean).join(', '))}`} target="_blank" className="w-10 h-10 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-white/10 transition-colors border border-black/[0.03] dark:border-white/5" title="Abrir en Maps">
+                                <MapPin className="h-4 w-4" />
+                              </a>
+                            )}
+                         </div>
+                      </div>
+                   </div>
+                </div>
 
                {/* Operational Metrics  */}
                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.03] shadow-sm space-y-4">
@@ -605,10 +605,30 @@ Equipo Comercial`)
 
                   <div className="grid grid-cols-2 gap-4 pb-4 border-b border-black/[0.05] dark:border-white/[0.05]">
                      <div className="space-y-1">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Área Estimada</p>
-                        <p className="text-[22px] font-black tracking-tighter tabular-nums leading-none">
-                           {deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')} m²` : '—'}
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 flex items-center justify-between">
+                           <span>Área (m²)</span>
+                           <button onClick={() => setIsEditingM2(!isEditingM2)} className="text-primary hover:underline lowercase font-bold text-[8px] tracking-widest">
+                              {isEditingM2 ? 'Cancelar' : 'Editar'}
+                           </button>
                         </p>
+                        {isEditingM2 ? (
+                           <div className="flex items-center gap-2">
+                              <Input 
+                                type="number" 
+                                value={m2Limpieza} 
+                                onChange={(e) => setM2Limpieza(e.target.value)} 
+                                className="h-8 w-24 rounded-lg font-black text-sm p-1 px-2"
+                              />
+                              <Button onClick={saveM2Limpieza} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase">Ok</Button>
+                           </div>
+                        ) : (
+                           <p className="text-[22px] font-black tracking-tighter tabular-nums leading-none cursor-pointer" onClick={() => setIsEditingM2(true)}>
+                              {m2Limpieza ? `${Number(m2Limpieza).toLocaleString('es-CL')} m²` : (deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')} m²*` : '—')}
+                           </p>
+                        )}
+                        {!m2Limpieza && deal.companies?.m2_estimados && !isEditingM2 && (
+                           <p className="text-[8px] font-bold text-muted-foreground opacity-40 leading-tight">* Sugerido por empresa</p>
+                        )}
                      </div>
                      <div className="space-y-1">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">SLA de Pago</p>
@@ -621,29 +641,157 @@ Equipo Comercial`)
                   {/* Stage-Specific Modules (Apple Style) */}
                   <div className="space-y-6">
                      {currentStage === 3 && (
-                        <div className="p-8 rounded-[40px] bg-slate-50 dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.05] space-y-6">
-                           <div className="flex items-center justify-between">
-                             <p className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Auditoría de Visita</p>
-                             <Button size="sm" variant={visitaRealizada ? "default" : "outline"} className={`rounded-full h-10 px-6 text-[10px] font-black uppercase tracking-widest ${visitaRealizada ? 'bg-primary text-white border-transparent shadow-lg shadow-primary/20' : 'border-black/10 dark:border-white/10'}`} onClick={toggleVisita}>
-                               {visitaRealizada ? "✅ VISITADO" : "MARCAR VISITA"}
-                             </Button>
-                           </div>
-                           <div className="space-y-4">
-                              <label className="block p-8 border-2 border-dashed border-black/[0.1] dark:border-white/[0.1] rounded-[32px] hover:bg-white dark:hover:bg-black/20 hover:border-primary/40 transition-all cursor-pointer text-center">
-                                 <Input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" />
-                                 <FileText className="h-8 w-8 text-muted-foreground opacity-20 mx-auto mb-3" />
-                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Subir Evidencia Fotográfica</p>
-                              </label>
+                        <div className="space-y-4">
+                           <div className="p-6 rounded-[24px] bg-slate-50 dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.05] space-y-4">
+                              <div className="flex items-center justify-between">
+                                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-primary">Auditoría de Visita</p>
+                                <Button 
+                                  size="sm" 
+                                  variant={visitaRealizada ? "default" : "outline"} 
+                                  className={`rounded-full h-10 px-6 text-[10px] font-black uppercase tracking-widest ${visitaRealizada ? 'bg-primary text-white border-transparent shadow-lg shadow-primary/20' : 'border-black/10 dark:border-white/10'}`} 
+                                  onClick={toggleVisita}
+                                >
+                                  {visitaRealizada ? "✅ VISITADO" : "MARCAR VISITA"}
+                                </Button>
+                              </div>
                               
-                              <div className="grid grid-cols-3 gap-3">
-                                {files.map((f, i) => (
-                                  <div key={i} className="aspect-square rounded-[24px] overflow-hidden border border-black/[0.05] dark:border-white/[0.05] shadow-sm transform hover:scale-105 transition-all duration-500">
-                                    <img src={f.file_url} className="w-full h-full object-cover" />
-                                  </div>
-                                ))}
+                              <div className="space-y-4">
+                                 {!showNotaField ? (
+                                   <Button 
+                                     onClick={() => setShowNotaField(true)}
+                                     className="w-full h-16 rounded-2xl bg-white dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05] text-foreground hover:bg-slate-50 dark:hover:bg-white/10 flex items-center justify-between px-6 transition-all group"
+                                   >
+                                     <div className="flex items-center gap-3">
+                                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                         <FileText className="h-5 w-5 text-primary" />
+                                       </div>
+                                       <span className="font-black text-[14px]">Grabar Nota Técnica</span>
+                                     </div>
+                                     <Zap className="h-4 w-4 opacity-20 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                                   </Button>
+                                 ) : (
+                                   <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                     <Textarea 
+                                       placeholder="Resumen técnico de la visita, requerimientos especiales..." 
+                                       value={notaTecnica} 
+                                       onChange={(e) => setNotaTecnica(e.target.value)} 
+                                       className="rounded-[24px] min-h-[140px] font-bold text-[14px] p-5 border-black/[0.05] dark:bg-black/20 focus:ring-primary/20" 
+                                     />
+                                     <div className="flex gap-2">
+                                       <Button className="flex-1 h-12 rounded-full bg-primary text-white font-black text-[11px] uppercase tracking-widest" onClick={saveNotaTecnica}>
+                                         Guardar Nota
+                                       </Button>
+                                       <Button variant="outline" className="h-12 rounded-full px-6 font-black text-[11px] uppercase tracking-widest" onClick={() => setShowNotaField(false)}>
+                                         Cancelar
+                                       </Button>
+                                     </div>
+                                   </div>
+                                 )}
+
+                                 <label className="block p-8 border-2 border-dashed border-black/[0.1] dark:border-white/[0.1] rounded-[32px] hover:bg-white dark:hover:bg-black/20 hover:border-primary/40 transition-all cursor-pointer text-center">
+                                    <Input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" />
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Subir Evidencia Fotográfica</p>
+                                 </label>
+                                 
+                                 <div className="grid grid-cols-3 gap-3">
+                                   {files.map((f, i) => (
+                                     <div key={i} className="aspect-square rounded-[24px] overflow-hidden border border-black/[0.05] dark:border-white/[0.05] shadow-sm transform hover:scale-105 transition-all duration-500">
+                                       <img src={f.file_url} className="w-full h-full object-cover" />
+                                     </div>
+                                   ))}
+                                 </div>
                               </div>
                            </div>
                         </div>
+                     )}
+
+                     {/* ETAPA 4: PROPUESTA — Quantum Parser Integration */}
+                     {currentStage === 4 && (
+                       <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-8 border border-black/[0.03] dark:border-white/[0.03] shadow-sm mb-6 relative overflow-hidden">
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+                         
+                         <div className="relative z-10">
+                           <div className="flex items-center gap-3 mb-6">
+                             <div className="w-10 h-10 rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+                                <Globe className="h-5 w-5 text-white" />
+                             </div>
+                             <div>
+                               <h3 className="font-black text-[15px] tracking-tight text-foreground uppercase">Magic Link & Propuesta IA</h3>
+                               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">Configuración Comercial</p>
+                             </div>
+                           </div>
+
+                           {!deal.ia_proposal_report ? (
+                             <div className="space-y-4">
+                               <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                                 Utiliza el **Quantum Block Parser** para transformar tus notas técnicas en una propuesta comercial de alto impacto.
+                               </p>
+                               <Button 
+                                 onClick={generateIAProposal} 
+                                 disabled={generatingIA}
+                                 className="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest gap-2"
+                               >
+                                 {generatingIA ? (
+                                   <><Activity className="h-4 w-4 animate-spin" /> Analizando Notas...</>
+                                 ) : (
+                                   <><Sparkles className="h-4 w-4" /> Generar Propuesta IA</>
+                                 )}
+                               </Button>
+                             </div>
+                           ) : (
+                             <div className="space-y-6">
+                               <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/[0.02] dark:border-white/[0.02]">
+                                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-2">Previsualización IA</p>
+                                 <h4 className="font-black text-sm text-foreground mb-1">{deal.ia_proposal_report.title}</h4>
+                                 <p className="text-[10px] text-muted-foreground italic line-clamp-2">{deal.ia_proposal_report.technical_scope}</p>
+                               </div>
+
+                               <div className="flex flex-col gap-3">
+                                 <Button 
+                                   variant="outline" 
+                                   onClick={generateIAProposal} 
+                                   disabled={generatingIA}
+                                   className="h-11 rounded-xl border-indigo-500/20 text-indigo-500 hover:bg-indigo-500/5 font-bold text-xs"
+                                 >
+                                   Recalcular con IA
+                                 </Button>
+                                 
+                                 <div className="h-px bg-black/[0.05] dark:bg-white/[0.05] my-1" />
+                                 
+                                 <div className="space-y-3">
+                                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-40">Enlace Público para Cliente</p>
+                                   <div className="flex gap-2">
+                                     <Input 
+                                       readOnly 
+                                       value={`crm-simon.com/p/${deal.public_token}`} 
+                                       className="h-11 rounded-xl bg-slate-100 dark:bg-white/5 border-none font-mono text-[10px]"
+                                     />
+                                     <Button 
+                                       variant="outline" 
+                                       size="icon" 
+                                       className="h-11 w-11 shrink-0 rounded-xl"
+                                       onClick={() => {
+                                         navigator.clipboard.writeText(`${window.location.origin}/p/${deal.public_token}`)
+                                         alert("Enlace copiado al portapapeles")
+                                       }}
+                                     >
+                                       <Copy className="h-4 w-4" />
+                                     </Button>
+                                     <Button 
+                                       variant="outline" 
+                                       size="icon" 
+                                       className="h-11 w-11 shrink-0 rounded-xl"
+                                       onClick={() => window.open(`/p/${deal.public_token}`, '_blank')}
+                                     >
+                                       <ExternalLink className="h-4 w-4" />
+                                     </Button>
+                                   </div>
+                                 </div>
+                               </div>
+                             </div>
+                           )}
+                         </div>
+                       </div>
                      )}
 
                      {(currentStage === 4 || currentStage === 5) && (
@@ -705,16 +853,19 @@ Equipo Comercial`)
                      )}
                      
                      {currentStage === 6 && (
-                        <div className="p-10 rounded-[48px] bg-primary text-white shadow-[0_30px_70px_rgba(0,122,255,0.3)] relative overflow-hidden group">
-                           <div className="absolute top-0 right-0 -mr-12 -mt-12 opacity-10 group-hover:rotate-12 transition-transform duration-1000">
-                              <ShieldCheck className="h-56 w-56" />
+                        <div className="p-8 md:p-12 rounded-[48px] bg-slate-950 dark:bg-white text-white dark:text-black shadow-2xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-1000 rotate-12">
+                              <ShieldCheck className="h-64 w-64" />
                            </div>
-                           <div className="relative z-10 space-y-6">
-                              <div className="space-y-2">
-                                 <h4 className="text-3xl font-black tracking-tighter leading-none">Entrega a Operaciones</h4>
-                                 <p className="text-[13px] font-bold opacity-70 leading-relaxed max-w-[80%]">Sincronización automatizada de datos técnicos para el despliegue del proyecto.</p>
+                           <div className="relative z-10 space-y-8">
+                              <div className="space-y-3">
+                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-black uppercase tracking-widest">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Deploy Ready
+                                 </div>
+                                 <h4 className="text-3xl md:text-4xl font-black tracking-tighter leading-none">Entrega a Operaciones</h4>
+                                 <p className="text-[14px] md:text-[16px] font-bold opacity-60 leading-relaxed max-w-[90%]">Ejecutar traspaso técnico y notificar al equipo de despliegue para inicio de servicios.</p>
                               </div>
-                              <Button className="w-full h-16 rounded-full bg-white text-primary hover:bg-slate-100 font-black text-xs uppercase tracking-[0.2em] flex items-center gap-4 shadow-2xl" onClick={() => {
+                              <Button className="w-full h-16 rounded-full bg-primary text-white hover:bg-primary/90 font-black text-[13px] uppercase tracking-[0.2em] flex items-center justify-center gap-4 shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" onClick={() => {
                                  const empresa = deal.companies?.razon_social || deal.title
                                  const subject = encodeURIComponent(`📦 TRASPASO TÉCNICO - ${empresa}`)
                                  window.open(`mailto:?subject=${subject}&body=Resumen ejecutivo de cierre listo en plataforma...`, '_blank')

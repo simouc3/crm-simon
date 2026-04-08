@@ -42,6 +42,13 @@ export interface Deal {
   risk_reason?: string
   is_contract?: boolean
   contract_months?: number
+  m2_limpieza?: number
+  nota_tecnica?: string
+  ia_proposal_report?: {
+    title: string;
+    pain_points: string[];
+    technical_scope: string;
+  }
   stage_updated_at?: string
   created_at?: string
 }
