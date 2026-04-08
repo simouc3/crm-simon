@@ -51,12 +51,24 @@ export default function AppLayout() {
     }
   }
 
+  const [toast, setToast] = useState<{ title: string; body: string } | null>(null)
+  const showToast = (title: string, body: string) => {
+    setToast({ title, body })
+    // Auto-hide toast
+    setTimeout(() => setToast(null), 8000)
+    
+    // Fallback to browser notification
+    if (Notification.permission === "granted") {
+      new Notification(title, { body, icon: "/pwa-192x192.png" })
+    }
+  }
+
   useEffect(() => {
     fetchBranding()
     fetchUserRole()
 
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel('realtime-notifs')
       .on(
         'postgres_changes',
         {
@@ -80,9 +92,7 @@ export default function AppLayout() {
           table: 'deals',
         },
         async (payload) => {
-          // Monitor for Proposal View events
           if (payload.new.proposal_status === 'VIEWED' && payload.old.proposal_status !== 'VIEWED') {
-            // Get deal title and company name for the alert
             const { data } = await supabase
               .from('deals')
               .select('title, companies(razon_social)')
@@ -90,17 +100,26 @@ export default function AppLayout() {
               .single()
             
             const dealWithCompany = data as any;
-            
-            if (dealWithCompany && Notification.permission === "granted") {
+            if (dealWithCompany) {
               const companyName = Array.isArray(dealWithCompany.companies) 
                 ? dealWithCompany.companies[0]?.razon_social 
                 : dealWithCompany.companies?.razon_social;
-
-              new Notification("Propuesta en Revisión", {
-                body: `El prospecto ${companyName || 'Desconocido'} está revisando la propuesta: ${dealWithCompany.title}`,
-                icon: "/pwa-192x192.png"
-              })
+              
+              showToast("Propuesta en Revisión", `El prospecto ${companyName || 'Desconocido'} está revisando: ${dealWithCompany.title}`)
             }
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activities',
+        },
+        async (payload) => {
+          if (payload.new.title.includes('[SOLICITUD]')) {
+            showToast("Nueva Sugerencia de Cliente", payload.new.notes || "El cliente ha solicitado cambios en la propuesta.")
           }
         }
       )
@@ -374,6 +393,21 @@ export default function AppLayout() {
         onClose={() => setShowMobileActionSheet(false)}
       />
       <NotificationPrompt />
+
+      {/* ── REAL-TIME TOAST OVERLAY ── */}
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[1000000] w-[90%] max-w-sm animate-in fade-in slide-in-from-top-full duration-500">
+          <div className="bg-white/80 dark:bg-[#1C1C1E]/90 backdrop-blur-xl border border-black/[0.05] dark:border-white/[0.1] rounded-[24px] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex gap-4 items-start">
+            <div className="w-10 h-10 rounded-full bg-[#007AFF] flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+              <Plus className="h-5 w-5 text-white rotate-45" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-[13px] font-black text-foreground mb-1 uppercase tracking-wider">{toast.title}</h4>
+              <p className="text-[12px] font-medium text-muted-foreground leading-snug line-clamp-2">{toast.body}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

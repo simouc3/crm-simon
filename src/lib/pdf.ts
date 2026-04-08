@@ -21,30 +21,44 @@ export async function generateQuotePDF(deal: any, companyData: any) {
   const total = neto + iva
   const formatter = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' })
   const report = deal.ia_proposal_report
-  const technicalText = report?.technical_scope || deal.cotizacion_detalles || "Servicios integrales de limpieza y sanitización industrial según requerimiento."
+  const technicalText = report?.technical_scope || deal.cotizacion_detalles || "Servicios integrales según requerimiento operativo."
 
-  // 2. Crear Contenedor HTML Temporal (Invisible para el usuario pero rastreable por html2canvas)
+  // 2. Crear Overlay de Carga (Garantiza que el elemento sea visible para el motor)
+  const overlay = document.createElement('div')
+  overlay.style.position = 'fixed'
+  overlay.style.inset = '0'
+  overlay.style.backgroundColor = 'rgba(255,255,255,0.98)'
+  overlay.style.zIndex = '999999'
+  overlay.style.display = 'flex'
+  overlay.style.flexDirection = 'column'
+  overlay.style.alignItems = 'center'
+  overlay.style.justifyContent = 'center'
+  overlay.innerHTML = `
+    <div style="text-align:center; font-family: 'Inter', sans-serif;">
+      <div style="width: 40px; height: 40px; border: 3px solid #007AFF10; border-top-color: #007AFF; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+      <p style="font-weight: 700; color: #1C1C1E; margin:0">Generando Propuesta PDF...</p>
+      <p style="font-size: 12px; color: #8E8E93; margin-top: 8px;">Por favor espere un momento</p>
+    </div>
+    <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
+  `
+  
   const container = document.createElement('div')
   container.style.width = '800px'
-  container.style.padding = '60px'
   container.style.backgroundColor = '#FFFFFF'
+  container.style.padding = '60px'
   container.style.position = 'absolute'
-  container.style.left = '0'
+  container.style.left = '50%'
   container.style.top = '0'
-  container.style.zIndex = '-9999'
-  container.style.opacity = '0.01' // Casi invisible pero el motor lo renderiza
-  container.style.pointerEvents = 'none'
+  container.style.transform = 'translateX(-50%)'
 
   const style = `
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-      .pdf-root { font-family: 'Inter', sans-serif; color: #1C1C1E; line-height: 1.5; background: white; width: 100%; border-top: 5px solid #007AFF; padding-top: 20px; }
+      .pdf-root { font-family: 'Inter', sans-serif; color: #1C1C1E; line-height: 1.5; background: white; width: 100%; border-top: 5px solid #007AFF; padding-top: 10px; }
       .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-      .company-info h1 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -1px; }
+      .company-info h1 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -1px; line-height: 1; margin-bottom: 10px; }
       .company-info p { margin: 2px 0; color: #8E8E93; font-size: 11px; }
       .document-type { text-align: right; }
       .document-type h2 { font-size: 16px; font-weight: 800; color: #007AFF; margin: 0; }
-      .document-type p { font-size: 11px; color: #8E8E93; margin: 2px 0; }
       .client-section { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid #F2F2F7; padding-bottom: 25px; }
       .label { font-size: 10px; font-weight: 800; color: #8E8E93; text-transform: uppercase; margin-bottom: 10px; }
       .val { font-size: 15px; font-weight: 700; }
@@ -110,7 +124,7 @@ export async function generateQuotePDF(deal: any, companyData: any) {
           <tr>
             <td>
               <div style="font-weight: 700; font-size: 14px; margin-bottom: 5px;">${deal.title}</div>
-              <div style="color: #8E8E93; font-size: 11px;">Operación industrial especializada según estándar de calidad corporativo.</div>
+              <div style="color: #8E8E93; font-size: 11px;">Operación industrial especializada según requerimiento operativo.</div>
             </td>
             <td style="text-align: right; font-weight: 600;">${formatter.format(neto)}</td>
           </tr>
@@ -136,51 +150,43 @@ export async function generateQuotePDF(deal: any, companyData: any) {
         Certificado de Auditoría Digital: Este documento fue aprobado por ${companyData?.razon_social} mediante firma electrónica simple.
         IP de Registro: ${deal.signature_ip || 'Auditada via Web'} &nbsp;|&nbsp; 
         Timestamp: ${deal.signature_date ? new Date(deal.signature_date).toLocaleString() : new Date().toLocaleString()}.
-        <br/><br/>
-        Ref Operacional: ${deal.id}
       </div>
     </div>
   `
 
-  document.body.appendChild(container)
+  overlay.appendChild(container)
+  document.body.appendChild(overlay)
 
   try {
-    // 3. Pequeña espera para asegurar carga de estilos y fuentes
-    await new Promise(resolve => setTimeout(resolve, 800))
+    // 3. Esperar específicamente a que las fuentes estén listas
+    if ((document as any).fonts) {
+      await (document as any).fonts.ready;
+    }
+    // Pequeño extra para asegurar que las imágenes se decodifiquen si las hay
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 4. Captura Manual con html2canvas
+    // 4. Captura con html2canvas
     const canvas = await html2canvas(container, {
-      scale: 2, // Calidad Retina
+      scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: '#FFFFFF',
-      onclone: (clonedDoc) => {
-        const el = clonedDoc.getElementById('pdf-template-container');
-        if (el) el.style.visibility = 'visible';
-      }
+      windowWidth: 800
     })
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.95)
-    
-    // 5. Generar PDF Segmentado
+    const imgData = canvas.toDataURL('image/jpeg', 0.9);
     const pdf = new jsPDF('p', 'mm', 'a4')
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = pdf.internal.pageSize.getHeight()
-    
-    const imgWidth = canvas.width
-    const imgHeight = canvas.height
-    
-    const ratio = pdfWidth / imgWidth
-    const pageImgHeight = imgHeight * ratio
+    const ratio = pdfWidth / canvas.width
+    const pageImgHeight = canvas.height * ratio
     
     let heightLeft = pageImgHeight
     let position = 0
 
-    // Primera Página
     pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pageImgHeight)
     heightLeft -= pdfHeight
 
-    // Páginas Siguientes (si es necesario)
     while (heightLeft >= 0) {
       position = heightLeft - pageImgHeight
       pdf.addPage()
@@ -189,14 +195,14 @@ export async function generateQuotePDF(deal: any, companyData: any) {
     }
 
     pdf.save(`Propuesta_${(companyData?.razon_social || "Cliente").replace(/\s+/g, '_')}.pdf`)
-    
   } catch (error) {
-    console.error('Error generando PDF Plan B:', error)
-    alert('Error al generar el documento. Por favor intente nuevamente.')
+    console.error('PDF Error:', error)
+    alert('No se pudo generar el PDF. Por favor cierre e intente nuevamente.')
   } finally {
-    document.body.removeChild(container)
+    document.body.removeChild(overlay)
   }
 }
+
 
 
 
