@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 import { supabase } from './supabase/client'
 
 export async function generateQuotePDF(deal: any, companyData: any) {
@@ -24,29 +25,31 @@ export async function generateQuotePDF(deal: any, companyData: any) {
 
   // 2. Crear Contenedor HTML Temporal
   const container = document.createElement('div')
-  container.style.width = '190mm' // Ancho A4 menos márgenes
-  container.style.padding = '20mm'
+  container.id = 'pdf-template-container'
+  container.style.width = '794px' // ~210mm a 96dpi
+  container.style.padding = '60px' // Margen de ~2cm
   container.style.backgroundColor = '#FFFFFF'
   container.style.color = '#1C1C1E'
   container.style.fontFamily = "'Inter', sans-serif"
-  container.style.fontSize = '12px'
-  container.style.lineHeight = '1.5'
-  container.style.position = 'fixed'
-  container.style.left = '-9999px'
+  container.style.position = 'absolute'
+  container.style.left = '0'
   container.style.top = '0'
+  container.style.zIndex = '-1'
+  container.style.visibility = 'hidden'
 
   // Estilos CSS de la Plantilla
   const style = `
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
       
-      .pdf-wrapper { 
+      .pdf-content { 
+        width: 100%;
         border-top: 4px solid #007AFF; 
         background: #fff;
       }
-      .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+      .header { display: flex; justify-content: space-between; margin-bottom: 40px; margin-top: 20px; }
       .company-info h1 { font-size: 24px; font-weight: 800; margin: 0; color: #1C1C1E; letter-spacing: -1px; }
-      .company-info p { margin: 2px 0; color: #8E8E93; font-size: 9px; }
+      .company-info p { margin: 2px 0; color: #8E8E93; font-size: 10px; }
       .document-type { text-align: right; }
       .document-type h2 { font-size: 14px; font-weight: 800; color: #007AFF; margin: 0; }
       .document-type p { font-size: 10px; color: #8E8E93; margin: 2px 0; }
@@ -55,31 +58,30 @@ export async function generateQuotePDF(deal: any, companyData: any) {
       .section-label { font-size: 9px; font-weight: 800; color: #8E8E93; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
       .client-name { font-size: 14px; font-weight: 700; }
       
-      .scope-section { margin-bottom: 40px; page-break-inside: avoid; }
+      .scope-section { margin-bottom: 40px; }
       .scope-title { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
       .scope-dot { width: 4px; height: 20px; background: #007AFF; border-radius: 2px; }
-      .scope-content { font-size: 11px; color: #3C3C43; white-space: pre-wrap; }
+      .scope-content { font-size: 11px; color: #3C3C43; white-space: pre-wrap; line-height: 1.6; }
       
-      .pricing-table { w-full border-collapse: collapse; margin-top: 20px; }
-      .pricing-table th { background: #F9FAFB; color: #4B5563; font-size: 9px; font-weight: 800; text-transform: uppercase; text-align: left; padding: 12px 16px; }
+      .pricing-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+      .pricing-table th { background: #F9FAFB; color: #4B5563; font-size: 10px; font-weight: 800; text-transform: uppercase; text-align: left; padding: 12px 16px; }
       .pricing-table td { padding: 16px; border-bottom: 1px solid #E5E5EA; font-size: 11px; }
-      .pricing-table tr:last-child td { border-bottom: none; }
       .pricing-table .amount { text-align: right; font-weight: 600; }
       
-      .totals-section { margin-left: auto; width: 250px; margin-top: 30px; page-break-inside: avoid; }
+      .totals-section { margin-left: auto; width: 250px; margin-top: 30px; }
       .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 11px; }
       .total-row.grand-total { border-top: 2px solid #1C1C1E; margin-top: 12px; padding-top: 16px; }
       .total-amount { font-weight: 600; }
       .grand-total-label { font-size: 14px; font-weight: 800; }
       .grand-total-amount { font-size: 18px; font-weight: 800; color: #007AFF; }
       
-      .footer { margin-top: 60px; font-size: 8px; color: #8E8E93; font-style: italic; page-break-inside: avoid; border-top: 1px solid #F2F2F7; padding-top: 20px; }
+      .pdf-footer { margin-top: 60px; font-size: 9px; color: #8E8E93; font-style: italic; border-top: 1px solid #F2F2F7; padding-top: 20px; }
     </style>
   `
 
   container.innerHTML = `
     ${style}
-    <div class="pdf-wrapper">
+    <div class="pdf-content">
       <div class="header">
         <div class="company-info">
           <h1>${miEmpresa.company_name.toUpperCase()}</h1>
@@ -114,7 +116,7 @@ export async function generateQuotePDF(deal: any, companyData: any) {
         <div class="scope-content">${technicalText}</div>
       </div>
 
-      <table class="pricing-table" style="width: 100%;">
+      <table class="pricing-table">
         <thead>
           <tr>
             <th style="width: 70%;">Descripción del Servicio</th>
@@ -125,7 +127,7 @@ export async function generateQuotePDF(deal: any, companyData: any) {
           <tr>
             <td>
               <div style="font-weight: 700; margin-bottom: 4px;">${deal.title}</div>
-              <div style="color: #8E8E93; font-size: 10px;">Servicios de limpieza avanzada y sanitización industrial según requerimiento operativo.</div>
+              <div style="color: #8E8E93; font-size: 10px;">Servicios integrales según requerimiento operativo.</div>
             </td>
             <td class="amount">${formatter.format(neto)}</td>
           </tr>
@@ -147,11 +149,9 @@ export async function generateQuotePDF(deal: any, companyData: any) {
         </div>
       </div>
 
-      <div class="footer">
-        Certificado de Aceptación Digital: Este documento constituye una oferta comercial vinculante. 
-        Fue aprobado electrónicamente mediante el protocolo de Firma Simple B2B. 
-        IP Registro: ${deal.signature_ip || 'Registrada via Web'} &nbsp;|&nbsp; 
-        ID Transacción: ${deal.id} &nbsp;|&nbsp; 
+      <div class="pdf-footer">
+        Certificado Digital: Propuesta aprobada electrónicamente por ${companyData?.razon_social}. 
+        IP: ${deal.signature_ip || 'Auditada via Web'} &nbsp;|&nbsp; 
         Timestamp: ${deal.signature_date ? new Date(deal.signature_date).toLocaleString() : new Date().toLocaleString()}.
         <br/><br/>
         ${miEmpresa.company_website || ''}
@@ -161,24 +161,32 @@ export async function generateQuotePDF(deal: any, companyData: any) {
 
   document.body.appendChild(container)
 
-  // 3. Generar PDF
-  const doc = new jsPDF({
-    unit: 'mm',
-    format: 'a4',
-    orientation: 'portrait'
-  })
+  // 3. Generar PDF (Pequeña espera para asegurar que las fuentes/estilos se apliquen)
+  setTimeout(async () => {
+    // Dirty fix: jsPDF.html() busca html2canvas en el objeto global en entornos de módulos
+    (window as any).html2canvas = html2canvas
 
-  await doc.html(container, {
-    callback: function(doc) {
-      doc.save(`Propuesta_${(companyData?.razon_social || "Cliente").replace(/\s+/g, '_')}_${deal.id.split('-')[0]}.pdf`)
-      document.body.removeChild(container)
-    },
-    x: 0,
-    y: 0,
-    width: 210, // Ancho A4
-    windowWidth: 794, // Resolución para 190mm a 96dpi aprox
-    autoPaging: 'text'
-  })
+    const doc = new jsPDF({
+      unit: 'px',
+      format: 'a4',
+      hotfixes: ['px_scaling']
+    })
+
+    await doc.html(container, {
+      callback: function(doc) {
+        doc.save(`Propuesta_${(companyData?.razon_social || "Cliente").replace(/\s+/g, '_')}.pdf`)
+        document.body.removeChild(container)
+      },
+      html2canvas: {
+        scale: 0.75,
+        useCORS: true,
+        logging: false
+      },
+      x: 10,
+      y: 10,
+      autoPaging: 'text'
+    })
+  }, 500)
 }
 
 
