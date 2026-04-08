@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase/client'
-import { CheckCircle2, ChevronRight, Lock, Activity, FileText, ShieldCheck, Building2, Zap, Download, Target, ClipboardCheck } from 'lucide-react'
+import { CheckCircle2, Lock, Activity, FileText, ShieldCheck, Building2, Zap, Download, ClipboardCheck, ArrowRight } from 'lucide-react'
+
+// Helper para sanitizar títulos corporativos
+const formatHeader = (text: string) => {
+  if (!text) return "";
+  // Limpieza básica de ruido común y normalización a Capital Case
+  return text.trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 const fmtCLP = (n: number) =>
   new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
@@ -54,8 +66,6 @@ export default function PublicProposal() {
     setAccepting(true)
 
     const ua = navigator.userAgent
-    // En un entorno real capturaríamos la IP real si fuera posible desde el cliente, 
-    // pero Supabase puede hacerlo en el backend si se configura.
     const ip = 'Registrado via Web'
 
     const { data: success, error } = await supabase.rpc('approve_deal', {
@@ -108,8 +118,7 @@ export default function PublicProposal() {
     return (
       <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center">
         <div className="relative flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-[3px] border-black/5 border-t-black shadow-sm" />
-          <div className="absolute font-black text-[10px]">B2B</div>
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#1C1C1E]/10 border-t-[#007AFF]" />
         </div>
       </div>
     )
@@ -118,217 +127,203 @@ export default function PublicProposal() {
   if (!deal) {
     return (
       <div className="min-h-screen bg-[#F5F5F7] flex flex-col items-center justify-center p-6 text-center">
-        <ShieldCheck className="h-16 w-16 text-slate-300 mb-4" />
-        <h1 className="text-2xl font-black text-slate-900 mb-2">Propuesta Protegida</h1>
-        <p className="text-slate-500 font-medium">Este enlace es inválido o ha expirado.</p>
+        <ShieldCheck className="h-12 w-12 text-slate-300 mb-4" />
+        <h1 className="text-xl font-bold text-[#1C1C1E] mb-2">Propuesta Protegida</h1>
+        <p className="text-slate-500 text-sm">Este enlace es inválido o ha expirado.</p>
       </div>
     )
   }
 
   const report = deal.ia_proposal_report || null;
-  const fallbackTitle = deal.title;
+  const fallbackTitle = formatHeader(deal.title);
   const fallbackScope = deal.cotizacion_detalles || "Servicio integral diseñado para cubrir las necesidades operativas de la organización.";
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans selection:bg-black selection:text-white pb-32 overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F5F7] text-[#1C1C1E] font-sans selection:bg-[#007AFF]/10 overflow-x-hidden p-0 sm:p-8 md:p-12">
       
-      {/* ── AMBIENT BACKGROUND GLOWS ── */}
-      <div className="fixed top-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-blue-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
-      <div className="fixed bottom-[-10%] left-[-10%] w-[50vw] h-[50vh] bg-purple-500/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+      {/* ── AMBIENT BACKGROUND GLOWS (MINIMAL) ── */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[30vh] bg-blue-500/5 blur-[120px] pointer-events-none -z-10" />
 
-      {/* ── HEADER ── */}
-      <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-black/[0.04]">
-        <div className="max-w-4xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-black text-white rounded-[14px] flex items-center justify-center font-black shadow-lg">
-              <Building2 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 leading-none mb-1">Propuesta Corporativa</p>
-              <h2 className="font-bold text-[16px] leading-tight tracking-tight">Confidencial</h2>
-            </div>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-black/[0.04] rounded-full border border-black/[0.04] text-[10px] font-black uppercase tracking-widest text-black/60">
-            <Lock className="w-3 h-3 text-emerald-500" /> Secure Link
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-4xl mx-auto px-6 pt-16 md:pt-24">
+      {/* ── MAIN CONTENT CONTAINER (WHITE PAPER CARD) ── */}
+      <div className="max-w-4xl mx-auto bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05),0_10px_40px_rgba(0,0,0,0.02)] min-h-screen sm:min-h-0 sm:rounded-[32px] overflow-hidden relative">
         
-        {/* ── HERO SECTION ── */}
-        <div className="mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-black/[0.04] rounded-full text-[10px] font-black uppercase tracking-widest text-black/40 mb-6 shadow-sm">
-            <FileText className="w-3.5 h-3.5" /> ID: {deal.id.split('-')[0].toUpperCase()}
-          </div>
-          <h1 className="text-[44px] md:text-[64px] font-black tracking-tighter leading-[0.95] mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-             {report ? report.title : fallbackTitle}
-          </h1>
-          
-          <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-16 pt-8 border-t border-black/[0.08]">
-            <div className="space-y-1">
-              <p className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em]">Socio Comercial</p>
-              <p className="text-[17px] font-black text-black tracking-tight">{deal.company_name}</p>
+        {/* ── HEADER ── */}
+        <header className="px-8 sm:px-12 py-8 border-b border-[#F5F5F7] flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-9 h-9 bg-[#1C1C1E] text-white rounded-[10px] flex items-center justify-center shadow-lg">
+              <Building2 className="h-4 w-4" />
             </div>
-            <div className="hidden md:block w-px h-10 bg-black/[0.08]" />
-            <div className="space-y-1">
-              <p className="text-[10px] font-black text-black/30 uppercase tracking-[0.2em]">Consultor Asignado</p>
-              <p className="text-[17px] font-black text-black tracking-tight">{deal.seller_name || 'Servicios Central'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── INVESTMENT CARD ── */}
-        <div className="relative p-10 md:p-14 bg-white rounded-[40px] border border-black/[0.04] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] mb-16 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 blur-3xl" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10">
             <div>
-              <p className="text-[11px] font-black text-black/40 uppercase tracking-[0.25em] mb-4">Inversión Neta</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-black/40 leading-none mb-1">Cotización Corporativa</p>
+              <h2 className="font-semibold text-sm leading-none">{deal.company_name}</h2>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#F5F5F7] rounded-full text-[10px] font-bold tracking-tight text-black/50">
+            <Lock className="w-3 h-3 text-[#34C759]" /> Documento Certificado SSL
+          </div>
+        </header>
+
+        <main className="px-8 sm:px-12 pt-16 pb-32">
+          
+          {/* ── HERO ── */}
+          <div className="mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#F5F5F7] rounded-full text-[10px] font-bold uppercase tracking-tight text-black/40 mb-6">
+              <FileText className="w-3.5 h-3.5" /> REF: {deal.id.split('-')[0].toUpperCase()}
+            </div>
+            <h1 className="text-[32px] md:text-[45px] font-bold tracking-tight leading-[1.1] mb-8 text-[#1C1C1E]">
+               {report ? formatHeader(report.title) : fallbackTitle}
+            </h1>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-8 border-y border-[#F5F5F7]">
+              <div>
+                <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest mb-1">Validez de la Oferta</p>
+                <p className="text-sm font-semibold">{deal.offer_validity || '15 días calendario'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest mb-1">Consultor Ejecutivo</p>
+                <p className="text-sm font-semibold">{deal.seller_name || 'Servicios Central'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ── INVESTMENT (MINIMALIST) ── */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16 items-start">
+            <div className="md:col-span-12">
+              <p className="text-[11px] font-bold text-black/40 uppercase tracking-widest mb-4">Monto Neto de Inversión</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-[18px] font-black opacity-30 mt-[-10px]">$</span>
-                <p className="text-[64px] md:text-[88px] font-black tracking-tighter leading-none tabular-nums">
+                <span className="text-[24px] font-medium text-black/20">$</span>
+                <p className="text-[44px] md:text-[62px] font-bold tracking-tight leading-none text-[#1C1C1E] tabular-nums">
                   {fmtCLP(deal.valor_neto || 0).replace('$', '').trim()}
                 </p>
               </div>
-              <p className="text-[14px] font-bold text-black/40 mt-4 flex items-center gap-2">
-                Total estimado con IVA: <span className="text-black/60">{fmtCLP(deal.valor_total || deal.valor_neto * 1.19)}</span>
-              </p>
-            </div>
-            
-            <div className={`px-6 py-4 rounded-[22px] border ${accepted ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-[#F5F5F7] border-black/[0.04] text-blue-600'} flex flex-col items-center gap-1 min-w-[200px]`}>
-              <p className="text-[9px] font-black uppercase tracking-widest opacity-50">Documento</p>
-              <div className="flex items-center gap-2">
-                {accepted ? (
-                  <><CheckCircle2 className="w-5 h-5" /><span className="font-black tracking-tight">VIGENTE / ACEPTADO</span></>
-                ) : (
-                  <><Activity className="w-5 h-5" /><span className="font-black tracking-tight">ESTADO: PENDIENTE</span></>
-                ) }
+              <div className="flex items-center gap-6 mt-4">
+                <p className="text-[13px] font-medium text-black/40">
+                  Total con IVA: <span className="text-black/80 font-bold">{fmtCLP(deal.valor_total || deal.valor_neto * 1.19)}</span>
+                </p>
+                <div className="h-4 w-px bg-black/5" />
+                <p className={`text-[11px] font-bold flex items-center gap-1.5 ${accepted ? 'text-[#34C759]' : 'text-[#007AFF]'}`}>
+                  {accepted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Activity className="w-3.5 h-3.5" />}
+                  {accepted ? 'CONTRATO FIRMADO' : 'PENDIENTE DE FIRMA'}
+                </p>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* ── INTELLIGENCE INSIGHTS (PAIN POINTS) ── */}
-        {report && report.pain_points && (
-          <div className="mb-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-               <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                  <Target className="w-3 h-3" /> Foco de la Solución
+          {/* ── FOCUS SECTION (INTELLIGENCE) ── */}
+          {report && report.pain_points && (
+            <div className="mb-20">
+               <div className="flex items-center gap-3 mb-8">
+                  <div className="w-1.5 h-6 bg-[#FF9500] rounded-full" />
+                  <h3 className="text-lg font-bold tracking-tight">Análisis de Requerimientos</h3>
                </div>
-               <h3 className="text-2xl font-black tracking-tight leading-none mb-4">Análisis de Necesidades</h3>
-               <p className="text-sm font-medium text-black/40 leading-relaxed">
-                  Este reporte resume los puntos críticos detectados por nuestro consultor durante el diagnóstico inicial.
-               </p>
+               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {report.pain_points.map((point: string, i: number) => (
+                    <div key={i} className="p-6 bg-[#F5F5F7] rounded-24px border border-black/[0.02]">
+                       <span className="text-[10px] font-black opacity-10 block mb-3">0{i+1}</span>
+                       <p className="text-[15px] font-semibold leading-snug text-black/80">{point}</p>
+                    </div>
+                  ))}
+               </div>
             </div>
-            <div className="md:col-span-2 grid gap-3">
-               {report.pain_points.map((point: string, i: number) => (
-                  <div key={i} className="flex gap-4 p-6 bg-white rounded-[24px] border border-black/[0.03] shadow-sm animate-in fade-in slide-in-from-right-4 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
-                     <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                        <span className="font-black text-xs opacity-20">0{i+1}</span>
-                      </div>
-                      <p className="font-bold text-[16px] tracking-tight text-black/70 py-2">{point}</p>
-                   </div>
-                ))}
-             </div>
+          )}
+
+          {/* ── TECHNICAL SCOPE (PROTAGONIST) ── */}
+          <div className="mb-20">
+            <div className="flex items-center gap-3 mb-8">
+               <div className="w-1.5 h-6 bg-[#1C1C1E] rounded-full" />
+               <h3 className="text-lg font-bold tracking-tight">Alcance Técnico del Servicio</h3>
+            </div>
+            <div className="text-[17px] sm:text-[18px] font-medium leading-[1.6] text-black/70 space-y-6 max-w-3xl">
+               <p className="whitespace-pre-wrap">{report ? report.technical_scope : fallbackScope}</p>
+               
+               <div className="pt-10 grid grid-cols-1 sm:grid-cols-2 gap-10 text-sm">
+                  <div className="flex gap-4 p-5 bg-[#F5F5F7]/50 rounded-2xl border border-black/[0.01]">
+                     <Zap className="h-5 w-5 text-[#007AFF] opacity-80" />
+                     <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-black/30 mb-1">Duración del Acuerdo</p>
+                        <p className="font-bold">{deal.contract_duration || 'Por definir'}</p>
+                     </div>
+                  </div>
+                  <div className="flex gap-4 p-5 bg-[#F5F5F7]/50 rounded-2xl border border-black/[0.01]">
+                     <ClipboardCheck className="h-5 w-5 text-[#34C759] opacity-80" />
+                     <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-black/30 mb-1">Condiciones de Pago</p>
+                        <p className="font-bold">{deal.payment_terms || '30 días'}</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
           </div>
-        )}
 
-        {/* ── TECHNICAL SCOPE ── */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-             <div className="w-2 h-8 bg-black rounded-full" />
-             <h3 className="text-[28px] font-black tracking-tight uppercase">Alcance Técnico del Servicio</h3>
-          </div>
-          <div className="bg-white rounded-[40px] p-10 md:p-14 border border-black/[0.04] shadow-sm text-[18px] md:text-[20px] font-medium leading-relaxed text-black/80 space-y-6">
-             <p className="whitespace-pre-wrap">{report ? report.technical_scope : fallbackScope}</p>
-             
-             <div className="pt-10 grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
-                <div className="flex gap-4">
-                   <div className="w-10 h-10 rounded-2xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                      <Zap className="h-5 w-5 opacity-40" />
-                   </div>
-                   <div>
-                      <p className="font-black uppercase tracking-widest text-black/30 text-[10px] mb-1">Duración del Contrato</p>
-                      <p className="font-black opacity-80">{deal.contract_duration || 'No especificado'}</p>
-                   </div>
-                </div>
-                <div className="flex gap-4">
-                   <div className="w-10 h-10 rounded-2xl bg-[#F5F5F7] flex items-center justify-center shrink-0">
-                      <ClipboardCheck className="h-5 w-5 opacity-40" />
-                   </div>
-                   <div>
-                      <p className="font-black uppercase tracking-widest text-black/40 text-[10px] mb-1">Términos de Pago</p>
-                      <p className="font-black opacity-80">{deal.payment_terms || 'No especificado'}</p>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </div>
-
-        {/* ── LEGAL TERMS ── */}
-        <div className="p-8 bg-black/5 rounded-[28px] border border-black/[0.04] mb-20">
-          <p className="text-[12px] font-bold text-black/40 leading-relaxed italic max-w-2xl mx-auto text-center">
-            Este documento genera una obligación vinculante al ser aceptado. Al presionar "Aceptar Propuesta", declara que el representante de <strong>{deal.company_name}</strong> ha revisado y validado los términos enumerados, constituyendo una Firma Electrónica Simple según protocolos operativos B2B.
-          </p>
-        </div>
-
-        {/* ── DOWNLOAD PDF ── */}
-        <div className="flex justify-center mb-10">
-           <button 
-             onClick={handleDownloadPDF}
-             disabled={downloadingPDF}
-             className="flex items-center gap-2 text-[12px] font-black uppercase tracking-widest text-black/40 hover:text-black transition-colors"
-           >
-             {downloadingPDF ? <Activity className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-             Descargar Versión PDF Imprimible
-           </button>
-        </div>
-
-        {/* ── CTA BAR ── */}
-        {!accepted ? (
-          <div className="fixed bottom-0 left-0 right-0 p-6 md:p-10 bg-white/40 backdrop-blur-3xl border-t border-black/[0.04] z-50 animate-in slide-in-from-bottom-full duration-500 delay-500 fill-mode-both">
-            <div className="max-w-md mx-auto flex flex-col gap-4">
-              <button
-                onClick={handleApprove}
-                disabled={accepting || modSent}
-                className="w-full h-18 py-5 rounded-[22px] bg-black text-white font-black text-[18px] tracking-tight hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] disabled:opacity-50"
+          {/* ── LEGAL & PDF ── */}
+          <footer className="border-t border-[#F5F5F7] pt-12">
+            <div className="flex flex-col items-center gap-8 text-center">
+              <p className="text-[11px] font-medium text-black/30 leading-relaxed max-w-xl italic">
+                Este documento constituye una oferta comercial vinculante. Al formalizar la aceptación mediante el enlace seguro, se genera un registro de auditoría digital (IP/Timestamp) con validez operacional B2B.
+              </p>
+              
+              <button 
+                onClick={handleDownloadPDF}
+                disabled={downloadingPDF}
+                className="flex items-center gap-2 group transition-all"
               >
-                {accepting ? (
-                  <><Activity className="h-6 w-6 animate-spin" /> Procesando Firma...</>
-                ) : (
-                  <>Aceptar Propuesta Comercial <ChevronRight className="w-6 h-6 opacity-30" /></>
-                )}
-              </button>
-              <button
-                onClick={() => setShowModModal(true)}
-                className="w-full h-12 rounded-xl text-black/40 font-black text-[11px] uppercase tracking-widest hover:text-black transition-colors"
-              >
-                Solicitar Ajustes o Modificaciones
+                <div className="w-10 h-10 rounded-full bg-[#F5F5F7] flex items-center justify-center group-hover:bg-[#1C1C1E] group-hover:text-white transition-all">
+                  {downloadingPDF ? <Activity className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-black/40 group-hover:text-black">Versión PDF Digital</span>
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="fixed bottom-0 left-0 right-0 p-6 md:p-10 bg-white/40 backdrop-blur-3xl border-t border-black/[0.04] z-50">
-            <div className="max-w-md mx-auto h-18 rounded-[22px] bg-emerald-500 text-white font-black text-[18px] tracking-tight flex items-center justify-center gap-3 shadow-xl">
-              <CheckCircle2 className="h-6 w-6" /> Propuesta Aceptada Exitosamente
-            </div>
-          </div>
-        )}
+          </footer>
+        </main>
       </div>
+
+      {/* ── INTERACTIVE CONTROLS ── */}
+      {!accepted ? (
+        <div className="fixed bottom-0 left-0 right-0 p-6 md:p-10 z-[100] flex justify-center pointer-events-none">
+          <div className="w-full max-w-lg flex flex-col gap-4 pointer-events-auto">
+            
+            {/* Ambient Glow behind button */}
+            <div className="absolute inset-0 bg-blue-500/10 blur-[60px] rounded-full -z-10" />
+
+            <button
+              onClick={handleApprove}
+              disabled={accepting || modSent}
+              className="w-full h-16 py-5 rounded-full bg-[#007AFF] text-white font-bold text-[16px] tracking-tight hover:bg-[#0062CC] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-[0_20px_40px_-10px_rgba(0,122,255,0.3)] disabled:opacity-50"
+            >
+              {accepting ? (
+                <><Activity className="h-5 w-5 animate-spin" /> Procesando...</>
+              ) : (
+                <>Aceptar Propuesta Comercial <ArrowRight className="w-5 h-5 opacity-40 ml-2" /></>
+              )}
+            </button>
+            <button
+              onClick={() => setShowModModal(true)}
+              className="w-full h-10 rounded-full bg-white/60 backdrop-blur-xl border border-black/5 text-black/40 font-bold text-[11px] uppercase tracking-widest hover:text-black hover:bg-white transition-colors"
+            >
+              Solicitar Ajustes o Comentarios
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="fixed bottom-0 left-0 right-0 p-6 md:p-10 z-[100] flex justify-center pointer-events-none">
+          <div className="w-full max-w-md h-16 rounded-full bg-[#34C759] text-white font-bold text-[16px] tracking-tight flex items-center justify-center gap-3 shadow-[0_20px_40px_-10px_rgba(52,199,89,0.3)] animate-in slide-in-from-bottom-full">
+            <CheckCircle2 className="h-6 w-6" /> Propuesta Aceptada Exitosamente
+          </div>
+        </div>
+      )}
 
       {/* ── MODAL ── */}
       {showModModal && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-md">
           <div className="bg-white rounded-[40px] w-full max-w-sm p-10 shadow-2xl animate-in zoom-in duration-300">
-            <h3 className="text-2xl font-black tracking-tight mb-2">Solicitar Ajustes</h3>
+            <h3 className="text-xl font-bold tracking-tight mb-2">Solicitar Cambios</h3>
             <p className="text-sm font-medium text-black/40 mb-8 leading-relaxed">
-              Describe los cambios requeridos. Tu consultor asignado será notificado instantáneamente para actualizar los términos.
+              Escribe tus comentarios a continuación. Notificaremos instantáneamente a tu consultor.
             </p>
             <textarea 
               autoFocus
               className="w-full bg-[#F5F5F7] border-none rounded-2xl p-6 text-[15px] font-medium outline-none min-h-[140px] mb-8 placeholder:opacity-30"
-              placeholder="Ej: El plazo de inicio debe ser postergado 15 días..."
+              placeholder="Ej: Necesitamos ajustar la fecha de inicio..."
               value={modMessage}
               onChange={(e) => setModMessage(e.target.value)}
             />
@@ -336,13 +331,13 @@ export default function PublicProposal() {
               <button 
                 disabled={sendingMod || !modMessage.trim()}
                 onClick={handleRequestMods}
-                className="w-full h-14 rounded-2xl font-black text-white bg-blue-600 disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                className="w-full h-14 rounded-full font-bold text-white bg-[#007AFF] disabled:opacity-30 flex items-center justify-center gap-2"
               >
                 {sendingMod ? <Activity className="w-5 h-5 animate-spin" /> : 'Enviar Solicitud'}
               </button>
               <button 
                 onClick={() => setShowModModal(false)}
-                className="w-full h-12 rounded-2xl font-black text-black/30 hover:text-black transition-colors uppercase tracking-widest text-[10px]"
+                className="w-full h-12 rounded-full font-bold text-black/30 hover:text-black transition-colors uppercase tracking-[0.2em] text-[10px]"
               >
                 Cerrar
               </button>
@@ -351,7 +346,7 @@ export default function PublicProposal() {
         </div>
       )}
 
-      <div className="h-40 sm:h-20"></div>
+      <div className="h-48 sm:h-20"></div>
     </div>
   )
 }
