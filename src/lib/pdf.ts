@@ -23,170 +23,180 @@ export async function generateQuotePDF(deal: any, companyData: any) {
   const report = deal.ia_proposal_report
   const technicalText = report?.technical_scope || deal.cotizacion_detalles || "Servicios integrales de limpieza y sanitización industrial según requerimiento."
 
-  // 2. Crear Contenedor HTML Temporal
+  // 2. Crear Contenedor HTML Temporal (Invisible para el usuario pero rastreable por html2canvas)
   const container = document.createElement('div')
-  container.id = 'pdf-template-container'
-  container.style.width = '794px' // ~210mm a 96dpi
-  container.style.padding = '60px' // Margen de ~2cm
+  container.style.width = '800px'
+  container.style.padding = '60px'
   container.style.backgroundColor = '#FFFFFF'
-  container.style.color = '#1C1C1E'
-  container.style.fontFamily = "'Inter', sans-serif"
   container.style.position = 'absolute'
   container.style.left = '0'
   container.style.top = '0'
-  container.style.zIndex = '-1'
-  container.style.visibility = 'hidden'
+  container.style.zIndex = '-9999'
+  container.style.opacity = '0.01' // Casi invisible pero el motor lo renderiza
+  container.style.pointerEvents = 'none'
 
-  // Estilos CSS de la Plantilla
   const style = `
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-      
-      .pdf-content { 
-        width: 100%;
-        border-top: 4px solid #007AFF; 
-        background: #fff;
-      }
-      .header { display: flex; justify-content: space-between; margin-bottom: 40px; margin-top: 20px; }
-      .company-info h1 { font-size: 24px; font-weight: 800; margin: 0; color: #1C1C1E; letter-spacing: -1px; }
-      .company-info p { margin: 2px 0; color: #8E8E93; font-size: 10px; }
+      .pdf-root { font-family: 'Inter', sans-serif; color: #1C1C1E; line-height: 1.5; background: white; width: 100%; border-top: 5px solid #007AFF; padding-top: 20px; }
+      .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+      .company-info h1 { font-size: 26px; font-weight: 800; margin: 0; letter-spacing: -1px; }
+      .company-info p { margin: 2px 0; color: #8E8E93; font-size: 11px; }
       .document-type { text-align: right; }
-      .document-type h2 { font-size: 14px; font-weight: 800; color: #007AFF; margin: 0; }
-      .document-type p { font-size: 10px; color: #8E8E93; margin: 2px 0; }
-      
-      .client-section { display: flex; justify-content: space-between; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #F2F2F7; }
-      .section-label { font-size: 9px; font-weight: 800; color: #8E8E93; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-      .client-name { font-size: 14px; font-weight: 700; }
-      
-      .scope-section { margin-bottom: 40px; }
-      .scope-title { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-      .scope-dot { width: 4px; height: 20px; background: #007AFF; border-radius: 2px; }
-      .scope-content { font-size: 11px; color: #3C3C43; white-space: pre-wrap; line-height: 1.6; }
-      
-      .pricing-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-      .pricing-table th { background: #F9FAFB; color: #4B5563; font-size: 10px; font-weight: 800; text-transform: uppercase; text-align: left; padding: 12px 16px; }
-      .pricing-table td { padding: 16px; border-bottom: 1px solid #E5E5EA; font-size: 11px; }
-      .pricing-table .amount { text-align: right; font-weight: 600; }
-      
-      .totals-section { margin-left: auto; width: 250px; margin-top: 30px; }
-      .total-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 11px; }
-      .total-row.grand-total { border-top: 2px solid #1C1C1E; margin-top: 12px; padding-top: 16px; }
-      .total-amount { font-weight: 600; }
-      .grand-total-label { font-size: 14px; font-weight: 800; }
-      .grand-total-amount { font-size: 18px; font-weight: 800; color: #007AFF; }
-      
-      .pdf-footer { margin-top: 60px; font-size: 9px; color: #8E8E93; font-style: italic; border-top: 1px solid #F2F2F7; padding-top: 20px; }
+      .document-type h2 { font-size: 16px; font-weight: 800; color: #007AFF; margin: 0; }
+      .document-type p { font-size: 11px; color: #8E8E93; margin: 2px 0; }
+      .client-section { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid #F2F2F7; padding-bottom: 25px; }
+      .label { font-size: 10px; font-weight: 800; color: #8E8E93; text-transform: uppercase; margin-bottom: 10px; }
+      .val { font-size: 15px; font-weight: 700; }
+      .scope-card { margin-bottom: 40px; }
+      .scope-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+      .blue-bar { width: 5px; height: 25px; background: #007AFF; border-radius: 4px; }
+      .scope-content { font-size: 13px; color: #3A3A3C; white-space: pre-wrap; margin-left: 15px; }
+      .table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+      .table th { background: #F9FAFB; padding: 15px; text-align: left; font-size: 11px; text-transform: uppercase; color: #48484A; font-weight: 800; }
+      .table td { padding: 20px 15px; border-bottom: 1px solid #E5E5EA; font-size: 13px; }
+      .totals { margin-left: auto; width: 300px; margin-top: 40px; }
+      .total-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 13px; }
+      .grand-total { border-top: 2px solid #1C1C1E; margin-top: 15px; padding-top: 20px; color: #007AFF; font-size: 20px; font-weight: 800; }
+      .footer { margin-top: 80px; padding-top: 30px; border-top: 1px solid #F2F2F7; font-size: 10px; color: #8E8E93; font-style: italic; }
     </style>
   `
 
   container.innerHTML = `
     ${style}
-    <div class="pdf-content">
+    <div class="pdf-root">
       <div class="header">
         <div class="company-info">
           <h1>${miEmpresa.company_name.toUpperCase()}</h1>
-          <p>RUT: ${miEmpresa.company_rut} &nbsp;|&nbsp; Giro: ${miEmpresa.company_giro || 'Servicios Integrales'}</p>
+          <p>RUT: ${miEmpresa.company_rut} &nbsp;|&nbsp; Giro: ${miEmpresa.company_giro || 'Servicios Industriales'}</p>
           <p>${miEmpresa.company_address} &nbsp;|&nbsp; ${miEmpresa.company_phone || '+56 9 XXXX XXXX'}</p>
         </div>
         <div class="document-type">
-          <h2>PROPUESTA B2B</h2>
+          <h2>PROPUESTA COMERCIAL</h2>
           <p>REF: #${deal.id.split('-')[0].toUpperCase()}</p>
-          <p>Fecha: ${new Date().toLocaleDateString('es-CL')}</p>
+          <p>Emisión: ${new Date().toLocaleDateString('es-CL')}</p>
         </div>
       </div>
 
       <div class="client-section">
         <div>
-          <div class="section-label">Cliente / Socio Estratégico</div>
-          <div class="client-name">${companyData?.razon_social || "Cliente General"}</div>
-          <p style="margin:4px 0; color:#8E8E93; font-size:10px;">RUT: ${companyData?.rut || 'Pendiente'} | Comuna: ${companyData?.comuna || 'Chile'}</p>
+          <div class="label">Socio Estratégico</div>
+          <div class="val">${companyData?.razon_social || "Cliente General"}</div>
+          <p style="margin:5px 0; color:#8E8E93; font-size:11px;">RUT: ${companyData?.rut || 'Pendiente'}</p>
         </div>
         <div style="text-align: right;">
-          <div class="section-label">Consultor Ejecutivo</div>
-          <div class="client-name">${deal.seller_name || "Consultor LimpioSur"}</div>
-          <p style="margin:4px 0; color:#8E8E93; font-size:10px;">Vigencia: ${deal.offer_validity || '15 días'}</p>
+          <div class="label">Consultor Ejecutivo</div>
+          <div class="val">${deal.seller_name || "LimpioSur"}</div>
+          <p style="margin:5px 0; color:#8E8E93; font-size:11px;">Vigencia: ${deal.offer_validity || '15 días'}</p>
         </div>
       </div>
 
-      <div class="scope-section">
-        <div class="scope-title">
-          <div class="scope-dot"></div>
-          <div style="font-size: 14px; font-weight: 700;">Alcance Técnico del Servicio</div>
+      <div class="scope-card">
+        <div class="scope-header">
+          <div class="blue-bar"></div>
+          <div style="font-size: 18px; font-weight: 800;">Alcance Técnico del Servicio</div>
         </div>
         <div class="scope-content">${technicalText}</div>
       </div>
 
-      <table class="pricing-table">
+      <table class="table">
         <thead>
           <tr>
-            <th style="width: 70%;">Descripción del Servicio</th>
-            <th style="width: 30%; text-align: right;">Inversión Neta</th>
+            <th style="width: 70%">Descripción del Servicio</th>
+            <th style="width: 30%; text-align: right">Inversión Neta</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>
-              <div style="font-weight: 700; margin-bottom: 4px;">${deal.title}</div>
-              <div style="color: #8E8E93; font-size: 10px;">Servicios integrales según requerimiento operativo.</div>
+              <div style="font-weight: 700; font-size: 14px; margin-bottom: 5px;">${deal.title}</div>
+              <div style="color: #8E8E93; font-size: 11px;">Operación industrial especializada según estándar de calidad corporativo.</div>
             </td>
-            <td class="amount">${formatter.format(neto)}</td>
+            <td style="text-align: right; font-weight: 600;">${formatter.format(neto)}</td>
           </tr>
         </tbody>
       </table>
 
-      <div class="totals-section">
+      <div class="totals">
         <div class="total-row">
           <span>Subtotal Neto</span>
-          <span class="total-amount">${formatter.format(neto)}</span>
+          <span style="font-weight: 600;">${formatter.format(neto)}</span>
         </div>
         <div class="total-row">
           <span>IVA (19%)</span>
-          <span class="total-amount">${formatter.format(iva)}</span>
+          <span style="font-weight: 600;">${formatter.format(iva)}</span>
         </div>
         <div class="total-row grand-total">
-          <span class="grand-total-label">TOTAL CLP</span>
-          <span class="grand-total-amount">${formatter.format(total)}</span>
+          <span style="color: #1C1C1E; font-size: 14px;">TOTAL CLP</span>
+          <span>${formatter.format(total)}</span>
         </div>
       </div>
 
-      <div class="pdf-footer">
-        Certificado Digital: Propuesta aprobada electrónicamente por ${companyData?.razon_social}. 
-        IP: ${deal.signature_ip || 'Auditada via Web'} &nbsp;|&nbsp; 
+      <div class="footer">
+        Certificado de Auditoría Digital: Este documento fue aprobado por ${companyData?.razon_social} mediante firma electrónica simple.
+        IP de Registro: ${deal.signature_ip || 'Auditada via Web'} &nbsp;|&nbsp; 
         Timestamp: ${deal.signature_date ? new Date(deal.signature_date).toLocaleString() : new Date().toLocaleString()}.
         <br/><br/>
-        ${miEmpresa.company_website || ''}
+        Ref Operacional: ${deal.id}
       </div>
     </div>
   `
 
   document.body.appendChild(container)
 
-  // 3. Generar PDF (Pequeña espera para asegurar que las fuentes/estilos se apliquen)
-  setTimeout(async () => {
-    // Dirty fix: jsPDF.html() busca html2canvas en el objeto global en entornos de módulos
-    (window as any).html2canvas = html2canvas
+  try {
+    // 3. Pequeña espera para asegurar carga de estilos y fuentes
+    await new Promise(resolve => setTimeout(resolve, 800))
 
-    const doc = new jsPDF({
-      unit: 'px',
-      format: 'a4',
-      hotfixes: ['px_scaling']
+    // 4. Captura Manual con html2canvas
+    const canvas = await html2canvas(container, {
+      scale: 2, // Calidad Retina
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#FFFFFF',
+      onclone: (clonedDoc) => {
+        const el = clonedDoc.getElementById('pdf-template-container');
+        if (el) el.style.visibility = 'visible';
+      }
     })
 
-    await doc.html(container, {
-      callback: function(doc) {
-        doc.save(`Propuesta_${(companyData?.razon_social || "Cliente").replace(/\s+/g, '_')}.pdf`)
-        document.body.removeChild(container)
-      },
-      html2canvas: {
-        scale: 0.75,
-        useCORS: true,
-        logging: false
-      },
-      x: 10,
-      y: 10,
-      autoPaging: 'text'
-    })
-  }, 500)
+    const imgData = canvas.toDataURL('image/jpeg', 0.95)
+    
+    // 5. Generar PDF Segmentado
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+    
+    const imgWidth = canvas.width
+    const imgHeight = canvas.height
+    
+    const ratio = pdfWidth / imgWidth
+    const pageImgHeight = imgHeight * ratio
+    
+    let heightLeft = pageImgHeight
+    let position = 0
+
+    // Primera Página
+    pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pageImgHeight)
+    heightLeft -= pdfHeight
+
+    // Páginas Siguientes (si es necesario)
+    while (heightLeft >= 0) {
+      position = heightLeft - pageImgHeight
+      pdf.addPage()
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pageImgHeight)
+      heightLeft -= pdfHeight
+    }
+
+    pdf.save(`Propuesta_${(companyData?.razon_social || "Cliente").replace(/\s+/g, '_')}.pdf`)
+    
+  } catch (error) {
+    console.error('Error generando PDF Plan B:', error)
+    alert('Error al generar el documento. Por favor intente nuevamente.')
+  } finally {
+    document.body.removeChild(container)
+  }
 }
+
 
 
