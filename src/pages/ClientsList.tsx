@@ -26,6 +26,8 @@ import { ClientFormDialog } from "../components/ClientFormDialog"
 import { ImportClientsDialog } from "../components/ImportClientsDialog"
 import { supabase } from "../lib/supabase/client"
 import { ClientDetailsDialog } from "../components/ClientDetailsDialog"
+import { ClientMapView } from "../components/ClientMapView"
+import { Map, List } from "lucide-react"
 
 export default function ClientsList() {
   const [clients, setClients] = useState<Company[]>([])
@@ -33,6 +35,7 @@ export default function ClientsList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClientForDetail, setSelectedClientForDetail] = useState<any>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
 
   const fetchCompanies = async () => {
     setLoading(true)
@@ -87,14 +90,33 @@ export default function ClientsList() {
             {filteredClients.length} empresas · Directorio B2B
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-8 md:mt-0 w-full md:w-auto">
-          <div className="w-full sm:w-auto">
-            <ImportClientsDialog onImported={fetchCompanies} />
+          <div className="flex items-center gap-3 mt-8 md:mt-0">
+            {/* View Toggle */}
+            <div className="flex glass-island p-1 rounded-full shadow-sm border border-black/[0.03] dark:border-white/[0.05]">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-1.5 h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                  viewMode === 'list' ? 'bg-white dark:bg-white/10 text-black dark:text-white shadow-sm' : 'text-muted-foreground opacity-40 hover:opacity-70'
+                }`}
+              >
+                <List className="h-3.5 w-3.5" /> Lista
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`flex items-center gap-1.5 h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                  viewMode === 'map' ? 'bg-white dark:bg-white/10 text-black dark:text-white shadow-sm' : 'text-muted-foreground opacity-40 hover:opacity-70'
+                }`}
+              >
+                <Map className="h-3.5 w-3.5" /> Mapa
+              </button>
+            </div>
+            <div className="w-full sm:w-auto">
+              <ImportClientsDialog onImported={fetchCompanies} />
+            </div>
+            <div className="w-full sm:w-auto">
+              <ClientFormDialog onClientCreated={fetchCompanies} />
+            </div>
           </div>
-          <div className="w-full sm:w-auto">
-            <ClientFormDialog onClientCreated={fetchCompanies} />
-          </div>
-        </div>
       </div>
 
       {/* Search Bar Mobile Premium */}
@@ -109,7 +131,20 @@ export default function ClientsList() {
         />
       </div>
       
-      {/* Table Desktop / Cards Mobile */}
+      {/* Map View */}
+      {viewMode === 'map' && (
+        <ClientMapView
+          clients={filteredClients}
+          onClientClick={(client) => {
+            setSelectedClientForDetail(client)
+            setIsDetailOpen(true)
+          }}
+        />
+      )}
+
+      {/* List Views */}
+      {viewMode === 'list' && (
+      <>
       <div className="md:hidden space-y-3">
         {loading ? (
           <div className="text-center py-20 opacity-40 font-black uppercase tracking-widest text-xs animate-pulse">Sincronizando Clientes...</div>
@@ -349,6 +384,8 @@ export default function ClientsList() {
           </TableBody>
         </Table>
       </div>
+      </>
+      )}
       <ClientDetailsDialog 
         client={selectedClientForDetail} 
         open={isDetailOpen} 

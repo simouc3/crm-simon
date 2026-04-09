@@ -84,6 +84,10 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
   const [isEditingM2, setIsEditingM2] = useState(false)
 
   const [generatingIA, setGeneratingIA] = useState(false)
+  const [deployedAt, setDeployedAt] = useState<string | null>(null)
+  const [deploying, setDeploying] = useState(false)
+  const [followUpDraft, setFollowUpDraft] = useState<string | null>(null)
+  const [sendingFollowUp, setSendingFollowUp] = useState(false)
 
   const fetchFiles = async () => {
     if (!deal) return
@@ -109,6 +113,8 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
       setContractDuration(deal.contract_duration || "")
       setPaymentTerms(deal.payment_terms || "")
       setOfferValidity(deal.offer_validity || "")
+      setDeployedAt(deal.deployed_at || null)
+      setFollowUpDraft(deal.follow_up_draft || null)
       
       fetchFiles()
     }
@@ -309,22 +315,29 @@ Equipo Comercial`)
     await fetchFiles()
   }
 
+
   const saveCotizacion = async () => {
     const neto = parseFloat(valorNetoCotizado) || 0
+
+    // Auto-generate token if deal doesn't have one yet
+    const tokenToSave = deal.public_token || crypto.randomUUID()
+
     const { error } = await supabase.from('deals').update({ 
       cotizacion_detalles: cotizacionDetalles,
       valor_neto: neto,
       valor_total: neto * 1.19,
       contract_duration: contractDuration,
       payment_terms: paymentTerms,
-      offer_validity: offerValidity
+      offer_validity: offerValidity,
+      public_token: tokenToSave,
+      proposal_status: deal.proposal_status || 'DRAFT'
     }).eq('id', deal.id)
     
     if (!error) {
       if (onDealUpdated) onDealUpdated()
-      alert("Cotización y Términos Comerciales guardados exitosamente.")
+      alert("Propuesta guardada. Enlace Comercial listo para compartir.")
     } else {
-      alert("Error guardando cotización: " + error.message)
+      alert("Error guardando propuesta: " + error.message)
     }
   }
 
@@ -334,36 +347,36 @@ Equipo Comercial`)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[32px] p-0 border-none bg-white dark:bg-[#0D0D17] shadow-[0_40px_100px_rgba(0,0,0,0.3)]">
         
-        {/* ── Compact Header (mobile-first) ── */}
-        <div className="px-5 pt-5 pb-4 md:px-10 md:pt-8 md:pb-6 bg-[#F5F5F7] dark:bg-[#141420] border-b border-black/[0.04] dark:border-white/[0.08] relative">
+        {/* ── Header Compacto ── */}
+        <div className="px-5 pt-5 pb-4 md:px-8 md:pt-6 md:pb-5 bg-[#F5F5F7] dark:bg-[#141420] border-b border-black/[0.04] dark:border-white/[0.08] relative">
            <div className="relative z-10">
               {/* Top: ID + stage badge */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-40">ID: {deal.id.split('-')[0]}</span>
+                  <span className="text-[8px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-30">ID: {deal.id.split('-')[0]}</span>
                 </div>
               </div>
 
               {/* Company + title row */}
-              <div className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex-shrink-0 flex items-center justify-center border border-black/[0.04]">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex-shrink-0 flex items-center justify-center border border-black/[0.04]">
                   <Building2 className="h-5 w-5 text-primary/60" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-[22px] md:text-[32px] font-black tracking-tight leading-none text-foreground mb-1">
+                  <h2 className="text-[20px] md:text-[28px] font-black tracking-tight leading-none text-foreground mb-1">
                     {deal.nombre_proyecto || 'Oportunidad'}
                   </h2>
-                  <p className="text-[13px] font-semibold text-muted-foreground/60 truncate">{deal.companies?.razon_social}</p>
+                  <p className="text-[12px] font-semibold text-muted-foreground/60 truncate">{deal.companies?.razon_social}</p>
                 </div>
                 {/* Amount — right aligned */}
                 <div className="text-right flex-shrink-0">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-none mb-1">Inversión</p>
-                  <p className="text-[20px] md:text-[28px] font-black tracking-tighter text-foreground tabular-nums leading-none">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 leading-none mb-1">Inversión</p>
+                  <p className="text-[18px] md:text-[24px] font-black tracking-tighter text-foreground tabular-nums leading-none">
                     {fmtCLP(deal.valor_neto || 0)}
                   </p>
-                  {deal.companies?.lead_score !== undefined && deal.companies?.lead_score !== null && deal.companies?.lead_score > 0 && (
-                    <div className="inline-flex items-center gap-1 bg-primary/10 text-primary text-[9px] font-black px-2 py-0.5 rounded-full mt-1">
-                      <Zap className="h-2.5 w-2.5 fill-primary" /> {deal.companies.lead_score}pts
+                  {deal.companies?.lead_score !== undefined && deal.companies?.lead_score !== null && (
+                    <div className="inline-flex items-center gap-1 bg-primary/10 text-primary text-[8px] font-black px-1.5 py-0.5 rounded-full mt-1">
+                      <Zap className="h-2 w-2 fill-primary" /> {deal.companies.lead_score}
                     </div>
                   )}
                 </div>
@@ -371,11 +384,10 @@ Equipo Comercial`)
            </div>
         </div>
 
-        <div className="p-4 md:p-8 space-y-4 md:space-y-8">
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6">
           
-          {/* ── Status Bar (Apple iOS Cards Style) ── */}
-          {/* ── Unified Status Bar (Apple System Style) ── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 bg-slate-50 dark:bg-white/[0.02] rounded-[24px] border border-black/[0.04] dark:border-white/[0.04] divide-y md:divide-y-0 md:divide-x divide-black/[0.04] dark:divide-white/[0.04] shadow-sm mb-6">
+          {/* ── Status Bar Compact ── */}
+          <div className="grid grid-cols-1 md:grid-cols-3 bg-slate-50 dark:bg-white/[0.02] rounded-2xl border border-black/[0.04] dark:border-white/[0.04] divide-y md:divide-y-0 md:divide-x divide-black/[0.04] dark:divide-white/[0.04] shadow-sm mb-4">
             
             {/* Sector 1: Selector de Etapa */}
             <div className="p-5 flex flex-col justify-center">
@@ -427,11 +439,11 @@ Equipo Comercial`)
             </div>
 
             {/* Sector 3: Contrato */}
-            <div className={`p-5 flex flex-col justify-center transition-colors rounded-r-[24px] ${
+            <div className={`p-4 flex flex-col justify-center transition-colors rounded-r-2xl ${
               isContract ? 'bg-indigo-50/50 dark:bg-indigo-500/5' : ''
             }`}>
-              <div className="flex items-center justify-between mb-3">
-                <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isContract ? 'text-indigo-600/70 dark:text-indigo-400/70' : 'text-muted-foreground opacity-50'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${isContract ? 'text-indigo-600/70 dark:text-indigo-400/70' : 'text-muted-foreground opacity-50'}`}>
                   SLA Activo
                 </p>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -500,7 +512,7 @@ Equipo Comercial`)
                )}
 
                <div className={`transition-all duration-500 ${currentStage === 6 ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-                 <div className="bg-slate-50 dark:bg-white/[0.02] rounded-2xl p-1.5 border border-black/[0.03] dark:border-white/[0.03] mb-8">
+                 <div className="bg-slate-50 dark:bg-white/[0.02] rounded-2xl p-1 border border-black/[0.03] dark:border-white/[0.03] mb-4">
                     <AIAssistantWidget deal={deal} onNewActivity={onDealUpdated} />
                  </div>
 
@@ -659,7 +671,7 @@ Equipo Comercial`)
                                  {!showNotaField ? (
                                    <Button 
                                      onClick={() => setShowNotaField(true)}
-                                     className="w-full h-16 rounded-2xl bg-white dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05] text-foreground hover:bg-slate-50 dark:hover:bg-white/10 flex items-center justify-between px-6 transition-all group"
+                                     className="w-full h-12 rounded-2xl bg-white dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05] text-foreground hover:bg-slate-50 dark:hover:bg-white/10 flex items-center justify-between px-6 transition-all group"
                                    >
                                      <div className="flex items-center gap-3">
                                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -707,17 +719,17 @@ Equipo Comercial`)
 
                      {/* ETAPA 4: PROPUESTA — Quantum Parser Integration */}
                      {currentStage === 4 && (
-                       <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-8 border border-black/[0.03] dark:border-white/[0.03] shadow-sm mb-6 relative overflow-hidden">
+                       <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-4 border border-black/[0.03] dark:border-white/[0.03] shadow-sm mb-4 relative overflow-hidden">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
                          
                          <div className="relative z-10">
-                           <div className="flex items-center gap-3 mb-6">
-                             <div className="w-10 h-10 rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
-                                <Globe className="h-5 w-5 text-white" />
+                           <div className="flex items-center gap-2 mb-3">
+                             <div className="w-10 h-10 rounded-xl bg-indigo-500 shadow-md shadow-indigo-500/20 flex items-center justify-center">
+                                <Globe className="h-4 w-4 text-white" />
                              </div>
                              <div>
-                               <h3 className="font-black text-[15px] tracking-tight text-foreground uppercase">Magic Link & Propuesta IA</h3>
-                               <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">Configuración Comercial</p>
+                               <h3 className="font-black text-[12px] tracking-tight text-foreground uppercase">Portal de Propuesta IA</h3>
+                               <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">Enlace Comercial Seguro</p>
                              </div>
                            </div>
 
@@ -772,7 +784,7 @@ Equipo Comercial`)
                                        className="h-11 w-11 shrink-0 rounded-xl"
                                        onClick={() => {
                                          navigator.clipboard.writeText(`${window.location.origin}/p/${deal.public_token}`)
-                                         alert("Enlace copiado al portapapeles")
+                                         alert("Enlace Comercial copiado al portapapeles")
                                        }}
                                      >
                                        <Copy className="h-4 w-4" />
@@ -795,14 +807,14 @@ Equipo Comercial`)
                      )}
 
                      {(currentStage === 4 || currentStage === 5) && (
-                        <div className="p-8 rounded-[40px] bg-amber-500/5 border border-amber-500/20 space-y-6">
+                        <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-4">
                            <div className="flex items-center gap-3">
                               <div className="h-2 w-2 rounded-full bg-amber-500" />
-                              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600">Configuración de Propuesta</p>
+                              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Configuración de Propuesta</p>
                            </div>
                            <div className="space-y-4">
-                              <Input type="number" placeholder="Monto Neto Ofertado ($)..." value={valorNetoCotizado} onChange={(e) => setValorNetoCotizado(e.target.value)} className="h-14 rounded-full font-black text-lg px-8 border-amber-500/10 dark:bg-black/20" />
-                              <Textarea placeholder="Desglose de servicios y alcances técnicos..." value={cotizacionDetalles} onChange={(e) => setCotizacionDetalles(e.target.value)} className="rounded-[32px] min-h-[120px] font-bold text-[14px] p-6 border-amber-500/10 dark:bg-black/20" />
+                              <Input type="number" placeholder="Monto Neto Ofertado ($)..." value={valorNetoCotizado} onChange={(e) => setValorNetoCotizado(e.target.value)} className="h-11 rounded-full font-black text-[15px] px-6 border-amber-500/10 dark:bg-black/20" />
+                              <Textarea placeholder="Desglose de servicios y alcances técnicos..." value={cotizacionDetalles} onChange={(e) => setCotizacionDetalles(e.target.value)} className="rounded-2xl min-h-[90px] font-bold text-[13px] p-4 border-amber-500/10 dark:bg-black/20" />
                               
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div className="space-y-1">
@@ -819,39 +831,84 @@ Equipo Comercial`)
                                 </div>
                               </div>
 
-                               <Button className="w-full h-14 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-amber-500/20" onClick={saveCotizacion}>
+                               <Button className="w-full h-12 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20" onClick={saveCotizacion}>
                                  Fijar Propuesta y Términos B2B
                                </Button>
 
-                               {/* Magic Link Section */}
-                               {deal.public_token && (
-                                 <div className="pt-4 mt-2 border-t border-amber-500/10 space-y-3">
-                                   <div className="flex items-center justify-between">
-                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 opacity-60">Magic Link B2B</p>
-                                     <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full">
-                                       {deal.proposal_status === 'ACCEPTED' ? '✅ APROBADO' : deal.proposal_status === 'VIEWED' ? '👀 VISTO' : deal.proposal_status || 'DRAFT'}
-                                     </span>
-                                   </div>
-                                   <Button
-                                     variant="outline"
-                                     onClick={() => {
-                                       const url = `${window.location.origin}/p/${deal.public_token}`
-                                       navigator.clipboard.writeText(url)
-                                       alert('Magic Link copiado al portapapeles.')
-                                     }}
-                                     className="w-full h-12 rounded-full border-amber-500/20 hover:bg-amber-500/10 text-amber-700 dark:text-amber-500 font-bold text-[11px] uppercase tracking-widest"
-                                   >
-                                     Copiar Enlace para Cliente
-                                   </Button>
-                                   <p className="text-center text-[10px] font-black text-amber-600/50 uppercase tracking-[0.2em]">
-                                     Aperturas detectadas: {deal.proposal_view_count || 0}
-                                   </p>
+                               {/* Enlace Comercial Section */}
+                               <div className="pt-4 mt-2 border-t border-amber-500/10 space-y-3">
+                                 <div className="flex items-center justify-between">
+                                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 opacity-60">Enlace Comercial</p>
+                                   <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full">
+                                     {deal.proposal_status === 'ACCEPTED' ? '✅ APROBADO' : deal.proposal_status === 'VIEWED' ? '👀 VISTO' : deal.proposal_status || 'BORRADOR'}
+                                   </span>
                                  </div>
-                               )}
+                                {deal.public_token ? (<>
+                                   <div className="flex gap-2">
+                                     <Button
+                                       className="flex-1 h-10 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-widest gap-1.5"
+                                       onClick={() => {
+                                         const url = `${window.location.origin}/p/${deal.public_token}`
+                                         navigator.clipboard.writeText(url)
+                                         alert('Enlace Comercial copiado al portapapeles.')
+                                       }}
+                                     >
+                                       <Copy className="h-3.5 w-3.5" /> Copiar Enlace
+                                     </Button>
+                                     <Button
+                                       variant="outline"
+                                       size="icon"
+                                       className="h-10 w-10 shrink-0 rounded-full border-amber-500/20 hover:bg-amber-500/10"
+                                       onClick={() => window.open(`/p/${deal.public_token}`, '_blank')}
+                                       title="Vista previa"
+                                     >
+                                       <ExternalLink className="h-3.5 w-3.5 text-amber-600" />
+                                     </Button>
+                                   </div>
+                                   <p className="text-center text-[9px] font-black text-amber-600/40 uppercase tracking-[0.2em]">
+                                     Aperturas: {deal.proposal_view_count || 0}
+                                   </p>
+                                 </>) : (
+                                   <Button
+                                     className="w-full h-10 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 font-black text-[10px] uppercase tracking-widest gap-2"
+                                     onClick={saveCotizacion}
+                                   >
+                                     <Globe className="h-3.5 w-3.5" /> Generar Enlace Comercial
+                                   </Button>
+                                 )}
+                                 </div>
                             </div>
                         </div>
                      )}
                      
+                     {currentStage === 4 && followUpDraft && (!deal.proposal_status || deal.proposal_status === 'DRAFT') && (
+                        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3 animate-in fade-in slide-in-from-top-2">
+                           <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Propuesta sin abrir — +72h</p>
+                           </div>
+                           <p className="text-[11px] font-bold text-amber-700/80 leading-relaxed line-clamp-3 italic">&#34;{followUpDraft}&#34;</p>
+                           <Button
+                              disabled={sendingFollowUp}
+                              onClick={async () => {
+                                setSendingFollowUp(true)
+                                const email = deal.companies?.contact_email || ''
+                                const empresa = deal.companies?.razon_social || deal.nombre_proyecto || 'Cliente'
+                                const subject = encodeURIComponent(`Seguimiento Propuesta — ${empresa}`)
+                                const body = encodeURIComponent(followUpDraft || '')
+                                window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank')
+                                // Clear draft after sending
+                                await supabase.from('deals').update({ follow_up_draft: null }).eq('id', deal.id)
+                                setFollowUpDraft(null)
+                                setSendingFollowUp(false)
+                              }}
+                              className="w-full h-9 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest"
+                           >
+                              Enviar Seguimiento (1 Clic)
+                           </Button>
+                        </div>
+                     )}
+
                      {currentStage === 6 && (
                         <div className="p-8 md:p-12 rounded-[48px] bg-slate-950 dark:bg-white text-white dark:text-black shadow-2xl relative overflow-hidden group">
                            <div className="absolute top-0 right-0 -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-1000 rotate-12">
@@ -863,15 +920,42 @@ Equipo Comercial`)
                                     <CheckCircle2 className="h-3.5 w-3.5" /> Deploy Ready
                                  </div>
                                  <h4 className="text-3xl md:text-4xl font-black tracking-tighter leading-none">Entrega a Operaciones</h4>
-                                 <p className="text-[14px] md:text-[16px] font-bold opacity-60 leading-relaxed max-w-[90%]">Ejecutar traspaso técnico y notificar al equipo de despliegue para inicio de servicios.</p>
+                                 <p className="text-[14px] md:text-[16px] font-bold opacity-60 leading-relaxed max-w-[90%]">Notifica al equipo operativo para iniciar los servicios contratados. Esta acción es definitiva.</p>
                               </div>
-                              <Button className="w-full h-16 rounded-full bg-primary text-white hover:bg-primary/90 font-black text-[13px] uppercase tracking-[0.2em] flex items-center justify-center gap-4 shadow-xl shadow-primary/20 transition-all active:scale-[0.98]" onClick={() => {
-                                 const empresa = deal.companies?.razon_social || deal.title
-                                 const subject = encodeURIComponent(`📦 TRASPASO TÉCNICO - ${empresa}`)
-                                 window.open(`mailto:?subject=${subject}&body=Resumen ejecutivo de cierre listo en plataforma...`, '_blank')
-                              }}>
-                                 <Mail className="h-6 w-6" /> Notificar Despliegue
-                              </Button>
+                              {deployedAt ? (
+                                 <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/10 border border-white/20">
+                                    <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                                    <div>
+                                       <p className="font-black text-[12px] text-white/90">Desplegado con éxito</p>
+                                       <p className="text-[10px] text-white/50">{new Date(deployedAt).toLocaleString('es-CL', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+                                 </div>
+                              ) : (
+                                 <Button
+                                    disabled={deploying}
+                                    className="w-full h-16 rounded-full bg-primary text-white hover:bg-primary/90 font-black text-[13px] uppercase tracking-[0.2em] flex items-center justify-center gap-4 shadow-xl shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50"
+                                    onClick={async () => {
+                                       const empresa = deal.companies?.razon_social || deal.nombre_proyecto || deal.title
+                                       const confirmed = window.confirm(`¿Confirmar notificación de despliegue para "${empresa}"?\n\nEsto enviará el correo a Operaciones y cerrará el ciclo de ventas.`)
+                                       if (!confirmed) return
+                                       setDeploying(true)
+                                       try {
+                                         const now = new Date().toISOString()
+                                         const { error } = await supabase.from('deals').update({ deployed_at: now }).eq('id', deal.id)
+                                         if (!error) {
+                                           setDeployedAt(now)
+                                           if (onDealUpdated) onDealUpdated()
+                                         } else {
+                                           alert('Error al registrar el despliegue: ' + error.message)
+                                         }
+                                       } finally {
+                                         setDeploying(false)
+                                       }
+                                    }}
+                                 >
+                                    <Mail className="h-6 w-6" /> {deploying ? 'Procesando...' : 'Notificar Despliegue'}
+                                 </Button>
+                              )}
                            </div>
                         </div>
                      )}

@@ -165,6 +165,86 @@ function SectionTitle({ title, sub }: { title: string; sub: string }) {
   )
 }
 
+// ── Proposal Telemetry Widget ──────────────────────────────────────────
+function ProposalTelemetryWidget({ deals }: { deals: any[] }) {
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+  const proposalDeals = deals.filter(d =>
+    (d.stage === 4 || d.stage === 5) &&
+    (d.stage_changed_at || d.created_at) >= startOfMonth
+  )
+
+  const totalEnviadas = proposalDeals.length
+  const vistas = proposalDeals.filter(d => d.proposal_status === 'VIEWED' || d.proposal_status === 'ACCEPTED').length
+  const sinAbrir = proposalDeals.filter(d => !d.proposal_status || d.proposal_status === 'DRAFT').length
+  const aceptadas = deals.filter(d => d.proposal_status === 'ACCEPTED').length
+  const totalWithProposal = deals.filter(d => d.proposal_status && d.proposal_status !== 'DRAFT').length
+  const conversionRate = totalWithProposal > 0 ? Math.round((aceptadas / totalWithProposal) * 100) : 0
+
+  const stats = [
+    { label: 'Enviadas', value: totalEnviadas, color: '#6366f1', pct: 100 },
+    { label: 'Abiertas', value: vistas, color: '#10b981', pct: totalEnviadas > 0 ? Math.round((vistas / totalEnviadas) * 100) : 0 },
+    { label: 'Sin Ver', value: sinAbrir, color: '#f59e0b', pct: totalEnviadas > 0 ? Math.round((sinAbrir / totalEnviadas) * 100) : 0 },
+  ]
+
+  return (
+    <div className="rounded-[32px] border border-border/30 dark:border-white/[0.06] bg-white/50 dark:bg-[#1C1C1E]/50 p-8 md:p-10 overflow-hidden relative shadow-sm">
+      <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/5 rounded-full -mr-24 -mt-24 blur-3xl pointer-events-none" />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+              <Target className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-black text-[17px] tracking-tight dark:text-slate-100 uppercase">Telemetría de Propuestas</h3>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Magic Links — Mes Actual</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Conversión</p>
+            <p className="text-[32px] font-black tracking-tighter tabular-nums text-indigo-600 dark:text-indigo-400 leading-none">{conversionRate}%</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          {stats.map((s, i) => (
+            <div key={i} className="bg-slate-50/80 dark:bg-white/[0.03] rounded-2xl p-4 border border-black/[0.03] dark:border-white/[0.04]">
+              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-2">{s.label}</p>
+              <p className="text-[28px] font-black tracking-tighter tabular-nums leading-none" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          {stats.map((s, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-50 w-16 shrink-0">{s.label}</span>
+              <div className="flex-1 h-[5px] bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{ width: `${s.pct}%`, backgroundColor: s.color }}
+                />
+              </div>
+              <span className="text-[10px] font-black tabular-nums opacity-60 w-8 text-right">{s.pct}%</span>
+            </div>
+          ))}
+        </div>
+
+        {sinAbrir > 0 && (
+          <div className="mt-6 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/50 dark:border-amber-500/20 flex items-center gap-3">
+            <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            <p className="text-[10px] font-black text-amber-700 dark:text-amber-400">
+              {sinAbrir} propuesta{sinAbrir > 1 ? 's' : ''} sin abrir — Gestiona el seguimiento en cada negocio
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────
 export default function Dashboard() {
   const [deals, setDeals] = useState<any[]>([])
@@ -488,6 +568,9 @@ export default function Dashboard() {
               </div>
             </div>
           </section>
+
+          {/* ── Telemetría de Propuestas ── */}
+          <ProposalTelemetryWidget deals={deals} />
 
           <section className="grid gap-8 grid-cols-1 lg:grid-cols-2">
             <div className="space-y-6">

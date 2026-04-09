@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/client'
 import { SettingsDialog } from '../SettingsDialog'
 import { NotificationPrompt } from '../NotificationPrompt'
 import { MobileActionSheet } from '../MobileActionSheet'
+import { usePlaybooks } from '../../hooks/usePlaybooks'
 // Chat flotante removido por decisión de producto
 
 export default function AppLayout() {
@@ -18,6 +19,9 @@ export default function AppLayout() {
   const [branding, setBranding] = useState({ name: 'CRM SIMON', logo: '' })
   const [userRole, setUserRole] = useState<string>('VENDEDOR')
   const [avatarUrl, setAvatarUrl] = useState<string>('')
+
+  // AI Playbooks — auto-run once per session
+  usePlaybooks()
 
   const fetchBranding = async () => {
     try {

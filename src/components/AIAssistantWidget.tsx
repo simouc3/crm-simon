@@ -348,15 +348,15 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
     <div className="rounded-[40px] border border-border/30 dark:border-white/[0.06] bg-white dark:bg-[#1C1C1E] overflow-hidden shadow-sm dark:shadow-none hover:shadow-2xl transition-all duration-700 mb-6 group relative">
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors" />
       
-      {/* Header */}
-      <div className="p-8 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/30 dark:bg-white/[0.01]">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-[18px] bg-primary/10 flex items-center justify-center border border-primary/20">
-            <Orbit className="h-6 w-6 text-primary animate-[spin_8s_linear_infinite]" />
+      {/* Header compactado */}
+      <div className="p-5 border-b border-border/30 dark:border-white/[0.06] flex items-center justify-between bg-slate-50/30 dark:bg-white/[0.01]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[14px] bg-primary/10 flex items-center justify-center border border-primary/20">
+            <Orbit className="h-5 w-5 text-primary animate-[spin_8s_linear_infinite]" />
           </div>
           <div>
-            <h3 className="font-black text-[16px] tracking-tight dark:text-slate-100 uppercase">CORE AI</h3>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">Módulo de Apoyo Estratégico</p>
+            <h3 className="font-black text-[14px] tracking-tight dark:text-slate-100 uppercase">CORE AI</h3>
+            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">Apoyo Estratégico</p>
           </div>
         </div>
         
@@ -401,43 +401,37 @@ Extrae si hay compromisos u obligaciones futuras. Devuelve estrictamente un JSON
             )}
           </div>
         ) : (
-          <div className="space-y-6">
-             <div className="grid grid-cols-1 gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                   <Button 
-                     onClick={handleSummarize} 
-                     disabled={loadingType !== null}
-                     className="w-full rounded-[32px] bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] text-foreground border border-black/[0.05] dark:border-white/[0.08] h-auto py-6 flex flex-col items-center justify-center gap-3 transition-all shadow-[0_4px_20px_-8px_rgba(0,0,0,0.05)] active:scale-95 group/btn"
-                   >
-                     <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
-                        {loadingType === 'summary' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Activity className="h-5 w-5 text-primary" />}
-                     </div>
-                     <span className="font-black text-[10px] uppercase tracking-[0.2em] opacity-60 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">Análisis Core</span>
-                   </Button>
-                   
-                   <Button 
-                     onClick={handleEmailDraft} 
-                     disabled={loadingType !== null || isRecording}
-                     className="w-full rounded-[32px] bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] text-foreground border border-black/[0.05] dark:border-white/[0.08] h-auto py-6 flex flex-col items-center justify-center gap-3 transition-all shadow-[0_4px_20px_-8px_rgba(0,0,0,0.05)] active:scale-95 group/btn"
-                   >
-                     <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center group-hover/btn:scale-110 transition-transform">
-                        {loadingType === 'email' ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5 text-primary" />}
-                     </div>
-                     <span className="font-black text-[10px] uppercase tracking-[0.2em] opacity-60 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">Borrador Email</span>
-                   </Button>
-                </div>
+          <div className="space-y-4">
+             <div className="flex items-center gap-2">
+                <Button 
+                  onClick={handleSummarize} 
+                  disabled={loadingType !== null}
+                  className="flex-1 rounded-2xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] text-foreground border border-black/[0.05] dark:border-white/[0.08] h-11 flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 group/btn"
+                >
+                  <Activity className={`h-3.5 w-3.5 ${loadingType === 'summary' ? 'animate-spin' : 'text-primary'}`} />
+                  <span className="font-black text-[9px] uppercase tracking-widest opacity-70 group-hover/btn:opacity-100">Análisis</span>
+                </Button>
                 
                 <Button 
-                 onClick={handleVoiceNote} 
-                 disabled={loadingType !== null || isRecording}
-                 className={`w-full rounded-[32px] border h-16 flex items-center justify-center gap-4 transition-all active:scale-95 ${isRecording ? 'bg-rose-500 text-white animate-pulse border-rose-600' : 'bg-primary text-white hover:bg-primary/90 border-transparent shadow-2xl shadow-primary/30'}`}
+                  onClick={handleEmailDraft} 
+                  disabled={loadingType !== null || isRecording}
+                  className="flex-1 rounded-2xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] text-foreground border border-black/[0.05] dark:border-white/[0.08] h-11 flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 group/btn"
                 >
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isRecording ? 'bg-rose-600' : 'bg-white/20'}`}>
-                    {loadingType === 'voice' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className={`h-4 w-4 ${isRecording ? 'animate-bounce' : ''}`} />}
-                  </div>
-                  <span className="font-black text-[11px] uppercase tracking-[0.25em]">{isRecording ? 'Escuchando Voz...' : 'Grabar Nota Técnica'}</span>
+                  <Mail className={`h-3.5 w-3.5 ${loadingType === 'email' ? 'animate-spin' : 'text-primary'}`} />
+                  <span className="font-black text-[9px] uppercase tracking-widest opacity-70 group-hover/btn:opacity-100">Borrador</span>
                 </Button>
              </div>
+             
+             <Button 
+              onClick={handleVoiceNote} 
+              disabled={loadingType !== null || isRecording}
+              className={`w-full rounded-2xl border h-12 flex items-center justify-center gap-3 transition-all active:scale-95 ${isRecording ? 'bg-rose-500 text-white animate-pulse border-rose-600' : 'bg-primary text-white hover:bg-primary/90 border-transparent shadow-lg shadow-primary/20'}`}
+             >
+               <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isRecording ? 'bg-rose-600' : 'bg-white/20'}`}>
+                 {loadingType === 'voice' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Mic className={`h-3.5 w-3.5 ${isRecording ? 'animate-bounce' : ''}`} />}
+               </div>
+               <span className="font-black text-[10px] uppercase tracking-[0.2em]">{isRecording ? 'Escuchando...' : 'Grabar Nota Técnica'}</span>
+             </Button>
 
             {chatHistory.length > 0 && (
               <div className="space-y-4 animate-in slide-in-from-bottom-2 fade-in duration-500 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
