@@ -717,171 +717,114 @@ Equipo Comercial`)
                         </div>
                      )}
 
-                     {/* ETAPA 4: PROPUESTA — Quantum Parser Integration */}
-                     {currentStage === 4 && (
-                       <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-4 border border-black/[0.03] dark:border-white/[0.03] shadow-sm mb-4 relative overflow-hidden">
-                         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
-                         
-                         <div className="relative z-10">
-                           <div className="flex items-center gap-2 mb-3">
-                             <div className="w-10 h-10 rounded-xl bg-indigo-500 shadow-md shadow-indigo-500/20 flex items-center justify-center">
-                                <Globe className="h-4 w-4 text-white" />
-                             </div>
-                             <div>
-                               <h3 className="font-black text-[12px] tracking-tight text-foreground uppercase">Portal de Propuesta IA</h3>
-                               <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40">Enlace Comercial Seguro</p>
-                             </div>
-                           </div>
+                     {/* ── ETAPA 4 & 5: PROPUESTA UNIFICADA ── */}
+                      {(currentStage === 4 || currentStage === 5) && (
+                        <div className="space-y-3">
 
-                           {!deal.ia_proposal_report ? (
-                             <div className="space-y-4">
-                               <p className="text-xs font-medium text-muted-foreground leading-relaxed">
-                                 Utiliza el **Quantum Block Parser** para transformar tus notas técnicas en una propuesta comercial de alto impacto.
-                               </p>
-                               <Button 
-                                 onClick={generateIAProposal} 
-                                 disabled={generatingIA}
-                                 className="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest gap-2"
-                               >
-                                 {generatingIA ? (
-                                   <><Activity className="h-4 w-4 animate-spin" /> Analizando Notas...</>
-                                 ) : (
-                                   <><Sparkles className="h-4 w-4" /> Generar Propuesta IA</>
-                                 )}
-                               </Button>
-                             </div>
-                           ) : (
-                             <div className="space-y-6">
-                               <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-black/[0.02] dark:border-white/[0.02]">
-                                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-2">Previsualización IA</p>
-                                 <h4 className="font-black text-sm text-foreground mb-1">{deal.ia_proposal_report.title}</h4>
-                                 <p className="text-[10px] text-muted-foreground italic line-clamp-2">{deal.ia_proposal_report.technical_scope}</p>
-                               </div>
-
-                               <div className="flex flex-col gap-3">
-                                 <Button 
-                                   variant="outline" 
-                                   onClick={generateIAProposal} 
-                                   disabled={generatingIA}
-                                   className="h-11 rounded-xl border-indigo-500/20 text-indigo-500 hover:bg-indigo-500/5 font-bold text-xs"
-                                 >
-                                   Recalcular con IA
-                                 </Button>
-                                 
-                                 <div className="h-px bg-black/[0.05] dark:bg-white/[0.05] my-1" />
-                                 
-                                 <div className="space-y-3">
-                                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-40">Enlace Público para Cliente</p>
-                                   <div className="flex gap-2">
-                                     <Input 
-                                       readOnly 
-                                       value={`crm-simon.com/p/${deal.public_token}`} 
-                                       className="h-11 rounded-xl bg-slate-100 dark:bg-white/5 border-none font-mono text-[10px]"
-                                     />
-                                     <Button 
-                                       variant="outline" 
-                                       size="icon" 
-                                       className="h-11 w-11 shrink-0 rounded-xl"
-                                       onClick={() => {
-                                         navigator.clipboard.writeText(`${window.location.origin}/p/${deal.public_token}`)
-                                         alert("Enlace Comercial copiado al portapapeles")
-                                       }}
-                                     >
-                                       <Copy className="h-4 w-4" />
-                                     </Button>
-                                     <Button 
-                                       variant="outline" 
-                                       size="icon" 
-                                       className="h-11 w-11 shrink-0 rounded-xl"
-                                       onClick={() => window.open(`/p/${deal.public_token}`, '_blank')}
-                                     >
-                                       <ExternalLink className="h-4 w-4" />
-                                     </Button>
-                                   </div>
-                                 </div>
-                               </div>
-                             </div>
-                           )}
-                         </div>
-                       </div>
-                     )}
-
-                     {(currentStage === 4 || currentStage === 5) && (
-                        <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-4">
-                           <div className="flex items-center gap-3">
-                              <div className="h-2 w-2 rounded-full bg-amber-500" />
-                              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Configuración de Propuesta</p>
-                           </div>
-                           <div className="space-y-4">
-                              <Input type="number" placeholder="Monto Neto Ofertado ($)..." value={valorNetoCotizado} onChange={(e) => setValorNetoCotizado(e.target.value)} className="h-11 rounded-full font-black text-[15px] px-6 border-amber-500/10 dark:bg-black/20" />
-                              <Textarea placeholder="Desglose de servicios y alcances técnicos..." value={cotizacionDetalles} onChange={(e) => setCotizacionDetalles(e.target.value)} className="rounded-2xl min-h-[90px] font-bold text-[13px] p-4 border-amber-500/10 dark:bg-black/20" />
-                              
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <div className="space-y-1">
-                                   <label className="text-[10px] font-black uppercase text-amber-600/70 ml-2">Duración (Meses)</label>
-                                   <Input type="text" placeholder="Ej: 12 meses" value={contractDuration} onChange={(e) => setContractDuration(e.target.value)} className="h-12 rounded-2xl font-bold px-4 border-amber-500/10 dark:bg-black/20" />
+                          {/* 1. TÉRMINOS ECONÓMICOS */}
+                          <div className="rounded-2xl border border-border/40 dark:border-white/[0.06] overflow-hidden">
+                            <div className="px-4 py-3 bg-muted/30 dark:bg-white/[0.02] border-b border-border/30 dark:border-white/[0.05] flex items-center justify-between">
+                              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Términos Comerciales</p>
+                              {deal.proposal_status && (
+                                <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                                  deal.proposal_status === 'ACCEPTED' ? 'bg-emerald-500/15 text-emerald-500' :
+                                  deal.proposal_status === 'VIEWED'   ? 'bg-blue-500/15 text-blue-400' :
+                                  'bg-white/5 text-muted-foreground'
+                                }`}>
+                                  {deal.proposal_status === 'ACCEPTED' ? '✓ Aprobado' :
+                                   deal.proposal_status === 'VIEWED'   ? '● Vista' : 'Borrador'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="p-4 space-y-3">
+                              <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] font-black text-muted-foreground/30">$</span>
+                                <Input type="number" placeholder="0" value={valorNetoCotizado}
+                                  onChange={(e) => setValorNetoCotizado(e.target.value)}
+                                  className="h-12 pl-8 rounded-xl font-black text-[18px] bg-transparent border-border/40 dark:border-white/[0.06]" />
+                              </div>
+                              <Textarea placeholder="Descripción del alcance contratado..." value={cotizacionDetalles}
+                                onChange={(e) => setCotizacionDetalles(e.target.value)}
+                                className="rounded-xl min-h-[72px] text-[12px] p-3 bg-transparent border-border/40 dark:border-white/[0.06] resize-none" />
+                              <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                  <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1 pl-1">Duración</p>
+                                  <Input placeholder="12 meses" value={contractDuration} onChange={(e) => setContractDuration(e.target.value)}
+                                    className="h-9 rounded-lg text-[11px] font-bold px-3 bg-transparent border-border/40 dark:border-white/[0.06]" />
                                 </div>
-                                <div className="space-y-1">
-                                   <label className="text-[10px] font-black uppercase text-amber-600/70 ml-2">Forma de Pago</label>
-                                   <Input type="text" placeholder="Ej: 30 Días" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} className="h-12 rounded-2xl font-bold px-4 border-amber-500/10 dark:bg-black/20" />
+                                <div>
+                                  <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1 pl-1">Pago</p>
+                                  <Input placeholder="30 días" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)}
+                                    className="h-9 rounded-lg text-[11px] font-bold px-3 bg-transparent border-border/40 dark:border-white/[0.06]" />
                                 </div>
-                                <div className="space-y-1">
-                                   <label className="text-[10px] font-black uppercase text-amber-600/70 ml-2">Validez</label>
-                                   <Input type="text" placeholder="Ej: 15 Días" value={offerValidity} onChange={(e) => setOfferValidity(e.target.value)} className="h-12 rounded-2xl font-bold px-4 border-amber-500/10 dark:bg-black/20" />
+                                <div>
+                                  <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1 pl-1">Validez</p>
+                                  <Input placeholder="15 días" value={offerValidity} onChange={(e) => setOfferValidity(e.target.value)}
+                                    className="h-9 rounded-lg text-[11px] font-bold px-3 bg-transparent border-border/40 dark:border-white/[0.06]" />
                                 </div>
                               </div>
-
-                               <Button className="w-full h-12 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-amber-500/20" onClick={saveCotizacion}>
-                                 Fijar Propuesta y Términos B2B
-                               </Button>
-
-                               {/* Enlace Comercial Section */}
-                               <div className="pt-4 mt-2 border-t border-amber-500/10 space-y-3">
-                                 <div className="flex items-center justify-between">
-                                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 opacity-60">Enlace Comercial</p>
-                                   <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded-full">
-                                     {deal.proposal_status === 'ACCEPTED' ? '✅ APROBADO' : deal.proposal_status === 'VIEWED' ? '👀 VISTO' : deal.proposal_status || 'BORRADOR'}
-                                   </span>
-                                 </div>
-                                {deal.public_token ? (<>
-                                   <div className="flex gap-2">
-                                     <Button
-                                       className="flex-1 h-10 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-widest gap-1.5"
-                                       onClick={() => {
-                                         const url = `${window.location.origin}/p/${deal.public_token}`
-                                         navigator.clipboard.writeText(url)
-                                         alert('Enlace Comercial copiado al portapapeles.')
-                                       }}
-                                     >
-                                       <Copy className="h-3.5 w-3.5" /> Copiar Enlace
-                                     </Button>
-                                     <Button
-                                       variant="outline"
-                                       size="icon"
-                                       className="h-10 w-10 shrink-0 rounded-full border-amber-500/20 hover:bg-amber-500/10"
-                                       onClick={() => window.open(`/p/${deal.public_token}`, '_blank')}
-                                       title="Vista previa"
-                                     >
-                                       <ExternalLink className="h-3.5 w-3.5 text-amber-600" />
-                                     </Button>
-                                   </div>
-                                   <p className="text-center text-[9px] font-black text-amber-600/40 uppercase tracking-[0.2em]">
-                                     Aperturas: {deal.proposal_view_count || 0}
-                                   </p>
-                                 </>) : (
-                                   <Button
-                                     className="w-full h-10 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-700 font-black text-[10px] uppercase tracking-widest gap-2"
-                                     onClick={saveCotizacion}
-                                   >
-                                     <Globe className="h-3.5 w-3.5" /> Generar Enlace Comercial
-                                   </Button>
-                                 )}
-                                 </div>
+                              <Button className="w-full h-10 rounded-xl font-black text-[10px] uppercase tracking-[0.15em]" onClick={saveCotizacion}>
+                                Guardar y Generar Enlace
+                              </Button>
                             </div>
+                          </div>
+
+                          {/* 2. PROPUESTA IA */}
+                          <div className="rounded-2xl border border-border/40 dark:border-white/[0.06] overflow-hidden">
+                            <div className="px-4 py-3 bg-muted/30 dark:bg-white/[0.02] border-b border-border/30 dark:border-white/[0.05] flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="h-3 w-3 text-indigo-400" />
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Propuesta IA</p>
+                              </div>
+                              {deal.ia_proposal_report && (
+                                <button onClick={generateIAProposal} disabled={generatingIA}
+                                  className="text-[8px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 disabled:opacity-40 transition-colors">
+                                  {generatingIA ? 'Generando...' : '↺ Recalcular'}
+                                </button>
+                              )}
+                            </div>
+                            <div className="p-4">
+                              {!deal.ia_proposal_report ? (
+                                <Button onClick={generateIAProposal} disabled={generatingIA}
+                                  className="w-full h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest gap-2">
+                                  {generatingIA ? <><Activity className="h-3.5 w-3.5 animate-spin" /> Analizando...</> : <><Sparkles className="h-3.5 w-3.5" /> Generar con IA</>}
+                                </Button>
+                              ) : (
+                                <div>
+                                  <p className="text-[11px] font-black text-foreground mb-0.5 leading-tight">{deal.ia_proposal_report.title}</p>
+                                  <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{deal.ia_proposal_report.technical_scope}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 3. ENLACE COMERCIAL */}
+                          {deal.public_token && (
+                            <div className="rounded-2xl border border-border/40 dark:border-white/[0.06] overflow-hidden">
+                              <div className="px-4 py-3 bg-muted/30 dark:bg-white/[0.02] border-b border-border/30 dark:border-white/[0.05] flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Globe className="h-3 w-3 text-muted-foreground/60" />
+                                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Enlace Comercial</p>
+                                </div>
+                                <p className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">{deal.proposal_view_count || 0} aperturas</p>
+                              </div>
+                              <div className="p-3 flex gap-2">
+                                <Button className="flex-1 h-10 rounded-xl font-black text-[10px] uppercase tracking-widest gap-1.5"
+                                  onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/p/${deal.public_token}`); alert('Enlace copiado.') }}>
+                                  <Copy className="h-3.5 w-3.5" /> Copiar Enlace
+                                </Button>
+                                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-xl border-border/40"
+                                  onClick={() => window.open(`/p/${deal.public_token}`, '_blank')}>
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
                         </div>
-                     )}
-                     
-                     {currentStage === 4 && followUpDraft && (!deal.proposal_status || deal.proposal_status === 'DRAFT') && (
+                      )}
+
+                      {currentStage === 4 && followUpDraft && (!deal.proposal_status || deal.proposal_status === 'DRAFT') && (
                         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3 animate-in fade-in slide-in-from-top-2">
                            <div className="flex items-center gap-2">
                               <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
