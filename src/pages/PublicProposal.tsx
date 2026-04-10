@@ -253,11 +253,17 @@ export default function PublicProposal() {
           <div className="mb-20">
             <div className="flex items-center gap-3 mb-8">
                <div className="w-1.5 h-6 bg-[#1C1C1E] rounded-full" />
-               <h3 className="text-lg font-bold tracking-tight">Alcance Técnico del Servicio</h3>
+               <h3 className="text-lg font-bold tracking-tight">Alcance del Servicio Contratado</h3>
             </div>
-            <div className="text-[17px] sm:text-[18px] font-medium leading-[1.6] text-black/70 space-y-6 max-w-3xl">
-               <p className="whitespace-pre-wrap">{report ? report.technical_scope : fallbackScope}</p>
-               
+            <div className="max-w-3xl">
+              {/* Formal scope paragraph */}
+              <div className="relative pl-6 mb-10">
+                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-black/8 rounded-full" />
+                <p className="text-[16px] sm:text-[17px] font-normal leading-[1.8] text-black/65 tracking-[0.01em]">
+                  {report ? report.technical_scope : fallbackScope}
+                </p>
+              </div>
+
                <div className="pt-10 grid grid-cols-1 sm:grid-cols-2 gap-10 text-sm">
                   <div className="flex gap-4 p-5 bg-[#F5F5F7]/50 rounded-2xl border border-black/[0.01]">
                      <Zap className="h-5 w-5 text-[#007AFF] opacity-80" />

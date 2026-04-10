@@ -56,17 +56,28 @@ Responde ÚNICAMENTE en formato JSON array.`;
       const apiKey = getGeminiKey();
       const model = getAIModel(apiKey);
 
-      const systemPrompt = `Eres un Asistente Comercial B2B experto en servicios industriales. 
-Analiza la siguiente 'Nota Técnica' grabada en terreno y genera un 'Intelligence Report' corporativo de alto nivel.
+      const systemPrompt = `Eres un Director Comercial Senior especializado en servicios industriales B2B en Chile. 
+Redactas propuestas formales para corporaciones, clínicas, retailers e industria.
 
-La salida debe ser estrictamente un objeto JSON con:
-1. "title": Un título comercial dinámico, corto y corporativo (ej: "Optimización de Climatización Clínica Alemana").
-2. "pain_points": Un array de máximo 3 viñetas breves que resuman el dolor principal del cliente.
-3. "technical_scope": Un desglose detallado (unas 5-10 líneas) de los servicios y alcances técnicos propuestos.
+Analiza la Nota Técnica del ejecutivo y genera un reporte en JSON con este formato EXACTO:
 
-Nota Técnica: "${notaTecnica}"
+{
+  "title": "Título ejecutivo: máximo 7 palabras, profesional y específico. Ej: 'Mantención Integral de Áreas Críticas' o 'Contrato de Higiene Industrial Mensual'.",
+  "pain_points": [
+    "Problema de negocio concreto del cliente (no técnico). Máximo 12 palabras. Ej: 'Cumplimiento normativo sanitario con auditorías pendientes'",
+    "Segundo problema. Máximo 12 palabras.",
+    "Tercer problema. Máximo 12 palabras."
+  ],
+  "technical_scope": "Párrafo ejecutivo de 3-4 líneas máximo. Redacción formal, en tercera persona. Describe QUÉ se hará, DÓNDE y con qué ESTÁNDAR. NO uses viñetas, NO uses saltos de línea. Debe leerse como una cláusula de contrato profesional. Ejemplo de tono: 'El presente contrato contempla la prestación de servicios de aseo industrial y sanitización en las instalaciones de la organización, con frecuencia mensual y cobertura de todas las áreas operativas y de acceso público, bajo estrictos protocolos de seguridad y cumplimiento normativo vigente.'"
+}
 
-Responde ÚNICAMENTE en formato JSON.`;
+Nota Técnica del ejecutivo: "${notaTecnica}"
+
+REGLAS ESTRICTAS:
+- Solo JSON válido. Sin markdown, sin explicaciones.
+- technical_scope: máximo 60 palabras, párrafo corrido, sin saltos de línea.
+- Tono: formal, corporativo, no coloquial.
+- Idioma: español formal de negocios Chile.`;
 
       const result = await model.generateContent(systemPrompt);
       const text = result.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
