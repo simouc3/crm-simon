@@ -46,9 +46,17 @@ export default function PublicProposal() {
         return
       }
 
-      setDeal(data)
+      // RPC returns a TABLE (array) — take first row
+      const dealRow = Array.isArray(data) ? data[0] : data
+
+      if (!dealRow) {
+        setLoading(false)
+        return
+      }
+
+      setDeal(dealRow)
       
-      if (data.proposal_status === 'ACCEPTED') {
+      if (dealRow.proposal_status === 'ACCEPTED') {
         setAccepted(true)
       }
 
@@ -61,7 +69,7 @@ export default function PublicProposal() {
       
       setBranding(settings)
 
-      if (data.proposal_status !== 'ACCEPTED') {
+      if (dealRow.proposal_status !== 'ACCEPTED') {
         await supabase.rpc('log_proposal_view', { p_token: token })
       }
 
