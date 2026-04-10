@@ -486,10 +486,10 @@ Equipo Comercial`)
           </div>
 
           {/* Main Grid: compact */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 md:items-start">
             
             {/* Column Left: Insights & AI */}
-            <div className="space-y-8">
+            <div className="space-y-4">
                
                {/* Risk & Indicators */}
                {/* Risk & Indicators (Translucent Banner) */}
@@ -555,7 +555,7 @@ Equipo Comercial`)
             </div>
 
             {/* Column Right: Details & Operations */}
-            <div className="space-y-10">
+            <div className="space-y-4">
                
                {/* Contact Card */}
                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl p-5 border border-black/[0.03] dark:border-white/[0.03] shadow-sm">
