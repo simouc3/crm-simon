@@ -3,7 +3,6 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 // ── Configure token ──────────────────────────────────────────────────
-// Replace with real token from https://account.mapbox.com
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.PLACEHOLDER_REPLACE_WITH_YOUR_TOKEN'
 
 // Chile commune centroid approximations for geocoding fallback
@@ -59,8 +58,18 @@ interface ClientMapViewProps {
 }
 
 function getCoords(client: any): [number, number] | null {
-  if (client.lng && client.lat) return [parseFloat(client.lng), parseFloat(client.lat)]
-  const key = (client.comuna || '').toUpperCase().replace(/ /g, '_').replace(/Ñ/g, 'N').replace(/É/g, 'E').replace(/Á/g, 'A').replace(/Ó/g, 'O').replace(/Ú/g, 'U')
+  if (client.lng && client.lat) {
+    const lng = parseFloat(client.lng)
+    const lat = parseFloat(client.lat)
+    if (!isNaN(lng) && !isNaN(lat)) return [lng, lat]
+  }
+  
+  const comunaRaw = client.comuna || ''
+  const key = comunaRaw.toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents
+    .replace(/ /g, '_')
+  
   return COMMUNE_COORDS[key] || null
 }
 
@@ -87,13 +96,24 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }))
 
     map.current.on('load', () => {
+      console.log(`[ClientMapView] Map loaded. Processing ${clients.length} clients...`)
+      
       // Clear existing markers
       markers.current.forEach(m => m.remove())
       markers.current = []
 
+      const bounds = new mapboxgl.LngLatBounds()
+      let hasValidCoords = false
+
       clients.forEach(client => {
         const coords = getCoords(client)
-        if (!coords) return
+        if (!coords) {
+          console.warn(`[ClientMapView] No coordinates for client: ${client.razon_social} (Comuna: ${client.comuna})`)
+          return
+        }
+
+        hasValidCoords = true
+        bounds.extend(coords)
 
         // Find active deal for client
         const clientDeal = deals.find(d => d.company_id === client.id && d.stage < 7)
@@ -103,31 +123,28 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
         // Custom marker element
         const el = document.createElement('div')
         el.style.cssText = `
-          width: 36px; height: 36px;
+          width: 32px; height: 32px;
           border-radius: 50%;
           background: ${color};
-          border: 3px solid rgba(255,255,255,0.3);
-          box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+          border: 3px solid rgba(255,255,255,0.4);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
           cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          font-size: 11px; font-weight: 900; color: white;
+          font-size: 10px; font-weight: 900; color: white;
           transition: transform 0.2s;
           font-family: 'Inter', sans-serif;
-          letter-spacing: -0.5px;
         `
         el.textContent = (client.razon_social || 'C')[0].toUpperCase()
-        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.2)' })
-        el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)' })
-
-        const popup = new mapboxgl.Popup({ offset: 20, closeButton: false, maxWidth: '240px' })
+        
+        const popup = new mapboxgl.Popup({ offset: 15, closeButton: false })
           .setHTML(`
-            <div style="font-family:'Inter',sans-serif;padding:4px 0;">
-              <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;opacity:0.5;margin:0 0 4px">
+            <div style="font-family:'Inter',sans-serif;padding:6px;min-width:180px;">
+              <p style="font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;opacity:0.5;margin:0 0 2px">
                 ${STAGE_NAMES[stage] || 'Prospecto'}
               </p>
-              <p style="font-size:14px;font-weight:900;margin:0 0 4px;line-height:1.2;">${client.razon_social || '—'}</p>
-              <p style="font-size:11px;color:#6b7280;margin:0 0 6px;">${(client.comuna || '').replace(/_/g, ' ')}</p>
-              ${clientDeal?.valor_neto ? `<p style="font-size:12px;font-weight:700;color:${color};">
+              <p style="font-size:13px;font-weight:900;margin:0 0 2px;line-height:1.2;">${client.razon_social || '—'}</p>
+              <p style="font-size:10px;color:#6b7280;margin:0;">${(client.comuna || '').replace(/_/g, ' ')}</p>
+              ${clientDeal?.valor_neto ? `<p style="font-size:11px;font-weight:700;color:${color};margin-top:4px;">
                 ${new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(clientDeal.valor_neto)}
               </p>` : ''}
             </div>
@@ -144,6 +161,10 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
 
         markers.current.push(marker)
       })
+
+      if (hasValidCoords && map.current) {
+        map.current.fitBounds(bounds, { padding: 50, maxZoom: 14, duration: 1500 })
+      }
     })
 
     return () => {
@@ -164,9 +185,6 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
           <p className="text-[12px] text-white/50 font-medium max-w-[280px] leading-relaxed">
             Crea cuenta en <span className="text-indigo-400 font-bold">mapbox.com</span> y agrega tu token en <code className="bg-white/10 px-2 py-0.5 rounded text-white/80">.env.local</code>
           </p>
-          <code className="block text-[10px] bg-white/10 text-emerald-400 font-mono px-4 py-2 rounded-xl">
-            VITE_MAPBOX_TOKEN=pk.your_token_here
-          </code>
         </div>
       </div>
     )

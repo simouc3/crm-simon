@@ -36,6 +36,7 @@ export default function ClientsList() {
   const [selectedClientForDetail, setSelectedClientForDetail] = useState<any>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+  const [deals, setDeals] = useState<any[]>([])
 
   const fetchCompanies = async () => {
     setLoading(true)
@@ -49,6 +50,11 @@ export default function ClientsList() {
     } else {
       setClients(data || [])
     }
+
+    // Fetch deals for map stages
+    const { data: dealsData } = await supabase.from('deals').select('company_id, stage, valor_neto')
+    if (dealsData) setDeals(dealsData)
+
     setLoading(false)
   }
 
@@ -135,6 +141,7 @@ export default function ClientsList() {
       {viewMode === 'map' && (
         <ClientMapView
           clients={filteredClients}
+          deals={deals}
           onClientClick={(client) => {
             setSelectedClientForDetail(client)
             setIsDetailOpen(true)
