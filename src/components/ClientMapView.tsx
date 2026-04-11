@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { supabase } from '../lib/supabase/client'
 
 // ── Configure token ──────────────────────────────────────────────────
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.PLACEHOLDER_REPLACE_WITH_YOUR_TOKEN'
@@ -35,15 +36,6 @@ const COMMUNE_COORDS: Record<string, [number, number]> = {
   'TALCA': [-71.6700, -35.4264],
   'TEMUCO': [-72.5968, -38.7379],
   'PUERTO_MONTT': [-72.9369, -41.4693],
-}
-
-const STAGE_COLORS: Record<number, string> = {
-  1: '#94a3b8', // Prospección — slate
-  2: '#0ea5e9', // Contacto — sky
-  3: '#8b5cf6', // Visita — violet
-  4: '#f59e0b', // Propuesta — amber
-  5: '#f97316', // Negociación — orange
-  6: '#10b981', // Ganado — emerald
 }
 
 const STAGE_NAMES: Record<number, string> = {
@@ -95,7 +87,7 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
     map.current.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }))
 
-    map.current.on('load', () => {
+    map.current.on('load', async () => {
       console.log(`[ClientMapView] Map loaded. Processing ${clients.length} clients...`)
       
       // Clear existing markers
@@ -105,11 +97,35 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
       const bounds = new mapboxgl.LngLatBounds()
       let hasValidCoords = false
 
-      clients.forEach(client => {
-        const coords = getCoords(client)
+      // Process clients
+      for (const client of clients) {
+        let coords: [number, number] | null = getCoords(client)
+
+        // If no coords, try real geocoding using address
+        if (!coords && (client.direccion || client.comuna) && MAPBOX_TOKEN) {
+          try {
+            const query = encodeURIComponent(`${client.direccion || ''}, ${client.comuna || ''}, Chile`)
+            const resp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&limit=1&country=cl`)
+            const data = await resp.json()
+            
+            if (data.features && data.features.length > 0) {
+              coords = data.features[0].center as [number, number]
+              console.log(`[ClientMapView] Geocoded ${client.razon_social} to`, coords)
+              
+              // Save to DB (Fire and forget or minimal wait)
+              supabase.from('companies')
+                .update({ lat: coords[1], lng: coords[0] })
+                .eq('id', client.id)
+                .then(({ error }) => { if (error) console.error("Error saving coords:", error) })
+            }
+          } catch (e) {
+            console.error(`[ClientMapView] Geocoding failed for ${client.razon_social}:`, e)
+          }
+        }
+
         if (!coords) {
-          console.warn(`[ClientMapView] No coordinates for client: ${client.razon_social} (Comuna: ${client.comuna})`)
-          return
+          console.warn(`[ClientMapView] Skipping marker for: ${client.razon_social} (No coords found)`)
+          continue
         }
 
         hasValidCoords = true
@@ -118,7 +134,12 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
         // Find active deal for client
         const clientDeal = deals.find(d => d.company_id === client.id && d.stage < 7)
         const stage = clientDeal?.stage || 1
-        const color = STAGE_COLORS[stage] || '#6366f1'
+        
+        // Colors from QA instructions: Verde = Ganado, Naranja = Negociación/Propuesta, Azul = Prospecto
+        let color = '#3b82f6' // Default Blue (Prospect)
+        if (stage === 6) color = '#10b981' // Green (Won)
+        else if (stage >= 4 && stage <= 5) color = '#f59e0b' // Orange (Propuesta/Neg)
+        else if (stage >= 1 && stage <= 3) color = '#3b82f6' // Blue (Early stages)
 
         // Custom marker element
         const el = document.createElement('div')
@@ -143,7 +164,7 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
                 ${STAGE_NAMES[stage] || 'Prospecto'}
               </p>
               <p style="font-size:13px;font-weight:900;margin:0 0 2px;line-height:1.2;">${client.razon_social || '—'}</p>
-              <p style="font-size:10px;color:#6b7280;margin:0;">${(client.comuna || '').replace(/_/g, ' ')}</p>
+              <p style="font-size:10px;color:#6b7280;margin:0;">${(client.direccion || '')} ${(client.comuna || '').replace(/_/g, ' ')}</p>
               ${clientDeal?.valor_neto ? `<p style="font-size:11px;font-weight:700;color:${color};margin-top:4px;">
                 ${new Intl.NumberFormat('es-CL', { style:'currency', currency:'CLP', maximumFractionDigits:0 }).format(clientDeal.valor_neto)}
               </p>` : ''}
@@ -160,7 +181,7 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
         })
 
         markers.current.push(marker)
-      })
+      }
 
       if (hasValidCoords && map.current) {
         map.current.fitBounds(bounds, { padding: 50, maxZoom: 14, duration: 1500 })

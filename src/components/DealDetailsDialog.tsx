@@ -488,8 +488,8 @@ Equipo Comercial`)
           {/* Main Grid: compact */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 md:items-start">
             
-            {/* Column Left: Insights & AI */}
-            <div className="space-y-4">
+            {/* Column Left: Insights & AI (Sticky) */}
+            <div className="space-y-4 md:sticky md:top-6 md:self-start">
                
                {/* Risk & Indicators */}
                {/* Risk & Indicators (Translucent Banner) */}
@@ -686,8 +686,13 @@ Equipo Comercial`)
                                      <Textarea 
                                        placeholder="Resumen técnico de la visita, requerimientos especiales..." 
                                        value={notaTecnica} 
-                                       onChange={(e) => setNotaTecnica(e.target.value)} 
-                                       className="rounded-[24px] min-h-[140px] font-bold text-[14px] p-5 border-black/[0.05] dark:bg-black/20 focus:ring-primary/20" 
+                                       onChange={(e) => setNotaTecnica(e.target.value)}
+                                       onInput={(e) => {
+                                         const target = e.target as HTMLTextAreaElement;
+                                         target.style.height = 'auto';
+                                         target.style.height = target.scrollHeight + 'px';
+                                       }}
+                                       className="rounded-[24px] min-h-[120px] font-bold text-[14px] p-5 border-black/[0.05] dark:bg-black/20 focus:ring-primary/20 overflow-hidden" 
                                      />
                                      <div className="flex gap-2">
                                        <Button className="flex-1 h-12 rounded-full bg-primary text-white font-black text-[11px] uppercase tracking-widest" onClick={saveNotaTecnica}>
@@ -743,9 +748,17 @@ Equipo Comercial`)
                                   onChange={(e) => setValorNetoCotizado(e.target.value)}
                                   className="h-12 pl-8 rounded-xl font-black text-[18px] bg-transparent border-border/40 dark:border-white/[0.06]" />
                               </div>
-                              <Textarea placeholder="Descripción del alcance contratado..." value={cotizacionDetalles}
+                               <Textarea 
+                                placeholder="Descripción del alcance contratado..." 
+                                value={cotizacionDetalles}
                                 onChange={(e) => setCotizacionDetalles(e.target.value)}
-                                className="rounded-xl min-h-[72px] text-[12px] p-3 bg-transparent border-border/40 dark:border-white/[0.06] resize-none" />
+                                onInput={(e) => {
+                                  const target = e.target as HTMLTextAreaElement;
+                                  target.style.height = 'auto';
+                                  target.style.height = target.scrollHeight + 'px';
+                                }}
+                                className="rounded-xl min-h-[120px] text-[12px] p-3 bg-transparent border-border/40 dark:border-white/[0.06] overflow-hidden" 
+                              />
                               <div className="grid grid-cols-3 gap-2">
                                 <div>
                                   <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 mb-1 pl-1">Duración</p>

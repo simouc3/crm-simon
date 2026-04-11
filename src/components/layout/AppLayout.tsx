@@ -150,18 +150,13 @@ export default function AppLayout() {
     }
   }, [isDarkMode])
 
-  const navItems = [
+  const navItems: { name: string, path: string, icon: any, onClick?: () => void }[] = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Pipeline', path: '/pipeline', icon: Columns3 },
     { name: 'Clientes', path: '/clients', icon: Users },
     { name: 'Agenda', path: '/calendar', icon: CalendarDays },
     ...(isAdmin ? [
       { name: 'Usuarios', path: '/users', icon: Users },
-      { name: 'Configuración', path: '#settings', icon: SettingsIcon, onClick: () => {
-        setShowSettings(true);
-        // Dispatching a custom event if the dialog needs to switch tabs, 
-        // but for now just opening it is enough.
-      } }
     ] : []),
   ]
 
