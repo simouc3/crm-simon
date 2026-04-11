@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
 import { Activity, DollarSign, Briefcase, TrendingUp, Target, Zap, TrendingDown, ArrowUpRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { DashboardAIInsights } from "../components/DashboardAIInsights"
 
 const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
