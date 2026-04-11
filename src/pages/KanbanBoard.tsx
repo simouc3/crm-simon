@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
 import { DealDetailsDialog } from '../components/DealDetailsDialog'
 import { DealFormDialog } from '../components/DealFormDialog'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Loader2 } from 'lucide-react'
+import { sendDeploymentNotification } from '../lib/resend'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 
 export const KANBAN_STAGES = [
@@ -114,14 +115,14 @@ export default function KanbanBoard() {
 
   const totalPipeline = filteredDeals
     .filter(d => d.stage >= 1 && d.stage <= 6) // Include won
-    .reduce((sum, d) => sum + (d.valor_neto || 0), 0)
+    .reduce((sum, d) => sum + (d.valor_total || d.valor_neto || 0), 0)
 
   // Smart Forecast: Weighted Value (Probability * Value)
   const weightedForecast = filteredDeals
     .filter(d => d.stage >= 1 && d.stage <= 6)
     .reduce((sum, d) => {
       const prob = KANBAN_STAGES.find(s => s.id === d.stage)?.probability || 0
-      return sum + ((d.valor_neto || 0) * prob)
+      return sum + ((d.valor_total || d.valor_neto || 0) * prob)
     }, 0)
 
   const totalDeals = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 6).length
@@ -140,8 +141,9 @@ export default function KanbanBoard() {
   }
 
   // ── Deal Card — Apple 2026 Minimal Execution ────────────────────
-  // ── Deal Card — B2B Contextual ────────────────────
+  // ── Deal Card — Contextual ────────────────────
   const DealCard = ({ deal, isDragging = false }: { deal: any; isDragging?: boolean }) => {
+    const [isDeploying, setIsDeploying] = useState(false)
     const s = stageMap[deal.stage] || stageMap[1]
     const isRisk = deal.is_risk
     const stg = deal.stage
@@ -243,10 +245,31 @@ export default function KanbanBoard() {
                 </span>
               </div>
               <button 
-                onClick={e => { e.stopPropagation(); alert('Se enviará notificación PUSH al departamento.'); }}
-                className="w-full mt-1 bg-slate-900 dark:bg-white text-white dark:text-black py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-transform"
+                disabled={deal.is_deployed || isDeploying}
+                onClick={async (e) => { 
+                  e.stopPropagation(); 
+                  setIsDeploying(true);
+                  const res = await sendDeploymentNotification(deal.id);
+                  if (res.success) {
+                    fetchDeals(); // Refresh to get is_deployed status
+                  } else {
+                    alert('Error: ' + res.error);
+                  }
+                  setIsDeploying(false);
+                }}
+                className={`w-full mt-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 ${
+                  deal.is_deployed 
+                    ? 'bg-slate-200 dark:bg-white/10 text-slate-500 cursor-not-allowed'
+                    : 'bg-slate-900 dark:bg-white text-white dark:text-black hover:opacity-90'
+                }`}
               >
-                Notificar Despliegue
+                {isDeploying ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : deal.is_deployed ? (
+                  'Desplegado ✅'
+                ) : (
+                  'Notificar Despliegue'
+                )}
               </button>
             </div>
           )}
@@ -354,7 +377,7 @@ export default function KanbanBoard() {
           <DragDropContext onDragEnd={onDragEnd}>
             {KANBAN_STAGES.map(stage => {
               const stageDeals = filteredDeals.filter(d => d.stage === stage.id)
-              const stageValue = stageDeals.reduce((sum, d) => sum + (d.valor_neto || 0), 0)
+              const stageValue = stageDeals.reduce((sum, d) => sum + (d.valor_total || d.valor_neto || 0), 0)
               
               return (
                 <div key={stage.id} className="flex flex-col w-[85vw] md:w-[280px] px-4 md:px-0 shrink-0 snap-center snap-always">

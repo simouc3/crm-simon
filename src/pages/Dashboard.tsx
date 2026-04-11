@@ -305,16 +305,23 @@ export default function Dashboard() {
   const propuestas = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5)
   const activos = filteredDeals.filter(d => d.stage >= 1 && d.stage <= 5)
 
-  const mrrContractual = ganados
-    .filter(d => d.is_contract && d.contract_months)
-    .reduce((s, d) => s + ((d.valor_total || 0) / (d.contract_months || 1)), 0)
+  // MRR del Periodo Seleccionado (Nuevas ventas contractuales)
+  const mrrNuevasVentas = ganados
+    .filter(d => d.is_contract)
+    .reduce((s, d) => s + (d.valor_neto || 0), 0)
 
   const ventasUnicas = ganados
     .filter(d => !d.is_contract)
     .reduce((s, d) => s + (d.valor_neto || 0), 0)
 
-  const ingresosMes = mrrContractual + ventasUnicas
-  const pipelineForecast = propuestas.reduce((s, d) => s + (d.valor_neto || 0), 0)
+  const ingresosMes = mrrNuevasVentas + ventasUnicas
+
+  // MRR Permanente (Toda la cartera de contratos activos acumulada)
+  const mrrPermanenteTotal = deals
+    .filter(d => d.stage === 6 && d.is_contract)
+    .reduce((s, d) => s + (d.valor_neto || 0), 0)
+
+  const pipelineForecast = propuestas.reduce((s, d) => s + (d.valor_total || d.valor_neto || 0), 0)
   const ticketPromedio = ganados.length > 0 ? (ganados.reduce((s, d) => s + (d.valor_neto || 0), 0)) / ganados.length : 0
   const winRate = (ganados.length + perdidos.length) > 0 ? Math.round((ganados.length / (ganados.length + perdidos.length)) * 100) : 0
 
@@ -334,7 +341,7 @@ export default function Dashboard() {
   }
   const totalPonderado = filteredDeals
     .filter(d => d.stage >= 1 && d.stage <= 6)
-    .reduce((acc, d) => acc + ((d.valor_neto || 0) * (getProbability(d.stage, !!d.is_risk) / 100)), 0)
+    .reduce((acc, d) => acc + ((d.valor_total || d.valor_neto || 0) * (getProbability(d.stage, !!d.is_risk) / 100)), 0)
 
   const rentabilidadM2 = (() => {
     const data: Record<string, { totalValor: number, totalM2: number, deals: any[] }> = {}
@@ -482,12 +489,22 @@ export default function Dashboard() {
             <SectionTitle title="Ventas & Proyecciones" sub="Estado financiero de contratos y propuestas enviadas" />
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
-                label="Nuevos Ingresos"
-                value={fmtCLP(ingresosMes)}
-                sub={`${ganados.length} Cierres Exitosos`}
+                label="SLA / Portafolio MRR"
+                value={fmtCLP(mrrPermanenteTotal)}
+                sub="Ingreso Mensual Permanente"
                 icon={DollarSign}
                 variant="ocean"
-                onClick={() => setSelectedMetric({ label: 'Cierres (Ganados)', deals: ganados })}
+                highlight
+                trend={{ val: "Cartera Activa", up: true }}
+                onClick={() => setSelectedMetric({ label: 'Contratos Activos', deals: deals.filter(d => d.stage === 6 && d.is_contract) })}
+              />
+              <KpiCard
+                label="Nuevas Ventas"
+                value={fmtCLP(ingresosMes)}
+                sub={`${ganados.length} Cierres en el periodo`}
+                icon={Target}
+                variant="glass"
+                onClick={() => setSelectedMetric({ label: 'Cierres del Periodo', deals: ganados })}
               />
               <KpiCard
                 label="Pipeline Activo"

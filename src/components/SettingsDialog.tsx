@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { supabase } from "../lib/supabase/client"
-import { Upload, User, Save, Bell, Sparkles, Building2 } from "lucide-react"
+import { Upload, User, Save, Bell, Sparkles, Building2, Mail } from "lucide-react"
 import { checkNotificationPermission, subscribeToPush, unsubscribeFromPush } from "../lib/push-notifications"
 
 interface SettingsDialogProps {
@@ -30,6 +30,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const [pushToggling, setPushToggling] = useState(false)
   const [geminiKey, setGeminiKey] = useState("")
   const [companyLogoUrl, setCompanyLogoUrl] = useState("")
+  const [operationsEmail, setOperationsEmail] = useState("")
 
   useEffect(() => {
     if (open) {
@@ -58,7 +59,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   const fetchSettings = async () => {
     const { data } = await supabase
       .from('app_settings')
-      .select('company_name, company_rut, company_giro, company_address, company_phone, company_website, company_logo_url')
+      .select('company_name, company_rut, company_giro, company_address, company_phone, company_website, company_logo_url, operations_email')
       .eq('id', '00000000-0000-0000-0000-000000000001')
       .single()
 
@@ -70,6 +71,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
       if (data.company_phone) setCompanyPhone(data.company_phone)
       if (data.company_website) setCompanyWebsite(data.company_website)
       if (data.company_logo_url) setCompanyLogoUrl(data.company_logo_url)
+      if (data.operations_email) setOperationsEmail(data.operations_email)
     }
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -138,6 +140,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
         company_phone: companyPhone,
         company_website: companyWebsite,
         company_logo_url: companyLogoUrl,
+        operations_email: operationsEmail,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' })
 
@@ -324,6 +327,24 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
                      <Label htmlFor="companyWebsite">Sitio Web</Label>
                      <Input id="companyWebsite" value={companyWebsite} onChange={e => setCompanyWebsite(e.target.value)} placeholder="www.tuempresa.cl" className="rounded-xl h-10" />
                   </div>
+                </div>
+
+                {/* operations_email field */}
+                <div className="grid gap-2 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail className="w-4 h-4 text-primary" />
+                    <Label htmlFor="opsEmail" className="text-sm font-bold text-foreground">Correo de Operaciones</Label>
+                  </div>
+                  <Input 
+                    id="opsEmail" 
+                    value={operationsEmail} 
+                    onChange={e => setOperationsEmail(e.target.value)} 
+                    placeholder="operaciones@tuempresa.com" 
+                    className="rounded-xl h-10 bg-white/50 dark:bg-black/20"
+                  />
+                  <p className="text-[10px] text-muted-foreground opacity-70 italic pl-1">
+                    Aquí se enviará el dossier comercial y técnico de cada negocio ganado.
+                  </p>
                 </div>
 
                 {/* Logo Upload Section */}

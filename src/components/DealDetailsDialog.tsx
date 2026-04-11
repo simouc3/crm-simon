@@ -20,8 +20,10 @@ import {
   FileText,
   BarChart4,
   History,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from 'lucide-react'
+import { sendDeploymentNotification } from '../lib/resend'
 import {
   Select,
   SelectContent,
@@ -220,54 +222,8 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
       if (onDealUpdated) onDealUpdated()
       // Traspaso a Operaciones: abrir correo pre-escrito automáticamente
       if (newStage === 6) {
-        const empresa = deal.companies?.razon_social || deal.title
-        const contacto = deal.companies?.contact_name || '—'
-        const telefono = deal.companies?.contact_phone || '—'
-        const email = deal.companies?.contact_email || '—'
-        const comuna = deal.companies?.comuna?.replace(/_/g, ' ') || '—'
-        const direccion = (deal.companies as any)?.direccion || '—'
-        const m2 = deal.companies?.m2_estimados ? `${Number(deal.companies.m2_estimados).toLocaleString('es-CL')} m²` : '—'
-        const neto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(deal.valor_neto || 0)
-        const req = deal.companies?.requisitos_legales?.join(', ') || 'Sin requisitos especificados'
-        const cond = deal.companies?.condiciones_pago?.replace(/_/g, ' ') || '—'
-
-        const subject = encodeURIComponent(`🎉 CIERRE GANADO - Traspaso Operaciones: ${empresa}`)
-        const body = encodeURIComponent(
-`Estimado equipo operativo,
-
-Se ha confirmado el cierre del siguiente negocio. Por favor preparen los insumos y documentación necesaria.
-
-═══════════════════════════════════
-📋 RESUMEN DEL CLIENTE
-═══════════════════════════════════
-Empresa:        ${empresa}
-Contacto:       ${contacto}
-Teléfono:       ${telefono}
-Email:          ${email}
-Ubicación:      ${direccion}, ${comuna}
-Área estimada:  ${m2}
-
-═══════════════════════════════════
-💰 DETALLES COMERCIALES
-═══════════════════════════════════
-Negocio:           ${deal.title}
-Valor Neto:        ${neto}
-Condiciones Pago:  ${cond}
-
-═══════════════════════════════════
-⚖️ REQUISITOS LEGALES
-═══════════════════════════════════
-${req}
-
-Favor coordinar:
-• Mutual de Seguridad (credenciales y registro)
-• Certificados DT (Dirección del Trabajo)
-• Preparación de insumos y equipos para ${m2}
-
-Saludos,
-Equipo Comercial`)
-
-        window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')
+        // La notificación ahora se maneja mediante el botón "Notificar Despliegue" 
+        // para dar control manual al usuario antes del envío final.
       }
     }
   }
@@ -318,6 +274,8 @@ Equipo Comercial`)
 
   const saveCotizacion = async () => {
     const neto = parseFloat(valorNetoCotizado) || 0
+    const meses = parseInt(contractMonths) || 1
+    const totalTCV = isContract ? (neto * meses) : neto
 
     // Auto-generate token if deal doesn't have one yet
     const tokenToSave = deal.public_token || crypto.randomUUID()
@@ -325,7 +283,7 @@ Equipo Comercial`)
     const { error } = await supabase.from('deals').update({ 
       cotizacion_detalles: cotizacionDetalles,
       valor_neto: neto,
-      valor_total: neto * 1.19,
+      valor_total: totalTCV,
       contract_duration: contractDuration,
       payment_terms: paymentTerms,
       offer_validity: offerValidity,
@@ -742,12 +700,15 @@ Equipo Comercial`)
                               )}
                             </div>
                             <div className="p-4 space-y-3">
-                              <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] font-black text-muted-foreground/30">$</span>
-                                <Input type="number" placeholder="0" value={valorNetoCotizado}
-                                  onChange={(e) => setValorNetoCotizado(e.target.value)}
-                                  className="h-12 pl-8 rounded-xl font-black text-[18px] bg-transparent border-border/40 dark:border-white/[0.06]" />
-                              </div>
+                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-indigo-500 mb-1.5 ml-1">
+                              {isContract ? 'Monto Mensual Neto (MRR)' : 'Monto Total Neto'}
+                            </p>
+                            <div className="relative">
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] font-black text-muted-foreground/30">$</span>
+                              <Input type="number" placeholder="0" value={valorNetoCotizado}
+                                onChange={(e) => setValorNetoCotizado(e.target.value)}
+                                className="h-12 pl-8 rounded-xl font-black text-[18px] bg-transparent border-border/40 dark:border-white/[0.06]" />
+                            </div>
                                <Textarea 
                                 placeholder="Descripción del alcance contratado..." 
                                 value={cotizacionDetalles}
@@ -888,28 +849,37 @@ Equipo Comercial`)
                                  </div>
                               ) : (
                                  <Button
-                                    disabled={deploying}
-                                    className="w-full h-16 rounded-full bg-primary text-white hover:bg-primary/90 font-black text-[13px] uppercase tracking-[0.2em] flex items-center justify-center gap-4 shadow-xl shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50"
+                                    disabled={deploying || !!deployedAt}
+                                    className={`w-full h-16 rounded-full font-black text-[13px] uppercase tracking-[0.2em] flex items-center justify-center gap-4 transition-all active:scale-[0.98] disabled:opacity-50 ${
+                                      deployedAt 
+                                      ? 'bg-slate-200 dark:bg-white/10 text-slate-500 cursor-not-allowed shadow-none'
+                                      : 'bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20'
+                                    }`}
                                     onClick={async () => {
                                        const empresa = deal.companies?.razon_social || deal.nombre_proyecto || deal.title
-                                       const confirmed = window.confirm(`¿Confirmar notificación de despliegue para "${empresa}"?\n\nEsto enviará el correo a Operaciones y cerrará el ciclo de ventas.`)
+                                       const confirmed = window.confirm(`¿Confirmar notificación de despliegue para "${empresa}"?\n\nEsto enviará el dossier a Operaciones vía Resend.`)
                                        if (!confirmed) return
+                                       
                                        setDeploying(true)
-                                       try {
-                                         const now = new Date().toISOString()
-                                         const { error } = await supabase.from('deals').update({ deployed_at: now }).eq('id', deal.id)
-                                         if (!error) {
-                                           setDeployedAt(now)
-                                           if (onDealUpdated) onDealUpdated()
-                                         } else {
-                                           alert('Error al registrar el despliegue: ' + error.message)
-                                         }
-                                       } finally {
-                                         setDeploying(false)
+                                       const res = await sendDeploymentNotification(deal.id)
+                                       if (res.success) {
+                                          const now = new Date().toISOString()
+                                          setDeployedAt(now)
+                                          if (onDealUpdated) onDealUpdated()
+                                       } else {
+                                          alert('Error al notificar despliegue: ' + res.error)
                                        }
+                                       setDeploying(false)
                                     }}
                                  >
-                                    <Mail className="h-6 w-6" /> {deploying ? 'Procesando...' : 'Notificar Despliegue'}
+                                    {deploying ? (
+                                      <Loader2 className="h-6 w-6 animate-spin" />
+                                    ) : deployedAt ? (
+                                      <CheckCircle2 className="h-6 w-6" />
+                                    ) : (
+                                      <Mail className="h-6 w-6" />
+                                    )}
+                                    {deploying ? 'Procesando...' : deployedAt ? 'Desplegado ✅' : 'Notificar Despliegue'}
                                  </Button>
                               )}
                            </div>
