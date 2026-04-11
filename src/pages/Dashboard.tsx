@@ -657,18 +657,36 @@ export default function Dashboard() {
                     <button onClick={() => setSelectedMetric(null)} className="h-10 w-10 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center font-bold">X</button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-8 space-y-3">
-                    {selectedMetric.deals.map(d => (
-                      <div key={d.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/20 hover:border-primary/50 transition-all group">
-                        <div className="space-y-1">
-                          <div className="font-black text-[15px] group-hover:text-primary transition-colors">{d.companies?.razon_social || 'Cliente'}</div>
-                          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{d.title} · Etapa {d.stage}</div>
+                    {selectedMetric.deals.map(d => {
+                      const monthsRemaining = (() => {
+                        if (!d.is_contract || !d.contract_months) return null
+                        const start = new Date(d.stage_changed_at || d.created_at)
+                        const today = new Date()
+                        const diffMonths = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth())
+                        const remaining = d.contract_months - diffMonths
+                        return remaining > 0 ? remaining : 0
+                      })()
+
+                      return (
+                        <div key={d.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-border/20 hover:border-primary/50 transition-all group">
+                          <div className="space-y-1">
+                            <div className="font-black text-[15px] group-hover:text-primary transition-colors">{d.companies?.razon_social || 'Cliente'}</div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{d.title}</div>
+                              {monthsRemaining !== null && (
+                                <div className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                  ⏳ {monthsRemaining} meses restantes
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                             <div className="font-black text-lg">{fmtCLP(d.valor_neto)}</div>
+                             {d.is_risk && <span className="text-[9px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">En Riesgo</span>}
+                          </div>
                         </div>
-                        <div className="text-right">
-                           <div className="font-black text-lg">{fmtCLP(d.valor_neto)}</div>
-                           {d.is_risk && <span className="text-[9px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">En Riesgo</span>}
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                   <div className="p-8 border-t border-border/20 bg-slate-50/50 dark:bg-white/2">
                     <Button onClick={() => setSelectedMetric(null)} className="w-full h-12 rounded-2xl font-black uppercase tracking-widest">Cerrar Detalle</Button>
