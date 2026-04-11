@@ -742,24 +742,24 @@ export default function Dashboard() {
           <div className="bg-[#F2F2F7] dark:bg-[#1C1C1E] rounded-[48px] w-full max-w-xl max-h-[85vh] overflow-hidden shadow-[0_32px_80px_rgba(0,0,0,0.15)] flex flex-col border border-white dark:border-white/5">
             
             {/* Header del Modal */}
-            <div className="px-10 pt-12 pb-8 flex flex-col items-center text-center relative">
+            <div className="px-8 pt-10 pb-6 flex flex-col items-center text-center relative">
               <button 
                 onClick={() => setSelectedMetric(null)} 
-                className="absolute top-8 right-8 h-8 w-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center hover:bg-black/10 transition-colors"
+                className="absolute top-6 right-6 h-8 w-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center hover:bg-black/10 transition-colors"
               >
-                <span className="text-xs font-bold opacity-40">✕</span>
+                <span className="text-[10px] font-black opacity-30">✕</span>
               </button>
               
-              <h3 className="text-[32px] font-black tracking-tight leading-none mb-3 text-black dark:text-white">
+              <h3 className="text-2xl font-black tracking-tight leading-none mb-2 text-black dark:text-white">
                 {selectedMetric.label}
               </h3>
-              <p className="text-[13px] font-medium text-muted-foreground opacity-60">
-                {selectedMetric.deals.length} registros encontrados en este segmento
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">
+                {selectedMetric.deals.length} Negocios en este grupo
               </p>
             </div>
 
             {/* Listado de Items (Estilo Tarjetas Apple) */}
-            <div className="flex-1 overflow-y-auto px-8 pb-10 space-y-4">
+            <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-3">
               {selectedMetric.deals.map((d: any) => {
                 const monthsRemaining = (() => {
                   if (!d.is_contract || !d.contract_months) return null
@@ -771,34 +771,26 @@ export default function Dashboard() {
                 })()
 
                 return (
-                  <div key={d.id} className="bg-white dark:bg-white/[0.03] rounded-[32px] p-6 shadow-sm border border-black/[0.02] dark:border-white/[0.03] flex items-center justify-between group transition-all hover:scale-[1.02] hover:shadow-md">
-                    <div className="space-y-1.5 flex-1 min-w-0 pr-4">
-                      <div className="font-bold text-[17px] text-black dark:text-white truncate">
+                  <div key={d.id} className="bg-white dark:bg-white/[0.03] rounded-[28px] p-5 shadow-sm border border-black/[0.02] dark:border-white/[0.03] flex items-center justify-between group transition-all hover:bg-slate-50 dark:hover:bg-white/[0.05]">
+                    <div className="space-y-1 flex-1 min-w-0 pr-4">
+                      <div className="font-bold text-[15px] text-black dark:text-white truncate">
                         {d.companies?.razon_social || 'Desconocido'}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 truncate">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-30 truncate">
                           {d.title}
                         </span>
                         {monthsRemaining !== null && (
-                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-tighter">
-                            ⏳ {monthsRemaining} meses restantes
-                          </div>
-                        )}
-                        {d.is_risk && (
-                          <div className="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/10 text-rose-500 text-[9px] font-black uppercase tracking-tighter animate-pulse">
-                            En Riesgo
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-tighter">
+                            ⏳ {monthsRemaining} meses
                           </div>
                         )}
                       </div>
                     </div>
                     
                     <div className="text-right shrink-0">
-                       <div className="text-[20px] font-black text-black dark:text-white tracking-tighter tabular-nums leading-none">
+                       <div className="text-[17px] font-black text-black dark:text-white tracking-tighter tabular-nums leading-none">
                          {fmtCLP(d.valor_neto)}
-                       </div>
-                       <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-30 mt-1">
-                         MRR Neto
                        </div>
                     </div>
                   </div>
@@ -807,12 +799,12 @@ export default function Dashboard() {
             </div>
 
             {/* Footer con Botón Estilo Apple Settings */}
-            <div className="px-10 py-8 bg-white/20 dark:bg-black/20 backdrop-blur-xl border-t border-black/[0.03] dark:border-white/[0.03]">
+            <div className="px-8 py-6 bg-white/20 dark:bg-black/20 backdrop-blur-xl border-t border-black/[0.03] dark:border-white/[0.03]">
                <button 
                  onClick={() => setSelectedMetric(null)} 
-                 className="w-full h-14 bg-black dark:bg-white text-white dark:text-black rounded-[24px] font-black text-[13px] uppercase tracking-[0.2em] shadow-xl hover:opacity-90 active:scale-[0.98] transition-all"
+                 className="w-full h-12 bg-primary text-white rounded-[18px] font-black text-[12px] uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all"
                >
-                 Cerrar Detalle
+                 Entendido
                </button>
             </div>
           </div>
