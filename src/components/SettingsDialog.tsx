@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogStickyFooter,
+  DialogMacClose 
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -172,14 +180,8 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
             <DialogDescription>
               Ajusta el nombre de tu empresa y tu perfil personal.
             </DialogDescription>
-          {/* Botón Cerrar "X" - Touch Target 44px */}
-          <button 
-            onClick={() => onOpenChange(false)}
-            className="absolute -top-2 -right-2 h-11 w-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 transition-all active:scale-90"
-            aria-label="Cerrar"
-          >
-            <span className="text-xl font-medium opacity-40">✕</span>
-          </button>
+          {/* Botón Cerrar "Mac Style" - Global Component */}
+          <DialogMacClose onClick={() => onOpenChange(false)} />
         </DialogHeader>
 
         {/* Tab Navigation */}
@@ -392,7 +394,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
 
         </div>
 
-        <DialogFooter className="sticky bottom-0 left-0 right-0 p-6 bg-white/85 dark:bg-[#1C1C1E]/90 backdrop-blur-xl border-t border-black/[0.05] dark:border-white/[0.1] z-50 flex flex-row gap-3">
+        <DialogStickyFooter>
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)} 
@@ -412,7 +414,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
               </>
             )}
           </Button>
-        </DialogFooter>
+        </DialogStickyFooter>
       </DialogContent>
     </Dialog>
   )

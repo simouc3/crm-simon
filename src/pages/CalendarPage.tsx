@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase/client'
 import { ChevronLeft, ChevronRight, Plus, Phone, Mail, MapPin, Trash2, Calendar as CalendarIcon, MessageSquare, CheckCircle2, CalendarPlus, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogStickyFooter,
+  DialogMacClose
+} from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { buildGoogleCalendarUrl, generateBulkIcs, downloadIcs, type CalendarEvent } from '../lib/googleCalendar'
 
@@ -427,13 +434,14 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-8">
+              <DialogStickyFooter className="mt-8">
                 <Button variant="outline" onClick={() => setIsAddOpen(false)} className="flex-1 h-14 rounded-[1.2rem] font-black uppercase text-[11px] tracking-widest border-border hover:bg-slate-100 dark:hover:bg-[#2C2C2E]">Cancelar</Button>
                 <Button onClick={handleSaveActivity} disabled={loading || !selectedCompany} className="flex-[1.5] h-14 rounded-[1.2rem] font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20">
                   {loading ? 'Guardando...' : 'Confirmar'}
                 </Button>
-              </div>
+              </DialogStickyFooter>
            </div>
+           <DialogMacClose onClick={() => setIsAddOpen(false)} />
         </DialogContent>
       </Dialog>
 
@@ -484,18 +492,21 @@ export default function CalendarPage() {
                   </div>
                </div>
 
-               <Button 
-                 onClick={() => toggleComplete(selectedEvent.id, selectedEvent.completed)}
-                 className={`w-full h-14 rounded-[1.2rem] font-black flex items-center justify-center gap-3 transition-all text-[11px] uppercase tracking-widest ${
-                   selectedEvent.completed 
-                     ? 'bg-slate-100 text-slate-500 dark:bg-[#2C2C2E] dark:text-muted-foreground border border-border/50 hover:bg-slate-200 dark:hover:bg-[#3A3A3C]' 
-                     : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 active:scale-95'
-                 }`}
-               >
-                 {selectedEvent.completed ? 'Re-Activar Tarea' : <><CheckCircle2 size={18}/> Marcar como Realizada</>}
-               </Button>
-            </div>
+                <DialogStickyFooter>
+                 <Button 
+                   onClick={() => toggleComplete(selectedEvent.id, selectedEvent.completed)}
+                   className={`w-full h-14 rounded-[1.2rem] font-black flex items-center justify-center gap-3 transition-all text-[11px] uppercase tracking-widest ${
+                     selectedEvent.completed 
+                       ? 'bg-slate-100 text-slate-500 dark:bg-[#2C2C2E] dark:text-muted-foreground border border-border/50 hover:bg-slate-200 dark:hover:bg-[#3A3A3C]' 
+                       : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-xl shadow-emerald-500/20 active:scale-95'
+                   }`}
+                 >
+                   {selectedEvent.completed ? 'Re-Activar Tarea' : <><CheckCircle2 size={18}/> Marcar como Realizada</>}
+                 </Button>
+                </DialogStickyFooter>
+             </div>
           )}
+          <DialogMacClose onClick={() => setIsDetailOpen(false)} />
         </DialogContent>
       </Dialog>
     </div>

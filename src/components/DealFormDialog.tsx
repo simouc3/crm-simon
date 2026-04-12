@@ -4,10 +4,11 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
+  DialogStickyFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogMacClose,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,6 +22,7 @@ import {
 import { supabase } from "../lib/supabase/client"
 import { type Deal, type Company } from "../types/database"
 import { LeadEnricher } from "../lib/ai/LeadEnricher"
+import { Layout, Building2, Ruler, BarChart3, Tag } from "lucide-react"
 
 interface DealFormProps {
   onDealCreated?: () => void
@@ -51,7 +53,7 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
 
   useEffect(() => {
     async function getCompanies() {
-      const { data } = await supabase.from('companies').select('id, razon_social')
+      const { data } = await supabase.from('companies').select('id, razon_social').order('razon_social')
       if (data) setCompanies(data as any)
     }
     if (open) {
@@ -106,9 +108,7 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
     if (error) {
       alert("Error guardando negocio: " + error.message)
     } else {
-      // LOGICA DE PLAYBOOK IA PARA NUEVOS NEGOCIOS
       if (!dealToEdit) {
-        // Obtenemos el ID del negocio recién creado (asumiendo que insert devuelve data o podemos sacarlo)
         const { data: newDeals } = await supabase.from('deals').select('id, company_id').eq('title', dataToSave.title).eq('company_id', dataToSave.company_id).order('created_at', { ascending: false }).limit(1)
         
         if (newDeals && newDeals[0]) {
@@ -116,7 +116,6 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
           const company = companies.find(c => c.id === formData.company_id)
           
           if (company) {
-            // Ejecutamos en segundo plano para no bloquear al usuario
             LeadEnricher.suggestInitialTasks(company.razon_social, company.segmento || 'INDUSTRIAL').then(async (tasks) => {
               const { data: { user } } = await supabase.auth.getUser()
               if (!user) return
@@ -150,62 +149,95 @@ export function DealFormDialog({ onDealCreated, dealToEdit, trigger, open: exter
           {trigger}
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{dealToEdit ? 'Editar Negocio' : 'Crear Nuevo Negocio'}</DialogTitle>
-          <DialogDescription>
-            Ingresa los detalles de la oportunidad de negocio.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right text-xs">Título</Label>
-            <Input id="title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="col-span-3" placeholder="Limpieza Post-Obra Edificio A" />
+      <DialogContent className="sm:max-w-[440px] rounded-[40px] p-0 overflow-hidden border-none bg-[#F5F5F7] dark:bg-black shadow-2xl">
+        <div className="flex flex-col max-h-[92vh] relative">
+          
+          <DialogMacClose onClick={() => setOpen(false)} />
+
+          <div className="p-8 pb-4">
+            <DialogHeader className="mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+                 <Tag size={28} />
+              </div>
+              <DialogTitle className="text-3xl font-black tracking-tighter">
+                {dealToEdit ? 'Editar Negocio' : 'Nuevo Negocio'}
+              </DialogTitle>
+              <DialogDescription className="text-sm font-medium opacity-60">
+                Gestiona la oportunidad comercial y vincula a un cliente.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-2">
+                  <Layout size={12} className="opacity-40" /> Título de la Oportunidad
+                </Label>
+                <Input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="h-12 rounded-2xl bg-white dark:bg-[#1C1C1E] border-black/[0.05] dark:border-white/[0.05] font-bold" placeholder="Ej: Servicio de Limpieza Mensual" />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-2">
+                  <Building2 size={12} className="opacity-40" /> Seleccionar Cliente
+                </Label>
+                <Select value={formData.company_id} onValueChange={(val) => setFormData({...formData, company_id: val})}>
+                  <SelectTrigger className="h-12 rounded-2xl bg-white dark:bg-[#1C1C1E] border-black/[0.05] dark:border-white/[0.05] font-bold px-4">
+                    <SelectValue placeholder="Busca un cliente..." />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl">
+                    {companies.map(c => (
+                      <SelectItem key={c.id} value={c.id} className="font-bold py-3">{c.razon_social}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-2">
+                    <BarChart3 size={12} className="opacity-40" /> Inversión (Neto)
+                  </Label>
+                  <Input type="number" value={formData.valor_neto} onChange={(e) => setFormData({...formData, valor_neto: e.target.value})} className="h-12 rounded-2xl bg-white dark:bg-[#1C1C1E] border-black/[0.05] dark:border-white/[0.05] font-bold" placeholder="Ej: 1500000" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-2">
+                    <Ruler size={12} className="opacity-40" /> Área Total (m²)
+                  </Label>
+                  <Input type="number" value={formData.m2_limpieza} onChange={(e) => setFormData({...formData, m2_limpieza: e.target.value})} className="h-12 rounded-2xl bg-white dark:bg-[#1C1C1E] border-black/[0.05] dark:border-white/[0.05] font-bold" placeholder="500" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-2">
+                  <Tag size={12} className="opacity-40" /> Etapa del Pipeline
+                </Label>
+                <Select value={formData.stage} onValueChange={(val) => setFormData({...formData, stage: val})}>
+                  <SelectTrigger className="h-12 rounded-2xl bg-white dark:bg-[#1C1C1E] border-black/[0.05] dark:border-white/[0.05] font-bold px-4">
+                    <SelectValue placeholder="Etapa actual" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl">
+                    <SelectItem value="1" className="font-bold py-3">1. Prospección</SelectItem>
+                    <SelectItem value="2" className="font-bold py-3">2. Contacto Iniciado</SelectItem>
+                    <SelectItem value="3" className="font-bold py-3">3. Visita Agendada</SelectItem>
+                    <SelectItem value="4" className="font-bold py-3">4. Propuesta Enviada</SelectItem>
+                    <SelectItem value="5" className="font-bold py-3">5. Negociación</SelectItem>
+                    <SelectItem value="6" className="font-bold py-3">6. Cierre Ganado</SelectItem>
+                    <SelectItem value="7" className="font-bold py-3">7. Cierre Perdido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="company" className="text-right text-xs">Empresa</Label>
-            <Select value={formData.company_id} onValueChange={(val) => setFormData({...formData, company_id: val})}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Selecciona el cliente..." />
-              </SelectTrigger>
-              <SelectContent>
-                {companies.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.razon_social}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="valor" className="text-right text-xs">Valor Neto</Label>
-            <Input id="valor" type="number" value={formData.valor_neto} onChange={(e) => setFormData({...formData, valor_neto: e.target.value})} className="col-span-3" placeholder="1500000" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="stage" className="text-right text-xs">Etapa Inicial</Label>
-            <Select value={formData.stage} onValueChange={(val) => setFormData({...formData, stage: val})}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Selecciona la etapa..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1. Prospección</SelectItem>
-                <SelectItem value="2">2. Contacto Iniciado</SelectItem>
-                <SelectItem value="3">3. Visita Agendada</SelectItem>
-                <SelectItem value="4">4. Propuesta Enviada</SelectItem>
-                <SelectItem value="5">5. Negociación</SelectItem>
-                <SelectItem value="6">6. Cierre Ganado</SelectItem>
-                <SelectItem value="7">7. Cierre Perdido</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="m2" className="text-right text-xs">Área (m²)</Label>
-            <Input id="m2" type="number" value={formData.m2_limpieza} onChange={(e) => setFormData({...formData, m2_limpieza: e.target.value})} className="col-span-3" placeholder="Ej: 500" />
-          </div>
+
+          <DialogStickyFooter className="mt-4">
+            <Button 
+               disabled={loading} 
+               onClick={handleSubmit}
+               className="h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[11px] tracking-widest w-full shadow-2xl active:scale-95 transition-all"
+            >
+              {loading ? 'Guardando...' : (dealToEdit ? 'Guardar Cambios' : 'Crear Negocio')}
+            </Button>
+          </DialogStickyFooter>
         </div>
-        <DialogFooter>
-          <Button disabled={loading} onClick={handleSubmit}>
-            {loading ? 'Guardando...' : (dealToEdit ? 'Guardar Cambios' : 'Crear Negocio')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

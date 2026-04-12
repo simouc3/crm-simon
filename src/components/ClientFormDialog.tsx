@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { type Company } from "../types/database"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogStickyFooter,
+  DialogHeader, 
+  DialogTitle, 
   DialogTrigger,
+  DialogMacClose
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -400,15 +401,16 @@ export function ClientFormDialog({ onClientCreated, clientToEdit, trigger }: Cli
           </div>
         </div>
 
-        <DialogFooter className="pt-2">
+        <DialogStickyFooter className="pt-2">
           <Button 
             disabled={loading} 
             onClick={handleSubmit}
-            className="h-12 rounded-2xl font-black text-[12px] uppercase tracking-widest bg-foreground text-background hover:bg-foreground/90 w-full shadow-[0_8px_20px_rgba(0,0,0,0.12)]"
+            className="h-12 rounded-2xl font-black text-[12px] uppercase tracking-widest bg-black dark:bg-white text-white dark:text-black hover:opacity-90 w-full shadow-[0_8px_20px_rgba(0,0,0,0.12)] active:scale-95 transition-all"
           >
-            {loading ? 'Guardando...' : (clientToEdit ? 'Guardar Cambios' : 'Crear Cliente')}
+            {loading ? 'Guardando...' : (clientToEdit ? 'Guardar Cambios' : 'Crear Empresa')}
           </Button>
-        </DialogFooter>
+        </DialogStickyFooter>
+        <DialogMacClose onClick={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )

@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase/client"
 import {
   Dialog,
   DialogContent,
+  DialogMacClose,
 } from "@/components/ui/dialog"
 import { LeadEnricher } from "../lib/ai/LeadEnricher"
 import { Sparkles, Copy, ExternalLink, Globe, Activity } from "lucide-react"
@@ -307,14 +308,8 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
         
         {/* ── Header Compacto ── */}
         <div className="px-5 pt-5 pb-4 md:px-8 md:pt-6 md:pb-5 bg-[#F5F5F7] dark:bg-[#141420] border-b border-black/[0.04] dark:border-white/[0.08] relative">
-           {/* Botón Cerrar "X" - Apple Style Touch Target */}
-           <button 
-             onClick={() => onOpenChange(false)}
-             className="absolute top-4 right-4 z-50 h-11 w-11 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 transition-all active:scale-90"
-             aria-label="Cerrar"
-           >
-             <span className="text-xl font-medium opacity-40 leading-none">✕</span>
-           </button>
+           {/* Botón Cerrar "Mac Style" - Global Component */}
+           <DialogMacClose onClick={() => onOpenChange(false)} />
 
            <div className="relative z-10">
               {/* Top: ID + stage badge */}

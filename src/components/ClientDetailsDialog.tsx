@@ -1,6 +1,8 @@
 import {
   Dialog,
   DialogContent,
+  DialogStickyFooter,
+  DialogMacClose,
 } from "@/components/ui/dialog"
 import { Building2, User, Phone, Mail, MapPin, Ruler, Tag, Briefcase } from 'lucide-react'
 
@@ -32,14 +34,8 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
       <DialogContent className="sm:max-w-[460px] rounded-[2.5rem] p-0 overflow-hidden border-none bg-[#F5F5F7] dark:bg-black shadow-2xl [&>button]:hidden">
         <div className="flex flex-col max-h-[90vh] relative">
           
-          {/* Botón Cerrar "X" - Apple Style Touch Target */}
-          <button 
-            onClick={() => onOpenChange(false)}
-            className="absolute top-6 right-6 z-[60] h-11 w-11 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 transition-all active:scale-90"
-            aria-label="Cerrar"
-          >
-            <span className="text-xl font-medium opacity-40 leading-none">✕</span>
-          </button>
+          {/* Botón Cerrar "Mac Style" - Global Component */}
+          <DialogMacClose onClick={() => onOpenChange(false)} />
 
           <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
             {/* Header Section — Deep Polish */}
@@ -108,15 +104,15 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
             </div>
           </div>
 
-          {/* Sticky Footer Action Bar — Apple Style */}
-          <div className="sticky bottom-0 left-0 right-0 p-6 bg-white/85 dark:bg-black/90 backdrop-blur-xl border-t border-black/[0.05] dark:border-white/[0.1] z-50">
+          {/* Sticky Footer Action Bar — Apple Style (Abstracción Global) */}
+          <DialogStickyFooter>
             <button 
               onClick={() => onOpenChange(false)}
               className="w-full h-14 rounded-[22px] bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[11px] tracking-widest shadow-2xl active:scale-95 transition-all"
             >
               Cerrar Ficha
             </button>
-          </div>
+          </DialogStickyFooter>
         </div>
       </DialogContent>
     </Dialog>
