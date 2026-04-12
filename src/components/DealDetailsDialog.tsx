@@ -303,7 +303,7 @@ export function DealDetailsDialog({ deal, open, onOpenChange, onDealUpdated }: D
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[32px] p-0 border-none bg-white dark:bg-[#0D0D17] shadow-[0_40px_100px_rgba(0,0,0,0.3)] pb-32">
+      <DialogContent className="w-[98vw] max-w-5xl max-h-[94vh] overflow-y-auto rounded-[32px] p-0 border-none bg-white dark:bg-[#0D0D17] shadow-[0_40px_100px_rgba(0,0,0,0.3)] pb-32 [&>button]:hidden">
         
         {/* ── Header Compacto ── */}
         <div className="px-5 pt-5 pb-4 md:px-8 md:pt-6 md:pb-5 bg-[#F5F5F7] dark:bg-[#141420] border-b border-black/[0.04] dark:border-white/[0.08] relative">

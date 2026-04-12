@@ -165,12 +165,13 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader className="relative">
-          <DialogTitle>Configuración del Sistema</DialogTitle>
-          <DialogDescription>
-            Ajusta el nombre de tu empresa y tu perfil personal.
-          </DialogDescription>
+      <DialogContent className="sm:max-w-[420px] rounded-[32px] p-0 overflow-hidden border-none bg-white/80 dark:bg-black/80 backdrop-blur-2xl shadow-2xl [&>button]:hidden">
+        <div className="flex flex-col max-h-[90vh]">
+          <DialogHeader className="relative p-6 pb-2 shrink-0">
+            <DialogTitle>Configuración del Sistema</DialogTitle>
+            <DialogDescription>
+              Ajusta el nombre de tu empresa y tu perfil personal.
+            </DialogDescription>
           {/* Botón Cerrar "X" - Touch Target 44px */}
           <button 
             onClick={() => onOpenChange(false)}
@@ -389,11 +390,21 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
           )}
         </div>
 
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
+        </div>
+
+        <DialogFooter className="sticky bottom-0 left-0 right-0 p-6 bg-white/85 dark:bg-[#1C1C1E]/90 backdrop-blur-xl border-t border-black/[0.05] dark:border-white/[0.1] z-50 flex flex-row gap-3">
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)} 
+            className="flex-1 h-12 rounded-2xl border-black/[0.05] dark:border-white/[0.1] font-bold text-muted-foreground hover:bg-slate-50 transition-all active:scale-95"
+          >
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={loading || uploading} className="rounded-xl">
+          <Button 
+            onClick={handleSave} 
+            disabled={loading || uploading} 
+            className="flex-[2] h-12 rounded-2xl bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all"
+          >
             {loading ? "Guardando..." : (
               <>
                 <Save className="w-4 h-4 mr-2" />
