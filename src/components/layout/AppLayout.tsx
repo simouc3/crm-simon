@@ -129,8 +129,15 @@ export default function AppLayout() {
       )
       .subscribe()
 
+    const handleOpenSettings = () => {
+      setShowSettings(true)
+    }
+
+    window.addEventListener('open-settings', handleOpenSettings)
+
     return () => {
       supabase.removeChannel(channel)
+      window.removeEventListener('open-settings', handleOpenSettings)
     }
   }, [user])
 

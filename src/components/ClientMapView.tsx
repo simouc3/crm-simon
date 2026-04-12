@@ -79,8 +79,8 @@ export function ClientMapView({ clients, deals = [], onClientClick }: ClientMapV
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: [-70.6693, -33.4569], // Santiago, Chile
-      zoom: 10,
+      center: [-72.9424, -41.4693], // Puerto Montt, Chile
+      zoom: 12,
       attributionControl: false,
     })
 

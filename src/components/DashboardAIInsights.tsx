@@ -150,11 +150,19 @@ INSTRUCCIONES DE ESTILO:
       </div>
 
       {error && (
-        <div className="p-6 rounded-[32px] bg-rose-500/10 border border-rose-500/20 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
-          <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
-            <AlertTriangle className="h-5 w-5 text-white" />
+        <div className="p-6 rounded-[32px] bg-rose-500/10 border border-rose-500/20 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
+              <AlertTriangle className="h-5 w-5 text-white" />
+            </div>
+            <p className="text-sm font-black text-rose-600 dark:text-rose-400 tracking-tight">{error}</p>
           </div>
-          <p className="text-sm font-black text-rose-600 dark:text-rose-400 tracking-tight">{error}</p>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-settings'))}
+            className="px-6 py-2.5 bg-rose-500 text-white rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20 active:scale-95 whitespace-nowrap"
+          >
+            Ir a Configuración
+          </button>
         </div>
       )}
 

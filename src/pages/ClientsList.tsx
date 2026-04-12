@@ -96,12 +96,12 @@ export default function ClientsList() {
             {filteredClients.length} empresas · Directorio B2B
           </p>
         </div>
-          <div className="flex items-center gap-3 mt-8 md:mt-0">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 mt-8 md:mt-0 w-full md:w-auto">
             {/* View Toggle */}
-            <div className="flex glass-island p-1 rounded-full shadow-sm border border-black/[0.03] dark:border-white/[0.05]">
+            <div className="flex glass-island p-1 rounded-full shadow-sm border border-black/[0.03] dark:border-white/[0.05] w-full md:w-auto justify-center">
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`flex-1 md:flex-none flex items-center justify-center gap-1.5 h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                   viewMode === 'list' ? 'bg-white dark:bg-white/10 text-black dark:text-white shadow-sm' : 'text-muted-foreground opacity-40 hover:opacity-70'
                 }`}
               >
@@ -109,17 +109,17 @@ export default function ClientsList() {
               </button>
               <button
                 onClick={() => setViewMode('map')}
-                className={`flex items-center gap-1.5 h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`flex-1 md:flex-none flex items-center justify-center gap-1.5 h-9 px-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                   viewMode === 'map' ? 'bg-white dark:bg-white/10 text-black dark:text-white shadow-sm' : 'text-muted-foreground opacity-40 hover:opacity-70'
                 }`}
               >
                 <Map className="h-3.5 w-3.5" /> Mapa
               </button>
             </div>
-            <div className="w-full sm:w-auto">
+            <div className="w-full md:w-auto">
               <ImportClientsDialog onImported={fetchCompanies} />
             </div>
-            <div className="w-full sm:w-auto">
+            <div className="w-full md:w-auto">
               <ClientFormDialog onClientCreated={fetchCompanies} />
             </div>
           </div>
