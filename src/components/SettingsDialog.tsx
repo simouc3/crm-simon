@@ -166,11 +166,19 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader>
+        <DialogHeader className="relative">
           <DialogTitle>Configuración del Sistema</DialogTitle>
           <DialogDescription>
             Ajusta el nombre de tu empresa y tu perfil personal.
           </DialogDescription>
+          {/* Botón Cerrar "X" - Touch Target 44px */}
+          <button 
+            onClick={() => onOpenChange(false)}
+            className="absolute -top-2 -right-2 h-11 w-11 flex items-center justify-center rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 transition-all active:scale-90"
+            aria-label="Cerrar"
+          >
+            <span className="text-xl font-medium opacity-40">✕</span>
+          </button>
         </DialogHeader>
 
         {/* Tab Navigation */}
@@ -189,7 +197,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
           </button>
         </div>
 
-        <div className="grid gap-5 py-2 max-h-[60vh] overflow-y-auto px-1 hide-scrollbar">
+        <div className="grid gap-5 py-2 max-h-[60vh] overflow-y-auto px-1 hide-scrollbar pb-24">
           {activeTab === 'perfil' && (
             <>
               {/* Perfil */}

@@ -744,9 +744,10 @@ export default function Dashboard() {
             <div className="px-8 pt-10 pb-6 flex flex-col items-center text-center relative">
               <button 
                 onClick={() => setSelectedMetric(null)} 
-                className="absolute top-6 right-6 h-8 w-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center hover:bg-black/10 transition-colors"
+                className="absolute top-6 right-6 h-11 w-11 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center hover:bg-black/10 transition-colors active:scale-90"
+                aria-label="Cerrar"
               >
-                <span className="text-[10px] font-black opacity-30">✕</span>
+                <span className="text-xl font-medium opacity-30 leading-none">✕</span>
               </button>
               
               <h3 className="text-2xl font-black tracking-tight leading-none mb-2 text-black dark:text-white">
@@ -758,7 +759,7 @@ export default function Dashboard() {
             </div>
 
             {/* Listado de Items (Estilo Tarjetas Apple) */}
-            <div className="flex-1 overflow-y-auto px-6 pb-8 space-y-3">
+            <div className="flex-1 overflow-y-auto px-6 pb-32 space-y-3 no-scrollbar">
               {selectedMetric.deals.map((d: any) => {
                 const monthsRemaining = (() => {
                   if (!d.is_contract || !d.contract_months) return null

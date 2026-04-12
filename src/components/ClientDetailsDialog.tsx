@@ -30,7 +30,16 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[460px] rounded-[2.5rem] p-0 overflow-hidden border-none bg-[#F5F5F7] dark:bg-black shadow-2xl">
-        <div className="max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div className="max-h-[90vh] overflow-y-auto no-scrollbar pb-[120px] relative">
+          {/* Botón Cerrar "X" - Apple Style Touch Target */}
+          <button 
+            onClick={() => onOpenChange(false)}
+            className="absolute top-6 right-6 z-50 h-11 w-11 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 transition-all active:scale-90"
+            aria-label="Cerrar"
+          >
+            <span className="text-xl font-medium opacity-40 leading-none">✕</span>
+          </button>
+
           {/* Header Section — Deep Polish */}
           <div className="p-6 pb-5 bg-white dark:bg-[#111119] border-b border-black/[0.03] dark:border-white/[0.03]">
             <div className="flex items-center gap-4 mb-4">
@@ -95,12 +104,6 @@ export function ClientDetailsDialog({ client, open, onOpenChange }: ClientDetail
               </div>
             )}
             
-            <button 
-              onClick={() => onOpenChange(false)}
-              className="w-full h-14 rounded-[22px] bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[11px] tracking-widest shadow-xl active:scale-95 transition-all mt-6"
-            >
-              Cerrar Ficha
-            </button>
           </div>
         </div>
       </DialogContent>
