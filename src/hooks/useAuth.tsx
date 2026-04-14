@@ -34,15 +34,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, retries = 0) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single()
+        .maybeSingle() // maybeSingle es más tolerante que single()
       
       if (error) throw error
+      
+      if (!data && retries < 2) {
+        // Pequeña espera y reintento por si el trigger de DB es lento
+        await new Promise(r => setTimeout(r, 800));
+        return fetchProfile(userId, retries + 1);
+      }
+
       setProfile(data)
     } catch (err) {
       console.error('Error loading profile:', err)

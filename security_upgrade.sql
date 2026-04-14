@@ -1,85 +1,99 @@
 -- =========================================================================
--- MIGRACIÓN DE SEGURIDAD CORPORATIVA: GOOGLE OAUTH & CLOSED ACCESS
+-- MIGRACIÓN DE SEGURIDAD "TURBO": VELOCIDAD Y ACCESO GARANTIZADO
 -- =========================================================================
 
--- 1. Añadir el rol 'PENDIENTE' para nuevos usuarios (Closed Beta Policy)
--- Note: IF NOT EXISTS is not supported in ALTER TYPE ADD VALUE until PG 9.x+
--- If it fails, it might be because the value already exists.
+-- 1. CURACIÓN ATÓMICA DEL ENUM (Para evitar errores de "invalid value")
 DO $$ 
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid WHERE t.typname = 'user_role' AND e.enumlabel = 'PENDIENTE') THEN
-    ALTER TYPE user_role ADD VALUE 'PENDIENTE' BEFORE 'VENTAS';
-  END IF;
+  -- Intentamos añadir roles uno por uno de forma aislada
+  BEGIN
+    ALTER TYPE user_role ADD VALUE 'ADMIN';
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+
+  BEGIN
+    ALTER TYPE user_role ADD VALUE 'VENTAS';
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+
+  BEGIN
+    ALTER TYPE user_role ADD VALUE 'PENDIENTE';
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
 END $$;
 
--- 2. Actualizar función de sincronización de Perfiles (Trigger)
--- Ahora captura avatar_url yEmail desde Google Auth Metadata
--- Forzando que todo nuevo registro inicie como 'PENDIENTE'
-create or replace function public.handle_new_user()
-returns trigger as $$
-declare
-  v_default_role user_role := 'PENDIENTE';
-  v_allowed_domain text := NULL; -- Configurar aquí el dominio restrictivo en el futuro (ej: 'tuempresa.com')
-begin
-  -- Preparación para restricción de dominio:
-  -- IF v_allowed_domain IS NOT NULL AND split_part(new.email, '@', 2) != v_allowed_domain THEN
-  --   RAISE EXCEPTION 'Registro restringido al dominio %', v_allowed_domain;
-  -- END IF;
+-- 2. FUNCIÓN DE ROL OPTIMIZADA (El "Turbo" del RLS)
+-- Esta función cachea el rol del usuario para evitar subconsultas lentas en cada fila
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS user_role AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid();
+$$ LANGUAGE sql STABLE SECURITY DEFINER;
 
-  insert into public.profiles (id, full_name, email, avatar_url, role)
-  values (
+-- 3. POLÍTICAS DE PERFILES (Desbloqueo Maestro)
+-- Esto permite que el usuario pueda ver su propio rol para que el resto de reglas funcionen
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Perfil visible por el propio usuario" ON public.profiles;
+CREATE POLICY "Perfil visible por el propio usuario" ON public.profiles
+  FOR SELECT USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Admin ve todos los perfiles" ON public.profiles;
+CREATE POLICY "Admin ve todos los perfiles" ON public.profiles
+  FOR ALL USING (public.get_my_role() = 'ADMIN');
+
+-- 4. REFACTORIZACIÓN DE POLÍTICAS RLS (Optimización de Velocidad)
+-- Usamos get_my_role() que es mucho más rápido que subqueries manuales
+
+-- 4.1 Empresas
+ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Companies select policy" ON public.companies;
+CREATE POLICY "Companies select policy" ON public.companies FOR SELECT
+  USING (
+    public.get_my_role() = 'ADMIN' 
+    OR (created_by = auth.uid() AND public.get_my_role() = 'VENTAS')
+  );
+
+-- 4.2 Negocios
+ALTER TABLE public.deals ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Deals select policy" ON public.deals;
+CREATE POLICY "Deals select policy" ON public.deals FOR SELECT
+  USING (
+    public.get_my_role() = 'ADMIN' 
+    OR (user_id = auth.uid() AND public.get_my_role() = 'VENTAS')
+  );
+
+-- 4.3 Actividades
+ALTER TABLE public.activities ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Activities select policy" ON public.activities;
+CREATE POLICY "Activities select policy" ON public.activities FOR SELECT
+  USING (
+    public.get_my_role() = 'ADMIN' 
+    OR (user_id = auth.uid() AND public.get_my_role() = 'VENTAS')
+  );
+
+-- 4.4 Configuración
+ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Read app_settings restricted" ON public.app_settings;
+CREATE POLICY "Read app_settings restricted" ON public.app_settings FOR SELECT 
+USING (public.get_my_role() IN ('ADMIN', 'VENTAS'));
+
+-- 5. TRIGGER DE SINCRONIZACIÓN (Zero Trust Force)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, email, avatar_url, role)
+  VALUES (
     new.id, 
-    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name'), -- Google usa 'name' a veces
+    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', 'Nuevo Usuario'),
     new.email, 
-    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture'), -- Google usa 'picture'
-    v_default_role
+    COALESCE(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture'),
+    'PENDIENTE'::user_role
   )
-  on conflict (id) do update 
-  set 
-    full_name = coalesce(excluded.full_name, profiles.full_name),
-    avatar_url = coalesce(excluded.avatar_url, profiles.avatar_url),
+  ON CONFLICT (id) DO UPDATE 
+  SET 
+    full_name = COALESCE(excluded.full_name, profiles.full_name),
+    avatar_url = COALESCE(excluded.avatar_url, profiles.avatar_url),
     email = excluded.email;
-    -- Importante: NO actualizamos el 'role' en el UPSERT para evitar que un login posterior 
-    -- de Google resetee el rol que un ADMIN ya asignó manualmente.
 
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- 3. Blindaje de Políticas RLS (Row Level Security)
--- Ningún usuario con rol 'PENDIENTE' debe ver datos críticos.
-
--- 3.1 Empresas (Companies)
-drop policy if exists "Companies select policy" on companies;
-create policy "Companies select policy" on companies for select
-  using (
-    (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'))
-    or (created_by = auth.uid() and exists (select 1 from profiles where id = auth.uid() and role = 'VENTAS'))
-  );
-
--- 3.2 Negocios (Deals)
-drop policy if exists "Deals select policy" on deals;
-create policy "Deals select policy" on deals for select
-  using (
-    (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'))
-    or (user_id = auth.uid() and exists (select 1 from profiles where id = auth.uid() and role = 'VENTAS'))
-  );
-
--- 3.3 Actividades (Activities)
-drop policy if exists "Activities select policy" on activities;
-create policy "Activities select policy" on activities for select
-  using (
-    (exists (select 1 from profiles where id = auth.uid() and role = 'ADMIN'))
-    or (user_id = auth.uid() and exists (select 1 from profiles where id = auth.uid() and role = 'VENTAS'))
-  );
-
--- 3.4 Configuración (App Settings)
-drop policy if exists "Read app_settings public" on app_settings;
-create policy "Read app_settings restricted" on app_settings for select 
-using (exists (select 1 from profiles where id = auth.uid() and role in ('ADMIN', 'VENTAS')));
-
--- 3.5 Perfiles (Trazabilidad)
--- Los perfiles son visibles entre sí solo si ya están autorizados (Admin/Ventas)
-drop policy if exists "Profiles visible to authenticated" on profiles;
-create policy "Profiles visible to authorized" on profiles for select 
-using (exists (select 1 from profiles where id = auth.uid() and role in ('ADMIN', 'VENTAS')) OR auth.uid() = id);
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
