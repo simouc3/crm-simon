@@ -104,8 +104,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setProfile(null)
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.warn('Error en signOut:', err)
+    } finally {
+      setSession(null)
+      setUser(null)
+      setProfile(null)
+      // Forzamos limpieza de localStorage por si acaso
+      localStorage.clear()
+      window.location.href = '/login'
+    }
   }
 
   const refreshProfile = async () => {

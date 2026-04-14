@@ -267,7 +267,7 @@ export default function AppLayout() {
               variant="ghost"
               size="icon"
               className="flex-1 rounded-xl h-9 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-500 border-0"
-              onClick={signOut}
+              onClick={() => signOut()}
               title="Salir"
             >
               <LogOut className="h-[15px] w-[15px]" />

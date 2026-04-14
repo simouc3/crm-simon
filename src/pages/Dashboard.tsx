@@ -264,13 +264,30 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true)
-      const { data } = await supabase
-        .from('deals')
-        .select('*, companies(razon_social, segmento, comuna, m2_estimados, condiciones_pago)')
-        .order('created_at', { ascending: true })
-      setDeals(data || [])
-      setLoading(false)
+      try {
+        setLoading(true)
+        const { data, error } = await supabase
+          .from('deals')
+          .select('*, companies(razon_social, segmento, comuna, m2_estimados, condiciones_pago)')
+          .order('created_at', { ascending: true })
+        
+        if (error) {
+          if (error.code === 'PGRST301' || error.message.includes('JWT')) {
+            console.error('Sesión inválida en Dashboard, cerrando...')
+            // El hook useAuth ya maneja la limpieza si forzamos un evento o simplemente limpiamos
+            supabase.auth.signOut().then(() => {
+              window.location.href = '/login'
+            })
+            return
+          }
+          throw error
+        }
+        setDeals(data || [])
+      } catch (err) {
+        console.error('Error cargando Dashboard:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     fetchData()
   }, [])

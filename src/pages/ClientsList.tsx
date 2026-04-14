@@ -39,23 +39,34 @@ export default function ClientsList() {
   const [deals, setDeals] = useState<any[]>([])
 
   const fetchCompanies = async () => {
-    setLoading(true)
-    const { data, error } = await supabase
-      .from("companies")
-      .select("*")
-      .order("created_at", { ascending: false })
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from("companies")
+        .select("*")
+        .order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching companies:", error)
-    } else {
+      if (error) {
+        if (error.code === 'PGRST301' || error.message.includes('JWT')) {
+          supabase.auth.signOut().then(() => {
+             window.location.href = '/login'
+          })
+          return
+        }
+        throw error
+      }
+      
       setClients(data || [])
+
+      // Fetch deals for map stages
+      const { data: dealsData } = await supabase.from('deals').select('company_id, stage, valor_neto')
+      if (dealsData) setDeals(dealsData)
+      
+    } catch (err) {
+      console.error("Error fetching companies:", err)
+    } finally {
+      setLoading(false)
     }
-
-    // Fetch deals for map stages
-    const { data: dealsData } = await supabase.from('deals').select('company_id, stage, valor_neto')
-    if (dealsData) setDeals(dealsData)
-
-    setLoading(false)
   }
 
   const handleDeleteClient = async (id: string) => {
