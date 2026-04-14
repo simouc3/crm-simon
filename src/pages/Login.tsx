@@ -89,7 +89,7 @@ export default function Login() {
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         placeholder="Nombre Completo"
-                        className="w-full h-16 pl-14 pr-6 rounded-2xl bg-white/[0.05] border border-white/[0.05] focus:border-primary/50 focus:bg-white/[0.08] outline-none font-bold text-sm text-white tracking-tight transition-all placeholder:text-white/10"
+                        className="w-full h-16 pl-[3.5rem] pr-6 rounded-2xl bg-white/[0.05] border border-white/[0.05] focus:border-primary/50 focus:bg-white/[0.08] outline-none font-bold text-sm text-white tracking-tight transition-all placeholder:text-white/10"
                         required
                       />
                     </div>
