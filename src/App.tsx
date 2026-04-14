@@ -5,7 +5,7 @@ import KanbanBoard from './pages/KanbanBoard'
 import ClientsList from './pages/ClientsList'
 import ProfilesPage from './pages/ProfilesPage'
 import CalendarPage from './pages/CalendarPage'
-import PendingApproval from './pages/PendingApproval'
+// import PendingApproval from './pages/PendingApproval'
 import AppLayout from './components/layout/AppLayout'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 
