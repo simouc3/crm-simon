@@ -40,38 +40,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle() // maybeSingle es más tolerante que single()
+        .maybeSingle()
       
-      if (error) throw error
+      if (error) {
+        console.warn(`Intento ${retries + 1} fallido:`, error.message)
+        throw error
+      }
       
       if (!data && retries < 2) {
-        // Pequeña espera y reintento por si el trigger de DB es lento
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 1000));
         return fetchProfile(userId, retries + 1);
       }
 
       setProfile(data)
     } catch (err) {
-      console.error('Error loading profile:', err)
-      setProfile(null)
+      console.error('Error final cargando perfil:', err)
+      // No reseteamos a null aquí para mantener el estado previo si existe
     }
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Definimos una función de limpieza para el loading que siempre se ejecute
+    const stopLoading = () => setLoading(false);
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setLoading(false))
-      } else {
-        setLoading(false)
+        await fetchProfile(session.user.id);
       }
-    })
+      stopLoading();
+    }).catch(err => {
+      console.error("Auth Session Error:", err);
+      stopLoading();
+    });
 
-    // FAILSAFE: Si después de 3.5 segundos sigue cargando, forzar el fin del loading.
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3500);
+    // FAILSAFE RADICAL: Ningún spinner dura más de 4s
+    const failsafe = setTimeout(stopLoading, 4000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)

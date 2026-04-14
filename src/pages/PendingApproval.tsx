@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button'
 import { ShieldAlert, Clock, LogOut, CheckCircle2 } from 'lucide-react'
 
 export default function PendingApproval() {
-  const { profile, signOut } = useAuth()
+  const { profile, user, signOut } = useAuth()
+  
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
 
   return (
     <div className="min-h-screen bg-[#F5F5F7] dark:bg-[#0D0D17] flex items-center justify-center p-6 font-sans">
@@ -34,7 +36,7 @@ export default function PendingApproval() {
               Tu cuenta está en <span className="text-primary italic">Revisión</span>
             </h1>
             <p className="text-sm font-medium text-muted-foreground leading-relaxed">
-              Hola <span className="text-foreground font-bold">{profile?.full_name?.split(' ')[0]}</span>. Tu acceso al CRM ha sido bloqueado temporalmente por política de seguridad corporativa.
+              Hola <span className="text-foreground font-bold">{displayName.split(' ')[0]}</span>. Tu acceso al CRM ha sido bloqueado temporalmente por política de seguridad corporativa.
             </p>
           </div>
 
