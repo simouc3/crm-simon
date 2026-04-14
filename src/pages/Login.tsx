@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase/client'
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Shield, Mail, Lock, Building2, ArrowRight, User, KeyRound } from 'lucide-react'
+import { Shield, Mail, Building2, ArrowRight, User, KeyRound } from 'lucide-react'
 
 export default function Login() {
   const [loading, setLoading] = useState(false)
