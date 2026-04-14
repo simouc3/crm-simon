@@ -58,18 +58,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data, error } = await supabase.auth.getSession()
         if (error) {
-          console.warn('Sesión inválida detectada:', error.message)
+          console.warn('Sesión corrupta detectada:', error.message)
+          // LIMPIEZA TOTAL AGRESIVA
+          localStorage.clear()
           setSession(null)
           setUser(null)
-        } else {
-          setSession(data.session)
-          setUser(data.session?.user ?? null)
-          if (data.session?.user) {
-            await fetchProfile(data.session.user.id);
+          setProfile(null)
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login'
           }
+          return
+        }
+        
+        setSession(data.session)
+        setUser(data.session?.user ?? null)
+        if (data.session?.user) {
+          await fetchProfile(data.session.user.id);
         }
       } catch (err) {
-        console.error('Fallo crítico en Auth init:', err)
+        console.error('Error fatal de Auth:', err)
+        localStorage.clear()
         setSession(null)
         setUser(null)
       } finally {

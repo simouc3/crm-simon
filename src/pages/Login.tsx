@@ -1,5 +1,5 @@
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase/client'
-import { useState } from 'react'
 import { Shield, Mail, Building2, ArrowRight, User, KeyRound } from 'lucide-react'
 
 export default function Login() {
@@ -9,6 +9,17 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [isRegistered, setIsRegistered] = useState(false)
+
+  // Asegurar limpieza total al cargar login para evitar errores de token antiguos
+  useEffect(() => {
+    const clearWaste = async () => {
+      try {
+        await supabase.auth.signOut()
+        localStorage.clear()
+      } catch (e) {}
+    }
+    clearWaste()
+  }, [])
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
