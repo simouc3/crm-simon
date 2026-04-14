@@ -274,7 +274,7 @@ export default function ClientsList() {
                     />
                     {/* Delete */}
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                      <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <button className="flex items-center justify-center h-8 w-8 rounded-xl bg-rose-500/12 text-rose-500 hover:bg-rose-500/20 transition-colors flex-shrink-0">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -367,7 +367,7 @@ export default function ClientsList() {
                         </Button>
                       } />
                       <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                          <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-rose-500 hover:bg-rose-50">
                               <Trash2 className="h-4 w-4" />
                             </Button>
