@@ -58,6 +58,8 @@ function App() {
           <Route path="/clients" element={<ClientsList />} />
           <Route path="/users" element={<ProfilesPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
+          {/* Catch-all para evitar pantalla blanca si se usa /dashboard u otras rutas antiguas */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </AuthProvider>
