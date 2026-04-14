@@ -62,9 +62,9 @@ function App() {
         
         {/* Ruta de Espera (No protegida por el check de rol activo, pero sí por sesión) */}
         <Route path="/pending" element={
-          <ProtectedRoute_SessionOnly>
+          <PendingRouteGuard>
             <PendingApproval />
-          </ProtectedRoute_SessionOnly>
+          </PendingRouteGuard>
         } />
         
         {/* Rutas Privadas del CRM (Bloqueadas para PENDIENTES) */}
@@ -80,12 +80,19 @@ function App() {
   )
 }
 
-// Helper para rutas que necesitan sesión pero no necesariamente rol activo
-function ProtectedRoute_SessionOnly({ children }: { children: React.ReactNode }) {
-  const { session } = useAuth()
+// Guard para la ruta /pending: si el usuario ya es ADMIN/VENTAS, lo saca de ahí a /
+function PendingRouteGuard({ children }: { children: React.ReactNode }) {
+  const { session, profile, authReady } = useAuth()
+  
+  if (!authReady) return null
   if (!session) return <Navigate to="/login" replace />
+  
+  // Si ya tiene rol activo, al dashboard
+  if (profile && (profile.role === 'ADMIN' || profile.role === 'VENTAS')) {
+    return <Navigate to="/" replace />
+  }
+  
   return <>{children}</>
 }
-
 
 export default App
