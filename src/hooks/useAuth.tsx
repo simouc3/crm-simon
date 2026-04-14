@@ -46,9 +46,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .maybeSingle()
       
       if (error) throw error
-      setProfile(data)
+      
+      if (data) {
+        setProfile(data)
+      } else {
+        // Fallback para usuarios sin perfil (ej. admin recién creado o error de sincronización)
+        setProfile({ id: userId, role: 'VENTAS' } as any)
+      }
     } catch (err) {
-      console.warn('Perfil no cargado:', err)
+      console.warn('Perfil no cargado, usando perfil básico:', err)
+      setProfile({ id: userId, role: 'VENTAS' } as any)
     }
   }
 

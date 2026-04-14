@@ -45,13 +45,18 @@ export default function AppLayout() {
         .from('profiles')
         .select('role, avatar_url')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
+      
       if (data) {
-        setUserRole(data.role || 'VENDEDOR')
+        setUserRole(data.role || 'VENTAS')
         if (data.avatar_url) setAvatarUrl(data.avatar_url)
+      } else {
+        // Fallback si no existe el perfil de este usuario todavía
+        setUserRole('VENTAS')
       }
     } catch (e) {
       console.warn('fetchUserRole error:', e)
+      setUserRole('VENTAS')
     }
   }
 
