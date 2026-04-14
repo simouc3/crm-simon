@@ -47,8 +47,14 @@ export default function ProfilesPage() {
     if (data?.role === 'ADMIN') setIsAdmin(true)
   }
 
-  const fetchProfiles = async () => {
-    setLoading(true)
+  const fetchProfiles = async (delayMs: number = 0) => {
+    if (delayMs > 0) {
+      setLoading(true)
+      await new Promise(resolve => setTimeout(resolve, delayMs))
+    } else {
+      setLoading(true)
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -396,7 +402,7 @@ export default function ProfilesPage() {
         <CreateUserDialog 
           open={isAddingUser} 
           onOpenChange={setIsAddingUser} 
-          onUserCreated={fetchProfiles} 
+          onUserCreated={() => fetchProfiles(1500)} 
         />
       )}
     </div>

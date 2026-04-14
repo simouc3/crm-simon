@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { UserPlus, Mail, Copy, Check } from 'lucide-react'
+import { UserPlus, Mail, Copy, Check, KeyRound } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -28,7 +28,8 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    role: 'VENTAS'
+    role: 'VENTAS',
+    password: ''
   })
   const [invited, setInvited] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -40,10 +41,9 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
     try {
       // Usamos signUp para crear la cuenta en auth.users
       // Esto disparará el Trigger Tank Mode que creará el perfil automáticamente
-      const tempPassword = Math.random().toString(36).slice(-10) + "A1!"
       const { error } = await supabase.auth.signUp({
         email: formData.email,
-        password: tempPassword,
+        password: formData.password,
         options: {
           data: {
             full_name: formData.full_name,
@@ -108,6 +108,22 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
                     className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-border/40 focus-visible:ring-primary/20 pl-11 font-bold"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Contraseña Inicial</label>
+                <div className="relative">
+                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    required
+                    type="password"
+                    placeholder="Mínimo 6 caracteres" 
+                    className="h-12 rounded-xl bg-slate-50 dark:bg-slate-900 border-border/40 focus-visible:ring-primary/20 pl-11 font-bold"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    minLength={6}
                   />
                 </div>
               </div>
