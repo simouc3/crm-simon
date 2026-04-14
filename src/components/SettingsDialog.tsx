@@ -175,7 +175,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px] rounded-[32px] p-0 overflow-hidden border-none bg-white/80 dark:bg-black/80 backdrop-blur-2xl shadow-2xl [&>button]:hidden">
         <div className="flex flex-col max-h-[90vh]">
-          <DialogHeader className="relative p-6 pb-2 shrink-0">
+          <DialogHeader className="relative p-6 pr-16 pb-2 shrink-0">
             <DialogTitle>Configuración del Sistema</DialogTitle>
             <DialogDescription>
               Ajusta el nombre de tu empresa y tu perfil personal.
@@ -185,7 +185,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
         </DialogHeader>
 
         {/* Tab Navigation */}
-        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl mb-2 mt-4 mx-1">
+        <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl mb-2 mt-4 mx-6">
           <button 
             onClick={() => setActiveTab('perfil')}
             className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'perfil' ? 'bg-white dark:bg-white/10 shadow-sm text-foreground' : 'text-muted-foreground'}`}
@@ -200,7 +200,7 @@ export function SettingsDialog({ open, onOpenChange, onSettingsUpdated }: Settin
           </button>
         </div>
 
-        <div className="grid gap-5 py-2 max-h-[60vh] overflow-y-auto px-1 hide-scrollbar pb-24">
+        <div className="grid gap-5 py-2 max-h-[60vh] overflow-y-auto px-6 hide-scrollbar pb-10">
           {activeTab === 'perfil' && (
             <>
               {/* Perfil */}

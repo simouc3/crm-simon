@@ -55,13 +55,13 @@ const DialogMacClose = ({ onClick, className }: { onClick?: () => void, classNam
   <button 
     onClick={onClick}
     className={cn(
-      "absolute top-6 right-6 z-[60] h-10 w-10 flex items-center justify-center rounded-full bg-rose-500/10 hover:bg-rose-500 transition-all group active:scale-90",
+      "absolute top-6 right-6 z-[60] h-10 w-10 flex items-center justify-center rounded-full bg-rose-500/10 hover:bg-rose-500 transition-all group active:scale-95 shadow-sm",
       className
     )}
     aria-label="Cerrar"
   >
-    <div className="w-3 h-3 rounded-full bg-rose-500 group-hover:bg-white shadow-[0_0_8px_rgba(244,63,94,0.4)] transition-colors flex items-center justify-center">
-      <span className="text-[8px] font-black text-rose-500 group-hover:block hidden select-none">✕</span>
+    <div className="w-3.5 h-3.5 rounded-full bg-rose-500 group-hover:bg-white shadow-[0_0_8px_rgba(244,63,94,0.4)] transition-all flex items-center justify-center">
+      <span className="text-[9px] font-black text-rose-500 group-hover:block hidden select-none pt-[0.5px]">✕</span>
     </div>
   </button>
 )
@@ -73,7 +73,7 @@ const DialogStickyFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "sticky bottom-0 left-0 right-0 p-6 bg-white/85 dark:bg-[#1C1C1E]/90 backdrop-blur-xl border-t border-black/[0.05] dark:border-white/[0.1] z-50 flex flex-row gap-3",
+      "sticky bottom-0 left-0 right-0 px-6 py-4 bg-white/85 dark:bg-[#1C1C1E]/90 backdrop-blur-xl border-t border-black/[0.05] dark:border-white/[0.1] z-50 flex flex-row gap-3",
       className
     )}
     {...props}
@@ -115,7 +115,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-2xl font-black tracking-tighter leading-none", className)}
+    className={cn("text-2xl font-black tracking-tighter leading-none pr-12", className)}
     {...props}
   />
 ))

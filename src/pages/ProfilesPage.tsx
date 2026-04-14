@@ -207,55 +207,64 @@ export default function ProfilesPage() {
               onClick={() => { setSelectedProfile(profile); setIsDetailOpen(true); }}
               className="group relative bg-white dark:bg-[#1C1C1E] rounded-[3rem] border border-black/[0.02] dark:border-white/[0.02] p-8 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] dark:shadow-none hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.08)] hover:-translate-y-2 active:scale-[0.97] transition-all duration-500 cursor-pointer flex flex-col items-center text-center"
             >
-               {/* Role Badge Floating */}
-               <div className="absolute top-6 right-6">
-                 <Badge className={`text-[9px] font-black tracking-widest uppercase h-7 px-4 rounded-full border-none shadow-sm ${
-                    profile.role === 'ADMIN' ? 'bg-foreground text-background shadow-lg shadow-black/10' : 'bg-slate-100 dark:bg-white/5 text-muted-foreground'
-                  }`}>
-                    {profile.role === 'ADMIN' ? 'ADMIN' : 'VENTAS'}
-                  </Badge>
-               </div>
+                 {/* Role Badge Floating */}
+                 <div className="absolute top-6 right-6">
+                   <Badge className={`text-[9px] font-black tracking-widest uppercase h-7 px-4 rounded-full border-none shadow-sm ${
+                      profile.role === 'ADMIN' ? 'bg-foreground text-background shadow-lg shadow-black/10' : 
+                      profile.role === 'PENDIENTE' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' :
+                      'bg-slate-100 dark:bg-white/5 text-muted-foreground'
+                    }`}>
+                      {profile.role || 'PENDIENTE'}
+                    </Badge>
+                 </div>
 
-               {/* Avatar Container — Centered Apple Circle Style */}
-               <div className="relative mb-6">
-                  <div className="h-28 w-28 rounded-full bg-slate-50 dark:bg-black/50 p-1.5 shadow-inner overflow-hidden ring-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
-                    <div className="w-full h-full rounded-full bg-white dark:bg-black/40 flex items-center justify-center text-foreground overflow-hidden shadow-sm">
-                      {profile.avatar_url ? (
-                        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-3xl font-black text-foreground opacity-20 uppercase">
-                          {profile.full_name?.charAt(0) || 'U'}
-                        </span>
-                      )}
+                 {/* Avatar Container — Centered Apple Circle Style */}
+                 <div className="relative mb-6">
+                    <div className="h-28 w-28 rounded-full bg-slate-50 dark:bg-black/50 p-1.5 shadow-inner overflow-hidden ring-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
+                      <div className="w-full h-full rounded-full bg-white dark:bg-black/40 flex items-center justify-center text-foreground overflow-hidden shadow-sm">
+                        {profile.avatar_url ? (
+                          <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-3xl font-black text-foreground opacity-20 uppercase">
+                            {profile.full_name?.charAt(0) || 'U'}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  {profile.role === 'ADMIN' && (
-                    <div className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full bg-foreground text-background flex items-center justify-center shadow-xl border-4 border-white dark:border-[#1C1C1E] animate-in zoom-in-50 duration-500">
-                      <Star size={16} fill="currentColor" />
+                    {profile.role === 'ADMIN' && (
+                      <div className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full bg-foreground text-background flex items-center justify-center shadow-xl border-4 border-white dark:border-[#1C1C1E] animate-in zoom-in-50 duration-500">
+                        <Star size={16} fill="currentColor" />
+                      </div>
+                    )}
+                    {profile.role === 'PENDIENTE' && (
+                      <div className="absolute -bottom-1 -right-1 h-9 w-9 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xl border-4 border-white dark:border-[#1C1C1E] animate-in zoom-in-50 duration-500">
+                        <Shield size={16} />
+                      </div>
+                    )}
+                 </div>
+
+                 {/* Data Section */}
+                 <div className="space-y-1">
+                   <h3 className="text-[19px] font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
+                     {profile.full_name || 'Sin Nombre'}
+                   </h3>
+                   <p className="text-[13px] font-medium text-muted-foreground opacity-60">
+                     {profile.email || 'Acceso pendiente'}
+                   </p>
+                 </div>
+
+                 {/* Bottom Status Indicator */}
+                 <div className="mt-8 pt-6 border-t border-border/10 w-full flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-2 w-2 rounded-full ${profile.role === 'PENDIENTE' ? 'bg-amber-400' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`} />
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">
+                        {profile.role === 'PENDIENTE' ? 'Esperando Aprobación' : 'Activo'}
+                      </span>
                     </div>
-                  )}
-               </div>
-
-               {/* Data Section */}
-               <div className="space-y-1">
-                 <h3 className="text-[19px] font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                   {profile.full_name || 'Sin Nombre'}
-                 </h3>
-                 <p className="text-[13px] font-medium text-muted-foreground opacity-60">
-                   {profile.email || 'Acceso pendiente'}
-                 </p>
-               </div>
-
-               {/* Bottom Status Indicator */}
-               <div className="mt-8 pt-6 border-t border-border/10 w-full flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Activo ahora</span>
-                  </div>
-                  <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-muted-foreground group-hover:bg-foreground group-hover:text-background transition-all duration-300">
-                    <ChevronRight size={16} />
-                  </div>
-               </div>
+                    <div className="h-8 w-8 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-muted-foreground group-hover:bg-foreground group-hover:text-background transition-all duration-300">
+                      <ChevronRight size={16} />
+                    </div>
+                 </div>
             </div>
           ))}
         </div>
@@ -323,32 +332,35 @@ export default function ProfilesPage() {
                   </div>
                 </div>
 
-                {/* Group 2: Access & Safety */}
-                <div className="space-y-1">
-                  <span className="ml-4 text-[13px] font-medium text-muted-foreground uppercase tracking-tight opacity-60">Seguridad y Acceso</span>
-                  <div className="bg-white dark:bg-[#1C1C1E] rounded-[24px] overflow-hidden">
-                    <div className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white">
-                            <Shield size={16} />
-                         </div>
-                         <span className="text-[15px] font-medium text-foreground">Rol del Sistema</span>
+                  {/* Group 2: Access & Safety */}
+                  <div className="space-y-1">
+                    <span className="ml-4 text-[13px] font-medium text-muted-foreground uppercase tracking-tight opacity-60">Seguridad y Acceso</span>
+                    <div className="bg-white dark:bg-[#1C1C1E] rounded-[24px] overflow-hidden">
+                      <div className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${selectedProfile.role === 'PENDIENTE' ? 'bg-amber-500' : 'bg-indigo-500'}`}>
+                              <Shield size={16} />
+                           </div>
+                           <span className="text-[15px] font-medium text-foreground">Rol del Sistema</span>
+                        </div>
+                        {isAdmin ? (
+                          <select 
+                            className={`bg-transparent text-right outline-none font-bold text-[14px] cursor-pointer ${selectedProfile.role === 'PENDIENTE' ? 'text-amber-600' : 'text-indigo-500'}`}
+                            value={selectedProfile.role || 'PENDIENTE'}
+                            onChange={(e) => updateProfileData(selectedProfile.id, { role: e.target.value })}
+                          >
+                            <option value="ADMIN">Administrador</option>
+                            <option value="VENTAS">Vendedor</option>
+                            <option value="PENDIENTE">Pendiente / Bloqueado</option>
+                          </select>
+                        ) : (
+                          <Badge className="bg-slate-100 dark:bg-white/10 text-muted-foreground border-none px-3 font-bold text-[10px]">
+                            {selectedProfile.role || 'PENDIENTE'}
+                          </Badge>
+                        )}
                       </div>
-                      {isAdmin ? (
-                        <select 
-                          className="bg-transparent text-right outline-none text-indigo-500 font-bold text-[14px] cursor-pointer"
-                          value={selectedProfile.role || 'VENTAS'}
-                          onChange={(e) => updateProfileData(selectedProfile.id, { role: e.target.value })}
-                        >
-                          <option value="ADMIN">Administrador</option>
-                          <option value="VENTAS">Vendedor</option>
-                        </select>
-                      ) : (
-                        <span className="text-[14px] font-bold text-muted-foreground">{selectedProfile.role || 'VENTAS'}</span>
-                      )}
                     </div>
                   </div>
-                </div>
 
 
                 {/* Group 4: Critical Actions */}
