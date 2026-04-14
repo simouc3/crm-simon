@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase/client"
 import { Activity, DollarSign, Briefcase, TrendingUp, Target, Zap, TrendingDown, ArrowUpRight } from 'lucide-react'
 import { DashboardAIInsights } from "../components/DashboardAIInsights"
+import { DashboardSkeleton } from "../components/DashboardSkeleton"
 
 const fmtCLP = (n: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
 
@@ -274,15 +275,7 @@ export default function Dashboard() {
     fetchData()
   }, [])
 
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-      <div className="relative flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-[3px] border-primary/20 border-t-primary shadow-sm" />
-        <div className="absolute font-black text-[10px] text-primary">CRM</div>
-      </div>
-      <p className="text-muted-foreground text-xs font-black uppercase tracking-widest animate-pulse">Sincronizando Métricas...</p>
-    </div>
-  )
+  if (loading) return <DashboardSkeleton />
 
   // Filtrado por Tiempo
   const filteredDeals = deals.filter(deal => {

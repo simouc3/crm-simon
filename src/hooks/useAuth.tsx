@@ -15,6 +15,7 @@ type AuthContextType = {
   user: User | null
   profile: Profile | null
   loading: boolean
+  authReady: boolean
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null, 
   profile: null, 
   loading: true,
+  authReady: false,
   signOut: async () => {},
   refreshProfile: async () => {}
 })
@@ -33,6 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [authReady, setAuthReady] = useState(false)
 
   const fetchProfile = async (userId: string, retries = 0) => {
     try {
@@ -60,23 +63,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   useEffect(() => {
-    // Definimos una función de limpieza para el loading que siempre se ejecute
-    const stopLoading = () => setLoading(false);
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+    // Al terminar de cargar la sesión y el perfil, marcamos como listo
+    const initialize = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession()
+        setSession(currentSession)
+        setUser(currentSession?.user ?? null)
+        if (currentSession?.user) {
+          await fetchProfile(currentSession.user.id);
+        }
+      } finally {
+        setLoading(false)
+        setAuthReady(true)
       }
-      stopLoading();
-    }).catch(err => {
-      console.error("Auth Session Error:", err);
-      stopLoading();
-    });
+    }
+
+    initialize();
 
     // FAILSAFE RADICAL: Ningún spinner dura más de 4s
-    const failsafe = setTimeout(stopLoading, 4000);
+    const failsafe = setTimeout(() => {
+      setLoading(false)
+      setAuthReady(true)
+    }, 4000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
@@ -89,7 +97,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(failsafe)
+    }
   }, [])
 
   const signOut = async () => {
@@ -114,7 +125,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, authReady, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
