@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true)
   const [authReady, setAuthReady] = useState(false)
 
-  const fetchProfile = async (userId: string, retries = 0) => {
+  const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -45,20 +45,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .eq('id', userId)
         .maybeSingle()
       
-      if (error) {
-        console.warn(`Intento ${retries + 1} fallido:`, error.message)
-        throw error
-      }
-      
-      if (!data && retries < 2) {
-        await new Promise(r => setTimeout(r, 1000));
-        return fetchProfile(userId, retries + 1);
-      }
-
+      if (error) throw error
       setProfile(data)
     } catch (err) {
-      console.error('Error final cargando perfil:', err)
-      // No reseteamos a null aquí para mantener el estado previo si existe
+      console.warn('Perfil no cargado:', err)
     }
   }
 

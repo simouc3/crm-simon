@@ -76,9 +76,8 @@ DROP POLICY IF EXISTS "Read app_settings restricted" ON public.app_settings;
 CREATE POLICY "Read app_settings restricted" ON public.app_settings FOR SELECT 
 USING (public.get_my_role() IN ('ADMIN', 'VENTAS'));
 
--- 5. TRIGGER DE SINCRONIZACIÓN (Zero Trust Tank Mode)
--- Esta función garantiza que CUALQUIER usuario creado en Auth tenga un perfil
--- Evita errores regresivos mediante gestión de conflictos y excepciones.
+-- 5. TRIGGER DE SINCRONIZACIÓN (Direct Access Mode)
+-- Otorga acceso inmediato como 'VENTAS' a todo nuevo registro externo.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -87,7 +86,7 @@ BEGIN
     new.id, 
     COALESCE(new.raw_user_meta_data->>'full_name', 'Nuevo Operador'),
     new.email, 
-    'PENDIENTE'::user_role
+    COALESCE((new.raw_user_meta_data->>'role')::user_role, 'VENTAS'::user_role)
   )
   ON CONFLICT (id) DO UPDATE 
   SET 
@@ -96,8 +95,6 @@ BEGIN
 
   RETURN new;
 EXCEPTION WHEN OTHERS THEN
-  -- SILENT FAILSAFE: Si el perfil falla, no bloqueamos la creación del usuario en Auth
-  -- Esto permite que el Admin arregle el perfil manualmente si algo sale muy mal
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

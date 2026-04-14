@@ -8,6 +8,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [isRegistered, setIsRegistered] = useState(false)
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,8 +26,11 @@ export default function Login() {
           }
         })
         if (error) throw error
-        alert("¡Registro exitoso! Por favor, espera a que el Administrador apruebe tu cuenta.")
-        setIsSignUp(false)
+        setIsRegistered(true)
+        setTimeout(() => {
+          setIsSignUp(false)
+          setIsRegistered(false)
+        }, 3000)
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -75,7 +79,7 @@ export default function Login() {
                   {isSignUp ? 'Crear Cuenta Operativa' : 'Acceso al Portal'}
                 </h2>
                 <p className="text-xs text-white/40 font-medium">
-                  {isSignUp ? 'Regístrate para solicitar tu acceso al CRM.' : 'Ingresa tus credenciales para continuar.'}
+                  {isSignUp ? 'Regístrate para obtener acceso inmediato al CRM.' : 'Ingresa tus credenciales para continuar.'}
                 </p>
               </div>
 
@@ -139,7 +143,7 @@ export default function Login() {
                     </div>
                   ) : (
                     <>
-                      {isSignUp ? 'Solicitar Registro' : 'Iniciar Sesión'}
+                      {isSignUp ? 'Crear Cuenta y Entrar' : 'Iniciar Sesión'}
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -152,14 +156,32 @@ export default function Login() {
                   onClick={() => setIsSignUp(!isSignUp)}
                   className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] hover:text-primary transition-colors"
                 >
-                  {isSignUp ? '¿Ya eres operador? Entrar' : '¿Nuevo equipo? Solicitar Acceso'}
+                  {isSignUp ? '¿Ya eres operador? Entrar' : '¿Nuevo equipo? Registrarse'}
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer Security Badge */}
+        {/* Immediate Success Overlay */}
+      {isRegistered && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xl animate-in fade-in duration-500">
+          <div className="bg-white dark:bg-[#1C1C1E] p-10 rounded-[40px] shadow-2xl border border-black/[0.05] dark:border-white/[0.05] max-w-sm w-full text-center space-y-6">
+            <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 animate-bounce">
+              <Building2 className="text-white h-10 w-10 border-none" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black tracking-tight text-foreground">¡Cuenta Lista!</h2>
+              <p className="text-sm text-muted-foreground font-medium">Bienvenido al equipo, **{fullName}**. Tu acceso ha sido configurado. Redirigiendo...</p>
+            </div>
+            <div className="pt-4">
+              <ArrowRight className="h-5 w-5 text-primary mx-auto animate-pulse" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer Security Badge */}
         <div className="mt-12 flex flex-col items-center gap-4 opacity-20">
           <div className="flex items-center gap-3 px-4 py-2 rounded-full border border-white/20">
             <Shield className="text-white h-3 w-3" />
