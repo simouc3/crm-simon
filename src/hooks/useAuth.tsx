@@ -14,6 +14,7 @@ type AuthContextType = {
   session: Session | null
   user: User | null
   profile: Profile | null
+  loading: boolean
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null, 
   user: null, 
   profile: null, 
+  loading: true,
   signOut: async () => {},
   refreshProfile: async () => {}
 })
@@ -95,7 +97,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

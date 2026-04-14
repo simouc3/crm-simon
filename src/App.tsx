@@ -10,15 +10,16 @@ import AppLayout from './components/layout/AppLayout'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, profile } = useAuth()
+  const { session, profile, loading } = useAuth()
   
+  if (loading) return null // Evitar saltos de ruta mientras carga
+
   if (!session) {
     return <Navigate to="/login" replace />
   }
 
-  // Si el usuario está autenticado pero su rol es PENDIENTE, 
-  // redirigir a la página de espera (excepto si ya está en ella).
-  if (profile?.role === 'PENDIENTE') {
+  // Si no hay perfil aún (ej. no se ha ejecutado el SQL), tratamos como PENDIENTE por seguridad
+  if (!profile || profile.role === 'PENDIENTE') {
     return <Navigate to="/pending" replace />
   }
 
@@ -27,12 +28,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Redirects logged in users away from login page
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { session, profile } = useAuth()
+  const { session, profile, loading } = useAuth()
   
+  if (loading) return null
+
   if (session) {
-    // Si ya está logueado y es pendiente, mandarlo a pending 
-    // Si es activo, mandarlo al dashboard
-    if (profile?.role === 'PENDIENTE') {
+    // Si no hay perfil o es pendiente, a la espera
+    if (!profile || profile.role === 'PENDIENTE') {
       return <Navigate to="/pending" replace />
     }
     return <Navigate to="/" replace />
