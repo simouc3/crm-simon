@@ -56,12 +56,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Al terminar de cargar la sesión y el perfil, marcamos como listo
     const initialize = async () => {
       try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession()
-        setSession(currentSession)
-        setUser(currentSession?.user ?? null)
-        if (currentSession?.user) {
-          await fetchProfile(currentSession.user.id);
+        const { data, error } = await supabase.auth.getSession()
+        if (error) {
+          console.warn('Sesión inválida detectada:', error.message)
+          setSession(null)
+          setUser(null)
+        } else {
+          setSession(data.session)
+          setUser(data.session?.user ?? null)
+          if (data.session?.user) {
+            await fetchProfile(data.session.user.id);
+          }
         }
+      } catch (err) {
+        console.error('Fallo crítico en Auth init:', err)
+        setSession(null)
+        setUser(null)
       } finally {
         setLoading(false)
         setAuthReady(true)
