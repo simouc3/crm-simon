@@ -68,6 +68,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     })
 
+    // FAILSAFE: Si después de 3.5 segundos sigue cargando, forzar el fin del loading.
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 3500);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
