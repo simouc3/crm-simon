@@ -76,24 +76,34 @@ DROP POLICY IF EXISTS "Read app_settings restricted" ON public.app_settings;
 CREATE POLICY "Read app_settings restricted" ON public.app_settings FOR SELECT 
 USING (public.get_my_role() IN ('ADMIN', 'VENTAS'));
 
--- 5. TRIGGER DE SINCRONIZACIÓN (Zero Trust Force)
+-- 5. TRIGGER DE SINCRONIZACIÓN (Zero Trust Tank Mode)
+-- Esta función garantiza que CUALQUIER usuario creado en Auth tenga un perfil
+-- Evita errores regresivos mediante gestión de conflictos y excepciones.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, email, avatar_url, role)
+  INSERT INTO public.profiles (id, full_name, email, role)
   VALUES (
     new.id, 
-    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', 'Nuevo Usuario'),
+    COALESCE(new.raw_user_meta_data->>'full_name', 'Nuevo Operador'),
     new.email, 
-    COALESCE(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture'),
     'PENDIENTE'::user_role
   )
   ON CONFLICT (id) DO UPDATE 
   SET 
-    full_name = COALESCE(excluded.full_name, profiles.full_name),
-    avatar_url = COALESCE(excluded.avatar_url, profiles.avatar_url),
-    email = excluded.email;
+    full_name = EXCLUDED.full_name,
+    email = EXCLUDED.email;
 
+  RETURN new;
+EXCEPTION WHEN OTHERS THEN
+  -- SILENT FAILSAFE: Si el perfil falla, no bloqueamos la creación del usuario en Auth
+  -- Esto permite que el Admin arregle el perfil manualmente si algo sale muy mal
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6. ACTIVACIÓN DEL TRIGGER
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

@@ -84,10 +84,18 @@ function App() {
 function PendingRouteGuard({ children }: { children: React.ReactNode }) {
   const { session, profile, authReady } = useAuth()
   
-  if (!authReady) return null
+  if (!authReady) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F7] dark:bg-[#0D0D17]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="mt-4 text-[10px] font-black uppercase tracking-widest opacity-40">Verificando Acceso...</p>
+      </div>
+    )
+  }
+
   if (!session) return <Navigate to="/login" replace />
   
-  // Si ya tiene rol activo, al dashboard
+  // Si ya tiene rol activo, al dashboard directo
   if (profile && (profile.role === 'ADMIN' || profile.role === 'VENTAS')) {
     return <Navigate to="/" replace />
   }

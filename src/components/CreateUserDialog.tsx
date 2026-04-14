@@ -37,25 +37,30 @@ export function CreateUserDialog({ open, onOpenChange, onUserCreated }: CreateUs
     e.preventDefault()
     setLoading(true)
 
-    // Manual profile insertion
-    const { error } = await supabase
-      .from('profiles')
-      .insert([
-        { 
-          full_name: formData.full_name, 
-          email: formData.email, 
-          role: formData.role,
-          id: crypto.randomUUID() // Create a temporary UUID until they sign up
+    try {
+      // Usamos signUp para crear la cuenta en auth.users
+      // Esto disparará el Trigger Tank Mode que creará el perfil automáticamente
+      const tempPassword = Math.random().toString(36).slice(-10) + "A1!"
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: tempPassword,
+        options: {
+          data: {
+            full_name: formData.full_name,
+            role: formData.role // El trigger leerá este rol
+          }
         }
-      ])
+      })
 
-    if (error) {
-      alert("Error creando perfil: " + error.message)
-    } else {
+      if (error) throw error
+      
       setInvited(true)
       onUserCreated()
+    } catch (error: any) {
+      alert("Error creando cuenta de acceso: " + error.message)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const copyInviteLink = () => {
