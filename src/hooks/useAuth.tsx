@@ -124,6 +124,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     )
   }
 
+  // Efecto para detectar si el usuario ha sido aprobado y redirigir automáticamente
+  useEffect(() => {
+    if (authReady && profile && (profile.role === 'ADMIN' || profile.role === 'VENTAS')) {
+      const currentPath = window.location.pathname;
+      if (currentPath === '/pending' || currentPath === '/login') {
+        window.location.href = '/';
+      }
+    }
+  }, [profile, authReady]);
+
   return (
     <AuthContext.Provider value={{ session, user, profile, loading, authReady, signOut, refreshProfile }}>
       {children}
