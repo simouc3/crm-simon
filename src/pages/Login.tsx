@@ -9,16 +9,14 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [isRegistered, setIsRegistered] = useState(false)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   // Asegurar limpieza total al cargar login para evitar errores de token antiguos
   useEffect(() => {
-    const clearWaste = async () => {
-      try {
-        await supabase.auth.signOut()
-        localStorage.clear()
-      } catch (e) {}
+    if (window.location.search.includes('expired=true')) {
+      setSessionExpired(true)
+      window.history.replaceState({}, '', '/login')
     }
-    clearWaste()
   }, [])
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -82,6 +80,13 @@ export default function Login() {
               Sistemas de Limpieza Industrial
             </p>
           </div>
+
+          {sessionExpired && (
+            <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-center animate-in fade-in slide-in-from-top-4">
+              <p className="text-sm font-bold">Tu sesión ha expirado</p>
+              <p className="text-[11px] opacity-80 mt-1">Por seguridad, vuelve a ingresar tus credenciales.</p>
+            </div>
+          )}
 
           <div className="space-y-8">
             <div className="space-y-4">

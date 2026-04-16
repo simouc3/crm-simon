@@ -66,8 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data, error } = await supabase.auth.getSession()
         if (error) {
           console.warn('Sesión corrupta detectada:', error.message)
-          // LIMPIEZA TOTAL AGRESIVA
-          localStorage.clear()
+          // LIMPIEZA TOTAL AGRESIVA (sin destruir localStorage ajeno)
           setSession(null)
           setUser(null)
           setProfile(null)
@@ -84,7 +83,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (err) {
         console.error('Error fatal de Auth:', err)
-        localStorage.clear()
         setSession(null)
         setUser(null)
       } finally {
@@ -95,13 +93,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     initialize();
 
-    // FAILSAFE RADICAL: Ningún spinner dura más de 4s
-    const failsafe = setTimeout(() => {
-      setLoading(false)
-      setAuthReady(true)
-    }, 4000);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+
+    const handleAuthError = () => {
+      console.warn('API Authentication error intercepted. Forcing logout...')
+      supabase.auth.signOut().catch(() => {}).finally(() => {
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login?expired=true'
+        }
+      })
+    }
+    // @ts-ignore
+    window.addEventListener('supabase:auth-error', handleAuthError)
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
+        return
+      }
+
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -112,9 +130,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false)
     })
 
+    // Aggressive Tab Wake-up Check (Debounced)
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        const { data, error } = await supabase.auth.getSession()
+        if (error || !data.session) {
+          console.warn('Tab woken up with invalid session, forcing logout')
+          handleAuthError()
+        } else if (data.session.user && data.session.user.id !== user?.id) {
+          // If the user somehow changed or session was refreshed
+          setSession(data.session)
+          setUser(data.session.user)
+          fetchProfile(data.session.user.id)
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
+      // @ts-ignore
+      window.removeEventListener('supabase:auth-error', handleAuthError)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       subscription.unsubscribe()
-      clearTimeout(failsafe)
     }
   }, [])
 
