@@ -95,16 +95,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 
 
-    const handleAuthError = () => {
-      console.warn('API Authentication error intercepted. Forcing logout...')
-      supabase.auth.signOut().catch(() => {}).finally(() => {
-        setSession(null)
-        setUser(null)
-        setProfile(null)
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login?expired=true'
-        }
-      })
+    const handleAuthError = async () => {
+      console.warn('API Authentication error (401) intercepted. Attempting recovery...')
+      const { data, error } = await supabase.auth.refreshSession()
+      
+      if (error || !data.session) {
+        console.warn('Session is definitely dead. Forcing logout...')
+        supabase.auth.signOut().catch(() => {}).finally(() => {
+          setSession(null)
+          setUser(null)
+          setProfile(null)
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login?expired=true'
+          }
+        })
+      } else {
+        console.warn('Session recovered successfully! Revalidating UI.')
+        setSession(data.session)
+        setUser(data.session.user)
+        window.dispatchEvent(new CustomEvent('app:revalidate'))
+      }
     }
     // @ts-ignore
     window.addEventListener('supabase:auth-error', handleAuthError)
@@ -137,11 +147,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (error || !data.session) {
           console.warn('Tab woken up with invalid session, forcing logout')
           handleAuthError()
-        } else if (data.session.user && data.session.user.id !== user?.id) {
-          // If the user somehow changed or session was refreshed
-          setSession(data.session)
-          setUser(data.session.user)
-          fetchProfile(data.session.user.id)
+        } else {
+          // Revalidate UI state on tab focus (revalidateOnFocus equivalent)
+          if (data.session.user && data.session.user.id !== user?.id) {
+            setSession(data.session)
+            setUser(data.session.user)
+            fetchProfile(data.session.user.id)
+          }
+          window.dispatchEvent(new CustomEvent('app:revalidate'))
         }
       }
     }

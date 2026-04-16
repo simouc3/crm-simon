@@ -272,14 +272,6 @@ export default function Dashboard() {
           .order('created_at', { ascending: true })
         
         if (error) {
-          if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-            console.error('Sesión inválida en Dashboard, cerrando...')
-            // El hook useAuth ya maneja la limpieza si forzamos un evento o simplemente limpiamos
-            supabase.auth.signOut().then(() => {
-              window.location.href = '/login'
-            })
-            return
-          }
           throw error
         }
         setDeals(data || [])
@@ -290,6 +282,9 @@ export default function Dashboard() {
       }
     }
     fetchData()
+
+    window.addEventListener('app:revalidate', fetchData)
+    return () => window.removeEventListener('app:revalidate', fetchData)
   }, [])
 
   if (loading) return <DashboardSkeleton />

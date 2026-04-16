@@ -39,7 +39,11 @@ export default function KanbanBoard() {
     if (!error && data) setDeals(data)
   }
 
-  useEffect(() => { fetchDeals() }, [])
+  useEffect(() => { 
+    fetchDeals()
+    window.addEventListener('app:revalidate', fetchDeals)
+    return () => window.removeEventListener('app:revalidate', fetchDeals)
+  }, [])
 
   // Filter deals logic: Stages 1-5 are always visible. Stages 6-7 are filtered by month/year.
   const filteredDeals = deals.filter(deal => {

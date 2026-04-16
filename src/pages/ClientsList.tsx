@@ -47,12 +47,6 @@ export default function ClientsList() {
         .order("created_at", { ascending: false })
 
       if (error) {
-        if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-          supabase.auth.signOut().then(() => {
-             window.location.href = '/login'
-          })
-          return
-        }
         throw error
       }
       
@@ -82,6 +76,8 @@ export default function ClientsList() {
 
   useEffect(() => {
     fetchCompanies()
+    window.addEventListener('app:revalidate', fetchCompanies)
+    return () => window.removeEventListener('app:revalidate', fetchCompanies)
   }, [])
 
   const openClientDetail = (client: any) => {
